@@ -18,7 +18,7 @@
   var BOOK = [
     { id: 'ch00', num: '0장', title: '이 교재를 읽는 방법과 동백커피 이야기', part: '입문', screens: 8, hours: 1.25, ready: true },
     { id: 'ch01', num: '1장', title: '엑셀 한 장의 고통: 나쁜 설계와 이상현상', part: '입문', screens: 12, hours: 2.0, ready: true },
-    { id: 'ch02', num: '2장', title: '테이블 나누기: 엔터티·키·관계', part: '기본 이론', screens: 13, hours: 2.5 },
+    { id: 'ch02', num: '2장', title: '테이블 나누기: 엔터티·키·관계', part: '기본 이론', screens: 13, hours: 2.5, ready: true },
     { id: 'ch03', num: '3장', title: '정규화: 나눈 설계를 검증하는 도구', part: '기본 이론', screens: 16, hours: 3.0 },
     { id: 'ch04', num: '4장', title: '제약조건: 규칙을 DB에 맡기기', part: '기본 이론', screens: 11, hours: 2.0 },
     { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5 },
@@ -47,6 +47,14 @@
     anomaly: '이상현상 — 같은 사실이 여러 곳에 적히거나 서로 다른 종류의 사실이 한 행에 섞여서, 고치기·넣기·지우기에서 생기는 오류(갱신·삽입·삭제 이상). 버그가 아니라 설계 결함이다.',
     redundancy: '중복 — 같은 사실이 둘 이상의 자리에 저장된 것. 값이 우연히 같은 것과는 다르다.',
     integrity: '무결성 — 데이터가 서로 모순되지 않고 정해진 규칙에 맞는 상태.',
+    entity: '엔터티 — 요구사항에서 독립해서 구별되고 여러 사실이 딸린 대상(메뉴, 회원, 주문). 나중에 테이블이 된다.',
+    attribute: '속성 — 엔터티에 딸린 정보 하나(메뉴의 이름, 가격). 나중에 테이블의 열이 된다.',
+    candkey: '후보키 — 행을 유일하게 구별하면서(유일성) 열을 하나라도 빼면 그 성질이 깨지는(최소성) 열 조합. 그중 대표로 뽑은 것이 기본키다.',
+    natkey: '자연키 — 업무에 원래 있는 값을 그대로 키로 쓴 것(전화번호, 이메일). 바뀔 수 있다는 것이 약점이다.',
+    surkey: '대리키 — 의미 없이 시스템이 붙인 번호를 키로 쓴 것(member_id). 값이 바뀌지 않지만 같은 사람인지는 알려 주지 못한다.',
+    cardinality: '카디널리티 — 관계에서는 두 엔터티가 몇 대 몇으로 이어지는가(1:N, N:M). 인덱스 문맥(7장)에서는 열이 가진 서로 다른 값의 수를 뜻해 다른 개념이다.',
+    refint: '참조 무결성 — 외래키가 가리키는 행이 실제로 존재한다는 보장. 없는 행을 가리키는 값은 DB가 거부한다.',
+    erd: 'ER 다이어그램 — 엔터티(상자), 속성, 키, 관계(선, 1과 N)를 한 장에 그린 설계도.',
     join: '조인(JOIN) — 두 테이블의 행을 키가 같은 것끼리 이어 붙여 한 결과 표로 만드는 조회.'
   };
 
@@ -79,7 +87,7 @@
               'PRIMARY|KEY|FOREIGN|REFERENCES|UNIQUE|CHECK|NOT|NULL|DEFAULT|CONSTRAINT|CASCADE|RESTRICT|' +
               'BEGIN|COMMIT|ROLLBACK|FOR|DISTINCT|AS|IN|IS|LIKE|BETWEEN|EXISTS|CASE|WHEN|THEN|ELSE|END|' +
               'LIMIT|OFFSET|UNION|ALL|ANY|RETURNING|WITH|EXCLUDE|EXPLAIN|ANALYZE|TRUE|FALSE|AND|OR|' +
-              'COUNT|SUM|AVG|MIN|MAX|COALESCE|NOW|' +
+              'COUNT|SUM|AVG|MIN|MAX|COALESCE|NOW|GENERATED|ALWAYS|IDENTITY|' +
               'INTEGER|INT|BIGINT|SMALLINT|NUMERIC|TEXT|VARCHAR|BOOLEAN|DATE|TIMESTAMP|TIMESTAMPTZ|' +
               'GENERATED|ALWAYS|IDENTITY|SERIAL';
 
