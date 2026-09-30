@@ -166,11 +166,11 @@
     <table>
       <tr><th style="width:8rem">낱말</th><th>대략 무엇인가</th><th style="width:8rem">깊게 다루는 곳</th></tr>
       <tr><td>데이터베이스(DB)</td><td>DBMS 안에 모여 있는 데이터 묶음. 스키마(틀)와 그 틀에 담긴 데이터로 이루어짐</td><td>이 장</td></tr>
-      <tr><td><span class="term" data-term="dbms">DBMS</span></td><td>데이터를 저장하고 꺼내 주고 규칙을 지켜 주는 프로그램(PostgreSQL 등)</td><td>이 장</td></tr>
+      <tr><td><span class="term" data-term="dbms">DBMS</span> (Database Management System, 데이터베이스 관리 시스템)</td><td>데이터를 저장하고 꺼내 주고 규칙을 지켜 주는 프로그램(PostgreSQL 등)</td><td>이 장</td></tr>
       <tr><td><span class="term" data-term="schema">스키마</span></td><td>어떤 테이블이 있고 각 테이블에 어떤 열과 규칙이 있는지의 설계도</td><td>2장~</td></tr>
       <tr><td><span class="term" data-term="table">테이블</span></td><td>같은 모양의 행을 모은 표. 행 = 사실 하나, 열 = 그 사실의 속성 하나</td><td>이 장</td></tr>
-      <tr><td><span class="term" data-term="pk">기본키(PK)</span></td><td>행 하나를 유일하게 가리키는 열</td><td>2장</td></tr>
-      <tr><td><span class="term" data-term="fk">외래키(FK)</span></td><td>다른 테이블의 행을 가리키는 열</td><td>2장</td></tr>
+      <tr><td><span class="term" data-term="pk">기본키(PK)</span> (Primary Key)</td><td>행 하나를 유일하게 가리키는 열</td><td>2장</td></tr>
+      <tr><td><span class="term" data-term="fk">외래키(FK)</span> (Foreign Key)</td><td>다른 테이블의 행을 가리키는 열</td><td>2장</td></tr>
       <tr><td>정규화</td><td>같은 사실이 여러 곳에 중복되지 않도록 표를 나누는 원칙</td><td>3장</td></tr>
       <tr><td><span class="term" data-term="constraint">제약조건</span></td><td>데이터가 지켜야 할 규칙을 DB에 선언해 두는 것</td><td>4장</td></tr>
       <tr><td><span class="term" data-term="index">인덱스</span></td><td>원하는 행을 빨리 찾게 해 주는 색인</td><td>7장</td></tr>
@@ -395,6 +395,29 @@ COMMIT;            -- 여기서 확정. 중간에 ROLLBACK 하면 전부 취소
     </ol>
   </div>
 
+  <div class="box note">
+    <p class="box-t">퀴즈와 직접 해보기에 쓰는 표</p>
+    <p>화면 4와 6에서 본 표입니다. 이전 화면으로 돌아가지 않고 바로 확인하세요.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th colspan="3"><code>menu</code></th></tr>
+        <tr><th>menu_id</th><th>name</th><th>price</th></tr>
+        <tr><td>1</td><td>아메리카노</td><td>4500</td></tr>
+        <tr><td>2</td><td>카페라떼</td><td>5000</td></tr>
+        <tr><td>3</td><td>치즈케이크</td><td>6500</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th colspan="3"><code>order_line</code></th></tr>
+        <tr><th>order_id</th><th>menu_id</th><th>quantity</th></tr>
+        <tr><td>101</td><td>1</td><td>2</td></tr>
+        <tr><td>101</td><td>3</td><td>1</td></tr>
+        <tr><td>102</td><td>2</td><td>1</td></tr>
+      </table>
+    </div>
+  </div>
+
   <!-- 퀴즈 1 -->
   <div class="quiz" data-answer="1">
     <p class="q">화면 4와 6의 표들에서 다음 조회를 실행하면 결과는 어떤 행들일까요?<br>
@@ -464,7 +487,7 @@ WHERE  price &gt;= 5000;
 
   <div class="box note">
     <p class="box-t">학습 트랙 고르기</p>
-    <p>표지의 학습 트랙(여유·표준·단기 몰입) 중 하나를 골라, 이번 주에 읽을 장과 요일을 정해 두세요.
+    <p>표지의 학습 트랙(여유·표준·주말 집중·단기 몰입) 중 하나를 골라, 이번 주에 읽을 장과 요일을 정해 두세요.
     <b>3장(정규화), 6장(스냅샷과 이력), 8장(동시성)</b>이 교재의 허리이니 그 주에는 시간을 넉넉히 잡는 것이 좋습니다.</p>
   </div>
 
