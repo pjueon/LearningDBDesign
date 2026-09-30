@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ko" data-chapter="ch01">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1장 · 엑셀 한 장의 고통: 나쁜 설계와 이상현상 — DB 설계 첫걸음</title>
+<link rel="stylesheet" href="assets/book.css">
+</head>
+<body>
+
+<main id="book"><div class="inner">
+
+<!-- ─────────────────────────────────────────── 화면 1 -->
+<section class="screen" data-title="서연의 엑셀 장부">
+  <p class="kicker">1장 · 화면 1</p>
+  <h1>엑셀 한 장의 고통: 나쁜 설계와 이상현상</h1>
+
+  <p class="lead">DB를 만들기 전, 동백커피는 <b>엑셀 시트 한 장</b>으로 돌아갔습니다. 이 장에서는 그 시트가
+  왜 아픈지를 <b>직접 겪어 보고</b>, 아픈 이유를 찾아 표를 나눕니다. 이상현상이나 정규화 같은 정식 이름은 겪은 뒤에 붙입니다.
+  겪는 것이 먼저이고 이름은 나중입니다.</p>
+
+  <div class="box note">
+    <p class="box-t">이 장의 진행</p>
+    <ol>
+      <li><b>화면 1~2</b> — 서연의 장부를 읽고, 이 표로 물어볼 때 어디가 불편한지 봅니다.</li>
+      <li><b>화면 3~7</b> — 고치기·넣기·지우기가 각각 어떻게 어긋나는지 겪고, 위젯으로 직접 재현합니다. 이름 표기가 흔들리는 문제도 봅니다.</li>
+      <li><b>화면 8~10</b> — 아픈 이유를 하나로 모으고, 표를 사실 단위로 쪼갠 뒤, 키로 다시 잇습니다.</li>
+      <li><b>화면 11~12</b> — 쪼개기가 늘 옳은 것은 아니라는 한계를 보고 정리합니다.</li>
+    </ol>
+  </div>
+
+  <p>다음은 서연이 3월 첫 주에 쓴 장부입니다. 손님이 메뉴를 사면 한 줄씩 적습니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>일시</th><th>고객</th><th>전화</th><th>메뉴</th><th>단가</th><th>수량</th><th>합계</th><th>결제</th><th>바리스타</th></tr>
+      <tr><td>3/4 09:10</td><td>민준</td><td>010-1111-2222</td><td>아메리카노</td><td>4500</td><td>2</td><td>9000</td><td>카드</td><td>지호</td></tr>
+      <tr><td>3/4 09:10</td><td>민준</td><td>010-1111-2222</td><td>치즈케이크</td><td>6500</td><td>1</td><td>6500</td><td>카드</td><td>지호</td></tr>
+      <tr><td>3/4 09:25</td><td>소라</td><td>010-3333-4444</td><td>카페라떼</td><td>5000</td><td>1</td><td>5000</td><td>현금</td><td>지호</td></tr>
+      <tr><td>3/4 10:02</td><td>민준</td><td>010-1111-2222</td><td>아메리카노</td><td>4500</td><td>1</td><td>4500</td><td>카드</td><td>서연</td></tr>
+      <tr><td>3/5 08:55</td><td>소라</td><td>010-3333-4444</td><td>아메리카노</td><td>4500</td><td>1</td><td>4500</td><td>현금</td><td>지호</td></tr>
+      <tr><td>3/5 09:40</td><td>도윤</td><td>010-5555-6666</td><td>카페라떼</td><td>5000</td><td>2</td><td>10000</td><td>카드</td><td>서연</td></tr>
+    </table>
+  </div>
+
+  <p>0장에서 배운 습관대로 먼저 물어봅시다. <b>이 표의 한 행은 무엇을 뜻하나요?</b>
+  "어느 주문의 메뉴 하나와 그 수량", 즉 <b>주문 라인</b>입니다. 민준이 3/4 09:10에 아메리카노 2잔과 치즈케이크 1개를
+  함께 샀기 때문에 그 주문은 두 행입니다. 합계 열은 <code>단가 × 수량</code>입니다.</p>
+
+  <div class="dialog">
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>한 주에 이백 줄 정도라 필터만 걸면 되고, 한눈에 보여서 편했어요.</p></div></div>
+    <div class="line"><div class="who">지호</div><div class="say">
+      <p>저는 손님 앞에서 메뉴를 치는 대로 옆 칸에 가격을 적었어요. 가게가 작을 땐 이게 제일 빠르죠.</p></div></div>
+  </div>
+
+  <p>실제로 이 시트는 한동안 잘 돌아갔습니다. 표가 하나뿐이고 쓰는 사람이 둘뿐이라 부딪힐 일이 적었기 때문입니다.
+  이 장은 엑셀을 깎아내리려는 것이 아닙니다. 다만 <b>같은 시트가 어떤 질문과 어떤 변경 앞에서 어긋나기 시작하는지</b>를 봅니다.
+  이 표에는 주문 번호 열이 없다는 점도 눈여겨보세요. 같은 일시에 같은 고객이면 같은 주문이라고, 사람이 눈으로 묶어서 읽고 있습니다.</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 2 -->
+<section class="screen" data-title="이 표로 물어보기">
+  <p class="kicker">1장 · 화면 2</p>
+  <h2>이 표로 물어보면 어디가 불편할까</h2>
+
+  <p>장사가 자리를 잡자 서연이 궁금한 것이 늘었습니다.</p>
+
+  <div class="dialog">
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>이번 주에 메뉴마다 얼마씩 팔렸는지, 카드랑 현금이 얼마인지 알고 싶어요.
+      그리고 3월 4일에 주문이 몇 건이었는지, 손님이 몇 명 왔는지도요.</p></div></div>
+  </div>
+
+  <p>앞 화면의 여섯 행으로 하나씩 답해 봅시다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:11rem">질문</th><th>엑셀에서 답하는 법</th><th>답</th></tr>
+      <tr><td>메뉴별 매출</td><td>필터로 메뉴를 고르고 합계를 더하거나, 엑셀의 조건부 합계 함수(<code>SUMIF</code>)를 씁니다.</td>
+          <td>아메리카노 18000, 카페라떼 15000, 치즈케이크 6500 (합 39500)</td></tr>
+      <tr><td>결제수단별 매출</td><td>같은 방식으로 결제 열을 조건으로 더합니다.</td>
+          <td>카드 30000, 현금 9500</td></tr>
+      <tr><td>3/4 주문 건수</td><td>3/4 행이 4개입니다. 하지만 <b>행 수가 곧 주문 수는 아닙니다.</b> 일시와 고객이 같은 두 행이 한 주문이라, 사람이 묶어서 세야 합니다.</td>
+          <td>3건</td></tr>
+      <tr><td>3/4 손님 수</td><td>3/4 행의 고객 열에 민준이 세 번 나옵니다. 중복을 걷어내며 세야 합니다.</td>
+          <td>2명</td></tr>
+    </table>
+  </div>
+
+  <p>앞의 두 질문은 시트가 잘 답합니다. 뒤의 두 질문에서 걸리는 이유는 <b>질문의 단위와 행의 단위가 다르기</b> 때문입니다.
+  이 표의 한 행은 <b>주문 라인</b>인데 서연의 질문은 <b>주문</b>과 <b>손님</b>에 관한 것입니다.
+  주문 건수를 세려면 "일시와 고객이 같은 행을 하나로 묶는" 작업을 사람이 해야 하고,
+  손님 수를 세려면 "같은 사람을 한 번만" 세는 작업을 해야 합니다.</p>
+
+  <div class="box warn">
+    <p class="box-t">표를 볼 때의 습관 두 번째 질문</p>
+    <p>"한 행이 무엇을 뜻하는가?"에 이어 <b>"내가 세고 싶은 것은 그 행과 같은 단위인가?"</b>를 물어보세요.
+    다르면 그 사이를 사람이 메워야 하고, 사람이 메우는 곳에서 실수가 생깁니다.</p>
+  </div>
+
+  <p>여섯 행에서는 눈으로 세도 됩니다. 이백 행, 이만 행이 되면 어떨까요?
+  이 화면의 질문들은 아직 <b>읽기</b>였습니다. 진짜 문제는 <b>고치고, 넣고, 지울 때</b> 나옵니다. 다음 세 화면에서 봅니다.</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 3 -->
+<section class="screen" data-title="고쳤더니 어긋남">
+  <p class="kicker">1장 · 화면 3</p>
+  <h2>겪어 보기 ① — 하나를 고쳤는데 다른 곳이 그대로</h2>
+
+  <div class="dialog">
+    <div class="line"><div class="who">민준</div><div class="say">
+      <p>저 번호 바뀌었어요. 010-7777-8888로 적어 주세요.</p></div></div>
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>네, 민준 님이 어디에 있더라… 찾았다, 여기요.</p></div></div>
+  </div>
+
+  <p>서연은 시트에서 민준 행을 찾아 전화 칸을 고쳤습니다. 그런데 민준 행은 <b>세 개</b>입니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>일시</th><th>고객</th><th>전화</th><th>메뉴</th></tr>
+      <tr><td>3/4 09:10</td><td>민준</td><td><span class="hl">010-7777-8888</span></td><td>아메리카노</td></tr>
+      <tr><td>3/4 09:10</td><td>민준</td><td>010-1111-2222</td><td>치즈케이크</td></tr>
+      <tr><td>3/4 10:02</td><td>민준</td><td>010-1111-2222</td><td>아메리카노</td></tr>
+    </table>
+  </div>
+
+  <p>첫 행만 고쳐졌습니다. 이제 시트는 <b>같은 사람에 대해 서로 다른 두 가지를 말하고</b> 있습니다.
+  어느 번호가 맞는지는 표만 봐서는 알 수 없습니다. 누가 "맨 위가 최신"이라고 정해 두었다면 정렬을 바꾸는 순간 그 약속이 깨집니다.</p>
+
+  <p>왜 이런 일이 생길까요? <b>민준의 전화번호라는 한 가지 사실이 표에 세 번 적혀 있기 때문</b>입니다.
+  한 사실이 여러 자리에 있으면 고칠 때 <b>전부 찾아서 전부 고쳐야</b> 하고, 하나라도 빠지면 어긋납니다.
+  같은 구조가 메뉴에도 있습니다. 아메리카노의 단가 4500은 세 행에 따로 적혀 있어서,
+  잘못 입력한 단가를 바로잡으려면 그 행들과 옆의 합계 칸까지 모두 찾아 고쳐야 합니다.</p>
+
+  <div class="box note">
+    <p class="box-t">이런 현상을 갱신 이상이라고 부릅니다</p>
+    <p>같은 사실이 여러 곳에 적혀 있어서, 고칠 때 일부만 바뀌고 <b>데이터가 서로 모순되는 현상</b>입니다.
+    지호나 서연이 부주의해서가 아니라 <b>표의 모양이 실수를 부르는</b> 것입니다. 사람에게 "조심하라"고 하는 것으로는 해결되지 않습니다.
+    이 이름은 화면 8에서 다른 둘과 함께 <b>이상현상</b>으로 묶습니다.</p>
+  </div>
+
+  <p>합계 칸도 같은 이야기입니다. 합계는 <code>단가 × 수량</code>으로 <b>계산할 수 있는 값</b>인데 표에 따로 적혀 있어서,
+  단가나 수량을 고치면 합계도 함께 고쳐야 합니다. 계산할 수 있는 값을 저장해 두는 것의 득실은 3장에서 판단합니다.
+  <span class="later">3장에서 다시 본다</span></p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 4 -->
+<section class="screen" data-title="넣을 자리가 없음">
+  <p class="kicker">1장 · 화면 4</p>
+  <h2>겪어 보기 ② — 넣고 싶은데 넣을 자리가 없다</h2>
+
+  <div class="dialog">
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>다음 주부터 바닐라라떼(5500원)를 팔 거예요. 메뉴판에 올려 둬야 손님이 물어봐도 답하죠.</p></div></div>
+    <div class="line"><div class="who">지호</div><div class="say">
+      <p>시트 어디에 적죠? 아직 한 잔도 안 팔렸는데요.</p></div></div>
+  </div>
+
+  <p>시트에는 <b>메뉴 목록이 없습니다.</b> 메뉴 이름과 단가는 주문 행 안에만 존재합니다. 그래서 세 가지 선택지가 있습니다.</p>
+
+  <ol>
+    <li><b>빈 행을 하나 만든다</b> — 바닐라라떼와 5500만 적고 일시·고객·수량은 비워 둡니다.
+    그런데 이 행은 <b>주문 라인이 아닌데 주문 라인의 모양을 하고</b> 있습니다.
+    "바닐라라떼가 몇 번 팔렸나"를 행 수로 세면 1건이 나옵니다. 한 잔도 안 팔렸는데도요.</li>
+    <li><b>시트 구석에 메모한다</b> — 표 밖에 적은 정보는 <code>SUMIF</code>나 필터가 보지 못하고,
+    나중에 주문 행의 단가와 메모가 어긋나도 알려 주는 사람이 없습니다.</li>
+    <li><b>첫 주문이 들어올 때까지 기다린다</b> — 그때까지 바닐라라떼의 가격은 시트 어디에도 없습니다.
+    손님이 가격을 물으면 지호는 기억에 의존해야 합니다.</li>
+  </ol>
+
+  <p>같은 일이 손님에게도 일어납니다. 회원 가입만 하고 아직 주문하지 않은 손님의 전화번호는 시트 어디에 적을까요?</p>
+
+  <div class="box note">
+    <p class="box-t">이런 현상을 삽입 이상이라고 부릅니다</p>
+    <p>어떤 사실을 저장하고 싶은데, <b>다른 사실이 함께 있어야만</b> 넣을 자리가 생기는 현상입니다.
+    이 표에서 메뉴의 사실(이름·가격)과 고객의 사실(이름·전화)은 <b>주문 라인이라는 행에 얹혀서만</b> 존재할 수 있습니다.
+    주문 없이는 메뉴도 손님도 표에 존재할 수 없다는 뜻입니다.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 5 -->
+<section class="screen" data-title="지웠더니 사라짐">
+  <p class="kicker">1장 · 화면 5</p>
+  <h2>겪어 보기 ③ — 하나를 지웠더니 다른 것이 사라진다</h2>
+
+  <div class="dialog">
+    <div class="line"><div class="who">민준</div><div class="say">
+      <p>아까 09:10 주문, 취소해 주세요. 결제도 취소할게요.</p></div></div>
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>네. 장부에서 그 주문은 지울게요.</p></div></div>
+  </div>
+
+  <p>서연은 취소된 주문, 즉 3/4 09:10 민준의 두 행을 지웠습니다. 남은 시트를 봅시다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>일시</th><th>고객</th><th>전화</th><th>메뉴</th><th>단가</th><th>수량</th></tr>
+      <tr><td>3/4 09:25</td><td>소라</td><td>010-3333-4444</td><td>카페라떼</td><td>5000</td><td>1</td></tr>
+      <tr><td>3/4 10:02</td><td>민준</td><td>010-1111-2222</td><td>아메리카노</td><td>4500</td><td>1</td></tr>
+      <tr><td>3/5 08:55</td><td>소라</td><td>010-3333-4444</td><td>아메리카노</td><td>4500</td><td>1</td></tr>
+      <tr><td>3/5 09:40</td><td>도윤</td><td>010-5555-6666</td><td>카페라떼</td><td>5000</td><td>2</td></tr>
+    </table>
+  </div>
+
+  <p>이 표에 <b>치즈케이크</b>는 없습니다. 치즈케이크가 주문된 행은 방금 지운 한 줄뿐이었기 때문입니다.
+  이제 시트 어디에서도 <b>치즈케이크가 있었다는 것도, 가격이 6500원이었다는 것도</b> 알 수 없습니다.
+  서연은 주문 하나를 지웠을 뿐인데 메뉴 정보까지 함께 사라졌습니다.</p>
+
+  <p>민준의 전화번호는 다른 행에 남아 있어 무사합니다. 만약 취소된 것이 도윤의 유일한 주문이었다면
+  도윤의 전화번호가 함께 사라졌을 것입니다. 남느냐 사라지느냐는 <b>다른 행에 우연히 같은 정보가 있느냐</b>에 달렸고,
+  그 우연에 기대는 설계는 위험합니다.</p>
+
+  <div class="box note">
+    <p class="box-t">이런 현상을 삭제 이상이라고 부릅니다</p>
+    <p>어떤 사실을 지우려고 행을 지웠더니, <b>그 행에 얹혀 있던 전혀 다른 사실까지 함께</b> 사라지는 현상입니다.
+    삽입 이상과 뿌리가 같습니다. 메뉴의 사실이 주문 라인의 행에 얹혀 있어서, 행이 사라지면 함께 사라집니다.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 6 (위젯) -->
+<section class="screen" data-title="이상현상 시뮬레이터">
+  <p class="kicker">1장 · 화면 6</p>
+  <h2>직접 재현해 보기 — 이상현상 시뮬레이터</h2>
+
+  <p>세 가지를 글로 읽었으니 직접 눌러서 확인해 봅시다. <b>결론은 앞의 세 화면에 이미 있습니다.</b>
+  위젯은 그것이 정말 그렇게 되는지 손으로 보는 도구입니다. 위의 탭으로 실험을 고르고,
+  <b>표 안의 표시된 칸이나 버튼을 눌러</b> 보세요. 탭을 바꾸면 표가 처음 상태로 돌아갑니다.</p>
+
+  <div id="sim-tabs" style="display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0 .3rem"></div>
+  <div id="sim-box"></div>
+  <p id="sim-msg" role="status" style="margin:.6rem 0 1rem;padding:.8rem 1rem;border:1px solid var(--rule);border-radius:10px;background:var(--bg-soft);font-size:.92rem"></p>
+
+  <p>세 실험에서 공통으로 확인할 것은 하나입니다. <b>같은 사실이 여러 자리에 있거나, 서로 다른 종류의 사실이 한 행에 얹혀 있다는 것</b>입니다.
+  이것이 다음 화면 7과 8에서 이유를 찾을 단서입니다.</p>
+
+<script>
+(function () {
+  var BASE = [
+    { id: 1, t: '3/4 09:10', c: '민준', p: '010-1111-2222', m: '아메리카노', pr: 4500, q: 2, pay: '카드', b: '지호' },
+    { id: 2, t: '3/4 09:10', c: '민준', p: '010-1111-2222', m: '치즈케이크', pr: 6500, q: 1, pay: '카드', b: '지호' },
+    { id: 3, t: '3/4 09:25', c: '소라', p: '010-3333-4444', m: '카페라떼', pr: 5000, q: 1, pay: '현금', b: '지호' },
+    { id: 4, t: '3/4 10:02', c: '민준', p: '010-1111-2222', m: '아메리카노', pr: 4500, q: 1, pay: '카드', b: '서연' },
+    { id: 5, t: '3/5 08:55', c: '소라', p: '010-3333-4444', m: '아메리카노', pr: 4500, q: 1, pay: '현금', b: '지호' },
+    { id: 6, t: '3/5 09:40', c: '도윤', p: '010-5555-6666', m: '카페라떼', pr: 5000, q: 2, pay: '카드', b: '서연' }
+  ];
+  var NEWPHONE = '010-7777-8888';
+  var BTN = 'font:inherit;font-size:.82rem;padding:.35rem .8rem;border:1px solid var(--rule);border-radius:8px;background:var(--card);color:var(--fg);cursor:pointer';
+  var BTN_ON = BTN + ';border-color:var(--accent);color:var(--accent);font-weight:700';
+  var TABS = ['① 갱신 실험', '② 삽입 실험', '③ 삭제 실험'];
+  var tabsEl = document.getElementById('sim-tabs'), box = document.getElementById('sim-box'),
+      msg = document.getElementById('sim-msg');
+  var rows, mode = 0;
+
+  function reset() { rows = BASE.map(function (r) { var o = {}, k; for (k in r) { o[k] = r[k]; } return o; }); }
+  function cell(v, style) { return '<td' + (style ? ' style="' + style + '"' : '') + '>' + v + '</td>'; }
+
+  function status() {
+    var i, r, k;
+    if (mode === 0) {
+      var ph = {}, fixed = 0;
+      rows.forEach(function (x) { if (x.c === '민준') { ph[x.p] = (ph[x.p] || 0) + 1; if (x.p === NEWPHONE) { fixed++; } } });
+      var kinds = Object.keys(ph);
+      if (fixed === 0) { return '민준은 3행에 적혀 있습니다. 새 번호 ' + NEWPHONE + '를 적을 행의 <b>점선 표시 칸</b>을 눌러 보세요. 한 곳만 눌러 보고, 그다음 나머지를 눌러 보세요.'; }
+      if (kinds.length > 1) { return '지금 시트는 민준의 전화번호를 <b>' + kinds.length + '종류</b>로 말합니다(' + kinds.join(', ') + '). 어느 것이 맞는지 표만 봐서는 알 수 없습니다. 아직 못 고친 행이 ' + (3 - fixed) + '개 있습니다.'; }
+      return '3곳을 모두 찾아 고쳐서 하나로 맞췄습니다. 이번에는 성공했지만, 이것은 <b>사람이 빠짐없이 찾았기 때문</b>입니다. 민준의 행이 3개가 아니라 300개였다면?';
+    }
+    if (mode === 1) {
+      var ghost = rows.some(function (x) { return x.id === 99; });
+      if (!ghost) { return '바닐라라떼(5500원)를 표에 적어 두고 싶습니다. 아래 버튼을 눌러 보세요.'; }
+      return '메뉴 정보를 적으려고 만든 행은 일시·고객·수량이 빈 <b>주문 아닌 주문</b>입니다. 행은 ' + rows.length + '개가 되었고, 이 행을 "바닐라라떼가 팔린 행"으로 세면 <b>한 잔도 안 팔렸는데 1건</b>입니다. 이 행은 주문이 아니므로 지우면 가격 정보도 함께 사라집니다(③ 삭제 실험에서 같은 원리를 확인합니다).';
+    }
+    var removed = BASE.length - rows.length, lost = [];
+    var seenM = {}, seenC = {};
+    BASE.forEach(function (b) { seenM[b.m] = b.pr; seenC[b.c] = b.p; });
+    for (k in seenM) { if (!rows.some(function (x) { return x.m === k; })) { lost.push('메뉴 <b>' + k + '(' + seenM[k] + '원)</b>'); } }
+    for (k in seenC) { if (!rows.some(function (x) { return x.c === k; })) { lost.push('고객 <b>' + k + '(' + seenC[k] + ')</b>'); } }
+    if (removed === 0) { return '오른쪽 끝의 삭제 버튼으로 주문 한 줄을 지워 보세요. 치즈케이크 행과 도윤 행은 특히 볼 만합니다.'; }
+    if (lost.length === 0) { return '행 ' + removed + '개를 지웠지만 사라진 정보는 없습니다. 지운 행의 메뉴와 고객이 <b>다른 행에도 있었기</b> 때문입니다. 그 정보가 사라지는 것은 "마지막 한 줄"을 지울 때입니다.'; }
+    return '행 ' + removed + '개를 지웠더니 이 표에서 더는 찾을 수 없는 정보가 생겼습니다: ' + lost.join(', ') + '. 지우려던 것은 주문이었는데 메뉴나 고객의 사실이 함께 사라졌습니다.';
+  }
+
+  function render() {
+    tabsEl.innerHTML = TABS.map(function (t, i) { return '<button type="button" data-tab="' + i + '" style="' + (i === mode ? BTN_ON : BTN) + '">' + t + '</button>'; }).join('');
+    var h = '<div class="table-wrap" style="margin:.6rem 0"><table><tr><th>일시</th><th>고객</th><th>전화</th><th>메뉴</th><th>단가</th><th>수량</th><th>합계</th><th>결제</th><th>바리스타</th>' + (mode === 2 ? '<th></th>' : '') + '</tr>';
+    rows.forEach(function (r) {
+      var g = r.id === 99, phStyle = 'white-space:nowrap';
+      if (mode === 0 && r.c === '민준') {
+        phStyle += r.p === NEWPHONE ? ';background:var(--good-bg)' : ';cursor:pointer;background:var(--accent-bg);border:1px dashed var(--accent)';
+      }
+      h += '<tr' + (g ? ' style="background:var(--bad-bg)"' : '') + '>' +
+        cell(g ? '—' : r.t, 'white-space:nowrap') + cell(g ? '—' : r.c) +
+        '<td style="' + phStyle + '"' + (mode === 0 && r.c === '민준' && r.p !== NEWPHONE ? ' data-ph="' + r.id + '"' : '') + '>' + (g ? '—' : r.p) + '</td>' +
+        cell(r.m) + cell(r.pr) + cell(g ? '—' : r.q) + cell(g ? '—' : r.pr * r.q) + cell(g ? '—' : r.pay) + cell(g ? '—' : r.b) +
+        (mode === 2 ? '<td><button type="button" data-del="' + r.id + '" style="' + BTN + ';padding:.15rem .5rem">삭제</button></td>' : '') + '</tr>';
+    });
+    h += '</table></div>';
+    if (mode === 1 && !rows.some(function (x) { return x.id === 99; })) {
+      h += '<button type="button" data-add="1" style="' + BTN + '">바닐라라떼 5500원 등록하기</button>';
+    }
+    h += ' <button type="button" data-reset="1" style="' + BTN + ';margin-left:.4rem">처음으로</button>';
+    box.innerHTML = h;
+    msg.innerHTML = status();
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target, tab = t.getAttribute && t.getAttribute('data-tab');
+    if (!box.contains(t) && !tabsEl.contains(t)) { return; }
+    if (tab !== null) { mode = +tab; reset(); render(); return; }
+    if (t.getAttribute('data-reset')) { reset(); render(); return; }
+    if (t.getAttribute('data-add')) {
+      rows.push({ id: 99, t: '', c: '', p: '', m: '바닐라라떼', pr: 5500, q: 0, pay: '', b: '' }); render(); return;
+    }
+    var del = t.getAttribute('data-del');
+    if (del) { rows = rows.filter(function (x) { return String(x.id) !== del; }); render(); return; }
+    var ph = t.getAttribute('data-ph');
+    if (ph && mode === 0) { rows.forEach(function (x) { if (String(x.id) === ph) { x.p = NEWPHONE; } }); render(); }
+  });
+
+  reset(); render();
+})();
+</script>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 7 -->
+<section class="screen" data-title="이름이 흔들림">
+  <p class="kicker">1장 · 화면 7</p>
+  <h2>또 하나의 고통 — 같은 메뉴, 다른 표기</h2>
+
+  <p>2주가 지난 시트의 일부입니다. 바쁜 시간에 지호와 서연이 메뉴 이름을 손으로 쳤습니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>일시</th><th>고객</th><th>메뉴 (입력된 그대로)</th><th>단가</th><th>수량</th><th>합계</th></tr>
+      <tr><td>3/18 09:02</td><td>소라</td><td>아메리카노</td><td>4500</td><td>1</td><td>4500</td></tr>
+      <tr><td>3/18 09:15</td><td>민준</td><td>아메</td><td>4500</td><td>2</td><td>9000</td></tr>
+      <tr><td>3/19 08:50</td><td>도윤</td><td><code>"아메리카노 "</code> (끝에 공백)</td><td>4500</td><td>1</td><td>4500</td></tr>
+      <tr><td>3/19 10:12</td><td>소라</td><td>아메리카나 (오타)</td><td>4500</td><td>1</td><td>4500</td></tr>
+    </table>
+  </div>
+
+  <p>네 행 모두 <b>아메리카노</b>입니다. 그런데 서연이 "아메리카노 매출"을 <code>SUMIF</code>로 구하면
+  <b>정확히 같은 글자</b>인 행만 더해서 4500이 나옵니다. 실제 매출은 22500입니다.
+  끝의 공백은 눈에도 보이지 않습니다. 표기 하나가 어긋날 때마다 매출은 조용히 줄어듭니다.</p>
+
+  <div class="box bad">
+    <p class="box-t">틀린 답이 오류 없이 나온다</p>
+    <p>이 문제가 무서운 이유는 <b>오류 메시지가 없다는 것</b>입니다. 시트는 22500이 아닌 4500을 아무 경고 없이 보여 주고,
+    서연은 그 숫자를 믿고 아메리카노를 덜 팔리는 메뉴로 판단할 수 있습니다.</p>
+  </div>
+
+  <p>이것은 앞의 세 이상현상과 다른 종류의 문제처럼 보입니다. 하지만 원인을 거슬러 가 보면 같습니다.
+  <b>"아메리카노"라는 메뉴의 이름</b>이 메뉴 한 곳이 아니라 <b>주문 행마다 손으로 적혀</b> 있기 때문입니다.
+  표기가 달라질 수 있는 자리가 행마다 있으니 언젠가 달라집니다.</p>
+
+  <p>이런 상태를 데이터의 <span class="term" data-term="integrity">무결성</span>이 깨졌다고 말합니다.
+  무결성이란 데이터가 <b>서로 모순되지 않고 정해진 규칙에 맞는 상태</b>입니다.
+  이 시트에는 "메뉴 이름은 정해진 몇 개 중 하나여야 한다"는 규칙을 적어 둘 곳이 없습니다.</p>
+
+  <details class="fold">
+    <summary>더 깊이 — 엑셀의 드롭다운 목록은 해결책이 아닌가요?</summary>
+    <div class="fold-body">
+      <p>엑셀의 데이터 유효성 검사로 메뉴 칸에 <b>드롭다운 목록</b>을 걸면 오타는 상당히 막힙니다. 훌륭한 대응입니다.
+      그런데 드롭다운이 참조하는 <b>목록이 시트의 다른 곳에 있어야</b> 합니다. 그 목록이 바로 "메뉴 표"입니다.
+      다시 말해 이 해법은 엑셀 안에서 <b>표를 하나 더 만든 것</b>이고, 이 장이 가려는 방향과 같습니다.
+      다만 엑셀에서는 그 목록과 주문 행의 연결이 글자 일치에 의존하고, 목록의 이름을 고치면 이미 입력된 행은 그대로 남습니다.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 8 -->
+<section class="screen" data-title="원인 찾기">
+  <p class="kicker">1장 · 화면 8</p>
+  <h2>원인 — 한 표에 여러 종류의 사실이 섞였다</h2>
+
+  <p>지금까지 겪은 네 가지 고통을 하나로 모아 봅시다. 시트의 열을 <b>누구에 관한 사실인가</b>로 분류합니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>열</th><th>누구에 관한 사실인가</th><th>실제 개수 (첫 주 시트 기준)</th><th>시트에 적힌 횟수</th></tr>
+      <tr><td style="background:var(--accent-bg)">메뉴, 단가</td><td style="background:var(--accent-bg)">메뉴</td><td>메뉴 3종</td><td>6번</td></tr>
+      <tr><td style="background:var(--good-bg)">고객, 전화</td><td style="background:var(--good-bg)">고객</td><td>고객 3명</td><td>6번</td></tr>
+      <tr><td style="background:var(--warn-bg)">일시, 결제, 바리스타</td><td style="background:var(--warn-bg)">주문</td><td>주문 5건</td><td>6번</td></tr>
+      <tr><td>수량</td><td>주문 라인</td><td>라인 6줄</td><td>6번</td></tr>
+      <tr><td style="background:var(--bad-bg)">합계</td><td style="background:var(--bad-bg)">다른 열로 계산 가능한 값</td><td>—</td><td>6번</td></tr>
+    </table>
+  </div>
+
+  <p>이 표를 읽으면 문제가 보입니다. <b>세상에는 메뉴가 3종, 고객이 3명, 주문이 5건뿐인데 시트는 그것들을 모두 6번씩 적고 있습니다.</b>
+  6이라는 숫자는 주문 라인의 개수일 뿐인데, 한 행이 <b>메뉴·고객·주문·라인이라는 네 종류의 사실을 한꺼번에</b> 담고 있기 때문입니다.</p>
+
+  <p>이제 네 가지 고통이 한 원인에서 나온 것으로 정리됩니다.</p>
+  <ul>
+    <li><b>갱신 이상</b> — 같은 사실이 여러 번 적혀 있어서, 고칠 때 일부만 고쳐진다.</li>
+    <li><b>삽입 이상</b> — 메뉴·고객 사실이 라인 행에 얹혀 있어서, 라인 없이는 넣을 자리가 없다.</li>
+    <li><b>삭제 이상</b> — 같은 이유로, 라인 행을 지우면 얹혀 있던 사실도 함께 사라진다.</li>
+    <li><b>표기 흔들림</b> — 같은 사실을 손으로 여러 번 적으니, 적을 때마다 조금씩 달라진다.</li>
+  </ul>
+
+  <div class="box note">
+    <p class="box-t">이름 붙이기</p>
+    <p>같은 사실이 여러 곳에 적힌 것을 <span class="term" data-term="redundancy">중복</span>이라고 부르고,
+    중복과 사실의 뒤섞임 때문에 고치기·넣기·지우기에서 생기는 오류를 통틀어
+    <span class="term" data-term="anomaly">이상현상</span>이라고 부릅니다.
+    <b>이상현상은 버그가 아니라 설계 결함</b>입니다. 코드를 아무리 조심스럽게 써도, 표의 모양이 이렇게 생겼다면 언젠가 생깁니다.</p>
+  </div>
+
+  <p>여기서 얻은 <b>점검 기준</b> 하나를 기억해 두세요. <b>"이 표의 한 행이 정확히 한 종류의 사실만 뜻하는가?"</b>
+  이 표는 통과하지 못합니다. 이 기준을 엄밀하게 다듬은 것이 3장의 정규화입니다. 지금은 직관으로 씁니다.</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 9 -->
+<section class="screen" data-title="사실별로 쪼개기">
+  <p class="kicker">1장 · 화면 9</p>
+  <h2>해법의 직관 — 사실 하나가 한 곳에만 있게 나눈다</h2>
+
+  <p>기준이 정해졌으니 표를 나눕니다. <b>메뉴는 메뉴끼리, 고객은 고객끼리, 주문은 주문끼리, 주문 라인은 주문 라인끼리</b> 네 표에 담습니다.
+  먼저 전체 모양을 봅시다.</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 680 150" role="img" aria-label="member, orders, order_line, menu 네 표가 member_id, order_id, menu_id로 이어진 그림">
+      <g class="svg-line" fill="none" stroke-width="1.4">
+        <rect x="10" y="10" width="120" height="120" rx="6"/>
+        <rect x="190" y="10" width="120" height="120" rx="6"/>
+        <rect x="370" y="10" width="120" height="120" rx="6"/>
+        <rect x="550" y="10" width="120" height="120" rx="6"/>
+        <path d="M130 60 H190"/><path d="M310 60 H370"/><path d="M490 60 H550"/>
+      </g>
+      <g class="svg-fg" font-size="13" font-weight="700" text-anchor="middle">
+        <text x="70" y="30">member</text><text x="250" y="30">orders</text>
+        <text x="430" y="30">order_line</text><text x="610" y="30">menu</text>
+      </g>
+      <g class="svg-muted" font-size="10.5" text-anchor="middle">
+        <text x="70" y="52">member_id</text><text x="70" y="68">name</text><text x="70" y="84">phone</text>
+        <text x="250" y="52">order_id</text><text x="250" y="68">ordered_at</text><text x="250" y="84">member_id</text>
+        <text x="250" y="100">payment</text><text x="250" y="116">barista</text>
+        <text x="430" y="52">order_id</text><text x="430" y="68">menu_id</text><text x="430" y="84">quantity</text>
+        <text x="610" y="52">menu_id</text><text x="610" y="68">name</text><text x="610" y="84">price</text>
+        <text x="160" y="54">member_id</text><text x="340" y="54">order_id</text><text x="520" y="54">menu_id</text>
+      </g>
+    </svg>
+    <figcaption>선은 "같은 이름의 열로 이어진다"는 뜻입니다. 주문은 고객을 번호로 가리키고, 주문 라인은 주문과 메뉴를 번호로 가리킵니다.
+    <code>member</code>(고객)와 <code>orders</code>(주문)의 열 구성은 이 장에서의 직관적인 초안입니다.</figcaption>
+  </figure>
+
+  <p>각 표의 실제 내용은 다음과 같습니다. 화면 1의 시트에서 옮겼고, 번호(<code>member_id</code>, <code>order_id</code>)는 이 장에서 새로 붙였습니다. 주문 101·102와 라인은 0장과 같은 값입니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th colspan="3"><code>menu</code> — 한 행은 메뉴 한 종류</th></tr>
+      <tr><th>menu_id</th><th>name</th><th>price</th></tr>
+      <tr><td>1</td><td>아메리카노</td><td>4500</td></tr>
+      <tr><td>2</td><td>카페라떼</td><td>5000</td></tr>
+      <tr><td>3</td><td>치즈케이크</td><td>6500</td></tr>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th colspan="3"><code>member</code> — 한 행은 고객 한 명</th></tr>
+      <tr><th>member_id</th><th>name</th><th>phone</th></tr>
+      <tr><td>1</td><td>민준</td><td>010-1111-2222</td></tr>
+      <tr><td>2</td><td>소라</td><td>010-3333-4444</td></tr>
+      <tr><td>3</td><td>도윤</td><td>010-5555-6666</td></tr>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th colspan="5"><code>orders</code> — 한 행은 주문 한 건 (연도는 생략)</th></tr>
+      <tr><th>order_id</th><th>ordered_at</th><th>member_id</th><th>payment</th><th>barista</th></tr>
+      <tr><td>101</td><td>3/4 09:10</td><td>1</td><td>카드</td><td>지호</td></tr>
+      <tr><td>102</td><td>3/4 09:25</td><td>2</td><td>현금</td><td>지호</td></tr>
+      <tr><td>103</td><td>3/4 10:02</td><td>1</td><td>카드</td><td>서연</td></tr>
+      <tr><td>104</td><td>3/5 08:55</td><td>2</td><td>현금</td><td>지호</td></tr>
+      <tr><td>105</td><td>3/5 09:40</td><td>3</td><td>카드</td><td>서연</td></tr>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th colspan="3"><code>order_line</code> — 한 행은 주문 안의 메뉴 한 줄</th></tr>
+      <tr><th>order_id</th><th>menu_id</th><th>quantity</th></tr>
+      <tr><td>101</td><td>1</td><td>2</td></tr>
+      <tr><td>101</td><td>3</td><td>1</td></tr>
+      <tr><td>102</td><td>2</td><td>1</td></tr>
+      <tr><td>103</td><td>1</td><td>1</td></tr>
+      <tr><td>104</td><td>1</td><td>1</td></tr>
+      <tr><td>105</td><td>2</td><td>2</td></tr>
+    </table>
+  </div>
+
+  <p>0장의 <code>menu</code>, <code>order_line</code> 표와 같은 값입니다. 각 표는 이제 <b>한 종류의 사실만</b> 담습니다.
+  표들을 이어 주는 열(<code>member_id</code>, <code>order_id</code>, <code>menu_id</code>)은 사실을 가리키는 <b>번호</b>이고,
+  번호의 정식 이름(<span class="term" data-term="pk">기본키</span>와 <span class="term" data-term="fk">외래키</span>)과 번호를 고르는 법은 2장에서 다룹니다.</p>
+
+  <p>네 가지 고통이 정말 사라졌는지 확인해 봅시다.</p>
+  <ul>
+    <li><b>갱신</b> — 민준의 전화번호는 <code>member</code>의 <b>한 행</b>에만 있습니다. 한 곳만 고치면 끝입니다.</li>
+    <li><b>삽입</b> — 바닐라라떼는 <code>menu</code>에 행 하나를 추가하면 됩니다. 주문이 없어도 됩니다.</li>
+    <li><b>삭제</b> — 주문 101을 지워도(<code>orders</code>의 한 행과 <code>order_line</code>의 두 행) <code>menu</code>의 치즈케이크는 그대로입니다.</li>
+    <li><b>표기</b> — 메뉴 이름은 <code>menu</code>에 한 번만 적히고, 주문 라인은 번호 <code>menu_id</code>로 가리킵니다. 메뉴 이름에 오타가 들어갈 자리는 없습니다. 다만 <code>orders.payment</code>('카드'/'현금')는 여전히 글자로 적는 열이라, 같은 표기 문제가 남아 있습니다. 이런 열을 다루는 방법은 4장에서 봅니다.</li>
+  </ul>
+
+  <p>한편 이 초안에서 <b>합계 열은 사라졌습니다.</b> <code>단가 × 수량</code>으로 언제든 계산할 수 있기 때문입니다.
+  이 결정의 득실은 3장에서 따져 봅니다. <span class="later">3장에서 다시 본다</span>
+  화면 8의 기준으로 보면 바리스타 이름도 "직원"이라는 다른 종류의 사실이라 분리 대상입니다. 하지만 직원 관리는 이 교재의 범위 밖이라, 예외로 <code>orders</code>의 열로 그대로 둡니다.</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 10 -->
+<section class="screen" data-title="키로 다시 잇기">
+  <p class="kicker">1장 · 화면 10</p>
+  <h2>쪼갠 표를 번호로 다시 잇는다</h2>
+
+  <p>표를 나누자 이상현상은 사라졌지만 새로운 불편이 생겼습니다. 서연이 "주문 하나가 어땠는지" 볼 때 필요한 정보가
+  <b>네 표에 흩어져</b> 있습니다. 화면 1의 시트처럼 한눈에 보려면 표를 <b>번호로 다시 이어 붙여야</b> 합니다.
+  0장에서 본 <span class="term" data-term="join">JOIN</span>이 바로 이 일을 합니다.</p>
+
+<pre><span class="cap">-- 네 표를 이어 화면 1의 시트와 같은 모양을 만든다</span><code>SELECT o.ordered_at, mb.name AS customer, m.name AS menu_name,
+       ol.quantity, m.price * ol.quantity AS line_total,
+       o.payment, o.barista
+FROM   order_line AS ol
+JOIN   orders AS o   ON o.order_id   = ol.order_id
+JOIN   member AS mb  ON mb.member_id = o.member_id
+JOIN   menu   AS m   ON m.menu_id    = ol.menu_id
+ORDER BY o.order_id, m.menu_id;
+</code></pre>
+
+  <ol class="notes">
+    <li><span class="ln">1~3행</span> <code>SELECT</code> 뒤는 결과 표에 보고 싶은 열입니다. 여러 표의 열을 섞어 고를 수 있습니다.
+    <code>AS customer</code>처럼 <code>AS</code> 뒤의 이름은 결과 열의 이름표입니다. 고객과 메뉴 모두 열 이름이 <code>name</code>이라 그대로 두면 구별이 안 되어 이름을 다르게 붙였습니다.</li>
+    <li><span class="ln">2행</span> <code>m.price * ol.quantity AS line_total</code> — 열끼리 계산한 값을 결과에 보여 줍니다.
+    시트의 <b>합계 열이 저장되지 않아도 조회할 때 계산</b>하면 됩니다.</li>
+    <li><span class="ln">4행</span> <code>FROM order_line</code> — 주문 라인에서 출발합니다. 이 표의 한 행이 결과의 한 행이 됩니다.</li>
+    <li><span class="ln">5행</span> <code>orders</code>를 잇습니다. 라인의 <code>order_id</code>와 같은 <code>order_id</code>를 가진 주문 행이 짝입니다. 일시·결제·바리스타를 여기서 가져옵니다.</li>
+    <li><span class="ln">6행</span> <code>member</code>를 잇습니다. 이번에는 <b>방금 붙인 <code>orders</code></b>의 <code>member_id</code>로 고객을 찾습니다. 앞 JOIN의 결과에 이어 붙이는 것입니다.</li>
+    <li><span class="ln">7행</span> <code>menu</code>를 잇습니다. 라인의 <code>menu_id</code>로 메뉴 이름과 단가를 가져옵니다.</li>
+    <li><span class="ln">8행</span> <code>ORDER BY</code>로 순서를 요청합니다. 0장에서 봤듯이 요청하지 않으면 순서를 보장하지 않습니다.</li>
+  </ol>
+
+  <p>결과는 화면 1의 시트와 같은 여섯 줄입니다(전화번호·단가 열은 생략).</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>ordered_at</th><th>customer</th><th>menu_name</th><th>quantity</th><th>line_total</th><th>payment</th><th>barista</th></tr>
+      <tr><td>3/4 09:10</td><td>민준</td><td>아메리카노</td><td>2</td><td>9000</td><td>카드</td><td>지호</td></tr>
+      <tr><td>3/4 09:10</td><td>민준</td><td>치즈케이크</td><td>1</td><td>6500</td><td>카드</td><td>지호</td></tr>
+      <tr><td>3/4 09:25</td><td>소라</td><td>카페라떼</td><td>1</td><td>5000</td><td>현금</td><td>지호</td></tr>
+      <tr><td>3/4 10:02</td><td>민준</td><td>아메리카노</td><td>1</td><td>4500</td><td>카드</td><td>서연</td></tr>
+      <tr><td>3/5 08:55</td><td>소라</td><td>아메리카노</td><td>1</td><td>4500</td><td>현금</td><td>지호</td></tr>
+      <tr><td>3/5 09:40</td><td>도윤</td><td>카페라떼</td><td>2</td><td>10000</td><td>카드</td><td>서연</td></tr>
+    </table>
+  </div>
+
+  <div class="box note">
+    <p class="box-t">쪼갠 것은 잃은 것이 아니라 필요할 때 다시 합칠 수 있는 것</p>
+    <p>화면 1의 시트와 이 결과는 <b>같은 정보</b>입니다(생략한 전화·단가 열도 <code>SELECT</code>에 넣으면 나옵니다). 시트는 합친 모양을 저장해 두었고,
+    쪼갠 표들은 <b>사실을 한 번씩만 저장</b>하고 보여 줄 때 합칩니다. 저장은 나누고 보기는 합치는 것이
+    이 교재 전체를 관통하는 방식입니다.</p>
+  </div>
+
+  <div class="box warn">
+    <p class="box-t">합치기에도 값이 든다</p>
+    <p>이 조회는 표 네 개를 이어야 하므로 시트를 필터링하는 것보다 복잡하고, 데이터가 커지면 이어 붙이는 비용도 무시할 수 없습니다.
+    이 비용을 어떻게 판단하는지는 3장에서, 잇는 열을 빠르게 만드는 방법은 7장에서 봅니다.
+    <span class="later">3장에서 다시 본다</span></p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 11 -->
+<section class="screen" data-title="한계와 반대의견">
+  <p class="kicker">1장 · 화면 11</p>
+  <h2>한계 — 엑셀이 더 나을 때, 쪼개기가 늘 옳지는 않다</h2>
+
+  <p>지금까지는 쪼개는 쪽 이야기만 했습니다. 공정하게 반대편도 봅시다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:9rem">관점</th><th>한 장짜리 시트</th><th>사실별로 쪼갠 표</th></tr>
+      <tr><td>고치기</td><td>사실이 여러 곳에 있어 일부만 고칠 위험</td><td>사실이 한 곳에 있어 한 번만 고침</td></tr>
+      <tr><td>한눈에 보기</td><td>모든 정보가 한 줄에 있어 바로 보임</td><td>보려면 표를 이어야 함(JOIN)</td></tr>
+      <tr><td>쓰는 사람</td><td>혼자, 또는 둘이서 순서대로</td><td>여러 사람·프로그램이 동시에</td></tr>
+      <tr><td>규모</td><td>수백 행이면 충분</td><td>행이 늘고 오래 쓸수록 장점이 커짐</td></tr>
+      <tr><td>규칙 강제</td><td>사람의 주의력에 의존</td><td>DB에 규칙을 선언할 수 있음(4장)</td></tr>
+      <tr><td>만드는 수고</td><td>바로 시작</td><td>설계에 시간이 듦</td></tr>
+    </table>
+  </div>
+
+  <ul>
+    <li><b>엑셀이 더 나은 경우가 실제로 있습니다.</b> 한 번 쓰고 버릴 집계, 혼자 쓰는 작은 표, 이리저리 뒤집어 보는 탐색 분석에는
+    엑셀이 빠르고 편합니다. 이 교재의 결론은 "엑셀은 나쁘다"가 아니라 <b>"여러 사람이 오래 쓰며 값이 쌓이는 데이터는 구조를 설계해야 한다"</b>입니다.</li>
+    <li><b>쪼개면 새로운 문제가 생깁니다.</b> 주문 101을 지울 때 <code>orders</code>의 행만 지우고 <code>order_line</code>의 행을 남기면,
+    주문 없는 라인이 표에 남습니다. 표를 나누면 표 사이의 <b>일관성을 누가 지키느냐</b>가 새 문제가 됩니다.
+    <span class="later">4장에서 다시 본다</span></li>
+    <li><b>얼마나 쪼갤지에는 기준이 필요합니다.</b> 전화번호의 국번까지 표로 빼거나 색상, 단위 하나까지 표로 만들면 오히려 읽기 힘듭니다.
+    화면 8의 점검 기준("한 행이 한 종류의 사실만")은 직관일 뿐 엄밀하지 않습니다. 언제 멈출지는 3장이 다룹니다.</li>
+    <li><b>보고서에는 한 장짜리 표가 필요할 수 있습니다.</b> 서연이 매일 보는 요약이 항상 네 표를 잇는 조회라면 느려질 수 있습니다.
+    이럴 때 쪼갠 뒤에 <b>일부러 다시 합치는</b> 선택이 있습니다. <span class="later">7장에서 다시 본다</span></li>
+  </ul>
+
+  <div class="box note">
+    <p class="box-t">이 장이 미룬 것</p>
+    <p>이 장은 "표를 나누는 이유"까지만 답합니다. <b>무엇을 한 표로 볼지(엔터티), 행을 어떻게 구별할지(키), 표들이 어떤 관계인지</b>는
+    2장에서, 나눈 결과가 옳은지 <b>엄밀하게 검증</b>하는 도구는 3장에서 다룹니다.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 12 (마지막 화면) -->
+<section class="screen" data-title="요약 · 퀴즈 · 과제">
+  <p class="kicker">1장 · 화면 12</p>
+  <h2>1장 마무리</h2>
+
+  <div class="summary">
+    <h3>핵심 요약</h3>
+    <ol>
+      <li>한 표에 여러 종류의 사실을 섞으면 <b>같은 사실이 여러 번 적히고</b>(중복), 고칠 때는 어긋나고(갱신 이상),
+      넣을 자리가 없고(삽입 이상), 지울 때 다른 사실이 사라집니다(삭제 이상). 셋을 묶어 <b>이상현상</b>이라 부르며 버그가 아니라 설계 결함입니다.</li>
+      <li>손으로 적는 이름은 언젠가 흔들리고, 그 결과는 <b>오류 없이 틀린 숫자</b>로 나옵니다(무결성이 깨진 상태).</li>
+      <li>해법의 직관은 <b>사실 하나가 한 곳에만</b> 있게 종류별로 표를 나누고, 표들은 <b>번호</b>로 서로를 가리키는 것입니다.</li>
+      <li>나눈 표는 <code>JOIN</code>으로 다시 이어 원래 모양을 볼 수 있습니다. 저장은 나누고 보기는 합칩니다.</li>
+      <li>쪼개기는 공짜가 아닙니다. 조회가 복잡해지고, 표 사이의 일관성을 누가 지킬지가 새 문제가 됩니다.</li>
+    </ol>
+  </div>
+
+  <div class="box note">
+    <p class="box-t">퀴즈에 쓰는 표</p>
+    <p>앞 화면에서 본 표들입니다. 이전 화면으로 돌아가지 않고 바로 확인하세요.</p>
+    <p><b>퀴즈 1</b> — 화면 3, 서연이 첫 행만 고친 뒤의 민준 행들</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>일시</th><th>고객</th><th>전화</th><th>메뉴</th></tr>
+        <tr><td>3/4 09:10</td><td>민준</td><td>010-7777-8888</td><td>아메리카노</td></tr>
+        <tr><td>3/4 09:10</td><td>민준</td><td>010-1111-2222</td><td>치즈케이크</td></tr>
+        <tr><td>3/4 10:02</td><td>민준</td><td>010-1111-2222</td><td>아메리카노</td></tr>
+      </table>
+    </div>
+    <p><b>퀴즈 2</b> — 화면 9, 나눈 표 중 <code>member</code>와 <code>orders</code></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>member_id</th><th>name</th><th>phone</th></tr>
+        <tr><td>1</td><td>민준</td><td>010-1111-2222</td></tr>
+        <tr><td>2</td><td>소라</td><td>010-3333-4444</td></tr>
+        <tr><td>3</td><td>도윤</td><td>010-5555-6666</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>order_id</th><th>ordered_at</th><th>member_id</th><th>payment</th><th>barista</th></tr>
+        <tr><td>101</td><td>3/4 09:10</td><td>1</td><td>카드</td><td>지호</td></tr>
+        <tr><td>102</td><td>3/4 09:25</td><td>2</td><td>현금</td><td>지호</td></tr>
+        <tr><td>103</td><td>3/4 10:02</td><td>1</td><td>카드</td><td>서연</td></tr>
+        <tr><td>104</td><td>3/5 08:55</td><td>2</td><td>현금</td><td>지호</td></tr>
+        <tr><td>105</td><td>3/5 09:40</td><td>3</td><td>카드</td><td>서연</td></tr>
+      </table>
+    </div>
+    <p><b>퀴즈 3</b> — 화면 7, 2주 뒤 시트의 메뉴 칸</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>일시</th><th>고객</th><th>메뉴 (입력된 그대로)</th><th>합계</th></tr>
+        <tr><td>3/18 09:02</td><td>소라</td><td>아메리카노</td><td>4500</td></tr>
+        <tr><td>3/18 09:15</td><td>민준</td><td>아메</td><td>9000</td></tr>
+        <tr><td>3/19 08:50</td><td>도윤</td><td><code>"아메리카노 "</code> (끝에 공백)</td><td>4500</td></tr>
+        <tr><td>3/19 10:12</td><td>소라</td><td>아메리카나 (오타)</td><td>4500</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 퀴즈 1 -->
+  <div class="quiz" data-answer="2">
+    <p class="q">서연이 화면 3에서 민준의 전화번호를 세 행 중 첫 행만 고쳤습니다. 이 일의 근본 원인은 무엇일까요?</p>
+    <ol class="options">
+      <li data-why="틀렸습니다. 서연의 실수는 계기일 뿐입니다. 같은 사실이 세 곳에 적혀 있으면 일부만 고치는 일은 사람이 아무리 조심해도 언젠가 일어납니다.">서연이 부주의해서 행을 놓쳤다</li>
+      <li data-why="맞습니다. 민준의 전화번호라는 한 사실이 여러 행에 적혀 있어서, 고칠 때 일부만 바뀌면 시트가 스스로 모순됩니다. 이것이 갱신 이상입니다.">같은 사실이 여러 행에 중복해서 적혀 있다</li>
+      <li data-why="틀렸습니다. 이 사례는 삽입이 아니라 이미 있는 사실을 고치는 문제입니다. 신규 정보를 넣을 자리가 없는 것은 삽입 이상이고 화면 4에서 다뤘습니다.">신규 정보를 넣을 자리가 없다</li>
+    </ol>
+    <div class="explain">
+      <p>모순이 생긴 뒤에는 어느 값이 맞는지 표 자체가 알려 주지 못합니다. "맨 위 행이 최신"이라는 약속은 정렬을 바꾸거나 행을 끼워 넣는 순간 깨지고,
+      행에 시각을 붙여 두어도 <b>그 시각이 무엇의 시각인지</b>는 다시 사람이 해석해야 합니다.
+      그래서 "누가 조심한다"가 아니라 "한 곳에만 둔다"가 해법입니다.</p>
+    </div>
+  </div>
+
+  <!-- 퀴즈 2 -->
+  <div class="quiz" data-answer="3">
+    <p class="q">화면 9처럼 네 표로 나눈 뒤 옳은 설명은 어느 것일까요?</p>
+    <ol class="options">
+      <li data-why="틀렸습니다. 번호(member_id)가 사라지면 그 주문이 누구의 것인지 이을 수 없어, 번호를 잃은 orders 행은 주인 없는 주문이 됩니다. 사실은 member에 남아 있어도 연결이 끊어진 것입니다. 이런 연결의 일관성은 4장에서 DB가 지키게 합니다.">orders에서 member_id 열만 지워도 민준의 번호는 member에 남아 있다</li>
+      <li data-why="틀렸습니다. 주문 한 건의 영수증에는 고객·메뉴 이름이 필요한데 그 정보는 다른 표에 있습니다. 보려면 JOIN이 필요합니다.">주문 영수증을 JOIN 없이 한 표에서 바로 볼 수 있다</li>
+      <li data-why="맞습니다. 전화번호는 member의 한 행에만 있으므로 한 곳만 고치면 됩니다. 나누면 갱신 이상이 사라지지만 조회 때 이어야 하는 대가를 치릅니다.">민준의 전화번호를 한 곳만 고치면 된다</li>
+    </ol>
+    <div class="explain">
+      <p>덧붙이면, 나눈 뒤에도 <b>글자로 적는 열</b>은 표기 문제가 남습니다. <code>orders.payment</code>에 '카드', '카드 ', 'card'가 섞이면
+      결제수단별 매출이 화면 7과 똑같이 조용히 틀립니다. 나눈다고 모든 표기 문제가 사라지는 것이 아니라, 메뉴처럼
+      <b>이름을 한 곳에 두고 번호로 가리키는</b> 대상만 해결됩니다. 나머지 열을 DB가 검사하게 하는 것이 4장의 제약조건입니다.</p>
+    </div>
+  </div>
+
+  <!-- 퀴즈 3 -->
+  <div class="quiz" data-answer="1">
+    <p class="q">주문 행마다 메뉴 이름을 손으로 입력해서 "아메", "아메리카노 " 같은 표기가 섞였습니다. 가장 근본적인 대책은 무엇일까요?</p>
+    <ol class="options">
+      <li data-why="맞습니다. 메뉴 이름을 한 곳에 두고 주문은 번호로 가리키게 하면, 이름을 손으로 적는 자리 자체가 없어져 표기가 흔들릴 수 없습니다.">메뉴 이름을 한 곳에만 적고, 주문 행은 그 메뉴의 번호로 가리키게 한다</li>
+      <li data-why="틀렸습니다. 교육은 도움이 되지만 바쁜 시간에 실수를 완전히 막지 못합니다. 실수가 들어올 자리가 있는 한 언젠가 다시 생깁니다.">직원에게 정확히 입력하라고 교육한다</li>
+      <li data-why="틀렸습니다. 이 시트의 네 표기에서는 우연히 맞는 값이 나오지만 증상만 가린 것입니다. 앞 글자가 같은 다른 메뉴가 생기거나 'americano' 같은 다른 표기가 나오면 다시 조용히 틀리고, 조건을 계속 덧대야 합니다.">집계할 때 "아메*"처럼 앞 글자만 맞으면 더하도록 조건을 바꾼다</li>
+    </ol>
+    <div class="explain">
+      <p>엑셀의 드롭다운(데이터 유효성 검사)도 결국 메뉴 목록을 시트 어딘가에 따로 둔다는 점에서 같은 방향의 해법입니다.
+      차이는 강제의 위치입니다. 엑셀에서는 붙여넣기나 다른 파일에서 옮겨 온 값이 검사를 지나칠 수 있지만,
+      DB에서는 <b>없는 메뉴 번호를 가리키는 값이 아예 저장되지 않게</b> 규칙을 선언할 수 있습니다(4장).</p>
+    </div>
+  </div>
+
+  <div class="box note">
+    <h3>직접 해보기</h3>
+    <p>도서관의 대여 장부입니다. 한 줄이 "한 권 대여"입니다.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>대여일</th><th>회원</th><th>회원 전화</th><th>도서명</th><th>저자</th><th>반납일</th></tr>
+        <tr><td>3/1</td><td>하나</td><td>010-1000-1000</td><td>어린왕자</td><td>생텍쥐페리</td><td>3/8</td></tr>
+        <tr><td>3/2</td><td>하나</td><td>010-1000-1000</td><td>이방인</td><td>카뮈</td><td>3/9</td></tr>
+        <tr><td>3/2</td><td>세진</td><td>010-2000-2000</td><td>어린왕자</td><td>생텍쥐페리</td><td>3/10</td></tr>
+      </table>
+    </div>
+    <ol>
+      <li>이 표에서 <b>갱신·삽입·삭제 이상</b>이 생기는 상황을 하나씩 찾아 한 문장으로 적어 보세요.</li>
+      <li>사실별로 표를 나누고, 각 표의 열과 <b>표들을 잇는 번호</b>를 적어 보세요.</li>
+    </ol>
+  </div>
+
+  <details class="fold answer">
+    <summary>모범답안 — 그리고 흔한 오답이 왜 틀리는지</summary>
+    <div class="fold-body">
+      <p><b>1. 이상현상</b></p>
+      <ul>
+        <li><b>갱신</b> — 회원 '하나'의 전화번호가 바뀌면 그 회원의 두 행을 모두 고쳐야 합니다. 어린왕자의 저자 표기를 바로잡을 때도 두 행을 고쳐야 합니다.</li>
+        <li><b>삽입</b> — 새로 들어온 책 "데미안"은 아직 아무도 빌리지 않아서 넣을 행이 없습니다. 가입만 하고 아직 안 빌린 회원도 마찬가지입니다.</li>
+        <li><b>삭제</b> — 세진의 대여 기록(마지막 한 줄)을 지우면 세진의 회원 정보(이름·전화)가 함께 사라집니다.</li>
+      </ul>
+      <p><b>2. 나눈 표</b></p>
+<pre><span class="cap">-- 표와 열 (한 행이 무엇을 뜻하는지 함께 적음)</span><code>member(member_id, name, phone)       -- 회원 한 명
+book(book_id, title, author)          -- 책 한 종류
+loan(loan_id, member_id, book_id, loaned_on, returned_on)  -- 한 번의 대여
+</code></pre>
+      <p><code>loan</code>이 <code>member_id</code>와 <code>book_id</code>로 회원과 책을 가리킵니다.
+      대여일·반납일은 <b>대여라는 사건의 사실</b>이라 <code>loan</code>에 둡니다.</p>
+      <p><b>흔한 오답 1</b> — 대여일과 반납일까지 별도 표로 뺀다. 이 두 값은 회원이나 책이 아니라 <b>"그 대여"</b>에 관한 사실이라
+      대여 표에 있어야 합니다. 더 쪼개면 되돌려 맞추는 수고만 늘어납니다.</p>
+      <p><b>흔한 오답 2</b> — 회원 표에 "빌린 책" 열을 만든다. 한 회원이 책을 여러 권 빌리면 열을 늘리거나 한 칸에 여러 값을 넣어야 하고,
+      결국 책 정보가 회원 행에 다시 섞입니다. 사실의 종류가 다르면 표를 나눕니다.</p>
+      <p><b>흔한 오답 3</b> — 표는 그대로 두고 저자 열만 지워서 중복을 없앤다. 중복은 사라지지만 <b>저자라는 정보 자체를 버린 것</b>입니다.
+      이상현상을 없애는 것이 목적이지 정보를 줄이는 것이 목적이 아닙니다.</p>
+      <p>덧붙임: 같은 회원이 같은 책을 다른 날 다시 빌릴 수 있으므로 <code>loan</code>에는 대여마다 붙는 번호(<code>loan_id</code>)를 둡니다.
+      행을 무엇으로 구별할지는 2장에서 다룹니다.</p>
+    </div>
+  </details>
+
+  <div class="chapter-end">
+    <a href="ch00.html"><span>이전 장</span>0장 — 이 교재를 읽는 방법과 동백커피 이야기</a>
+    <a href="ch02.html"><span>다음 장</span>2장 — 테이블 나누기: 엔터티·키·관계</a>
+  </div>
+</section>
+
+</div></main>
+
+<script src="assets/book.js"></script>
+</body></html>
