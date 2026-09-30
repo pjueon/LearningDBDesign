@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko" data-chapter="ch02">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2장 · 테이블 나누기: 엔터티·키·관계 — DB 설계 첫걸음</title>
+<link rel="stylesheet" href="assets/book.css">
+</head>
+<body>
+
+<main id="book"><div class="inner">
+
+<!-- ─────────────────────────────────────────── 화면 1 -->
+<section class="screen" data-title="키오스크 주문 요구사항">
+  <p class="kicker">2장 · 화면 1</p>
+  <h1>테이블 나누기: 엔터티·키·관계</h1>
+
+  <p class="lead">1장에서는 이미 있는 시트가 왜 아픈지 겪었습니다. 이번에는 <b>아무 표도 없는 상태에서</b>
+  요구사항 문장만 보고 테이블을 뽑아냅니다. 나누는 직관을 <b>방법</b>으로 바꾸는 장입니다.</p>
+
+  <p>동백커피가 키오스크와 앱 주문을 시작하기로 했습니다. 서연과 지호가 원하는 것을 들어 봅시다.</p>
+
+  <div class="dialog">
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>손님이 키오스크에서 메뉴를 골라 주문하면 돼요. 한 번에 여러 메뉴를 담을 수 있어야 하고,
+      같은 메뉴를 두 잔 이상 시키는 것도 되어야 해요.</p></div></div>
+    <div class="line"><div class="who">서연</div><div class="say">
+      <p>회원 가입은 이름이랑 전화번호로 받아요. 같은 번호로 두 번 가입하는 건 안 되고요. 그런데 회원이 아니어도 주문은 받아야 해요. 비회원한테는 이름이나 번호를 안 받아요.</p></div></div>
+    <div class="line"><div class="who">지호</div><div class="say">
+      <p>저는 주문마다 언제 받았는지, 카드인지 현금인지, 누가 받았는지만 남아 있으면 돼요.</p></div></div>
+    <div class="line"><div class="who">개발자</div><div class="say">
+      <p>말씀하신 것을 문장으로 정리해 볼게요. 이 문장에서 테이블을 뽑겠습니다.</p></div></div>
+  </div>
+
+  <div class="box note">
+    <p class="box-t">정리한 요구사항</p>
+    <ol>
+      <li>손님은 <b>회원</b>이거나 <b>비회원</b>이다. 회원은 이름과 전화번호를 가지며, 같은 전화번호로 두 번 가입할 수 없다. 비회원의 정보는 받지 않고 주문만 받는다.</li>
+      <li>손님은 메뉴를 골라 주문한다. 한 주문에는 여러 메뉴가 담기고, 같은 메뉴는 수량으로 나타낸다.</li>
+      <li>메뉴는 이름과 가격을 가진다.</li>
+      <li>주문마다 접수 시각, 결제수단(카드 또는 현금), 접수한 바리스타를 기록한다.</li>
+      <li>회원은 여러 번 주문할 수 있다.</li>
+    </ol>
+  </div>
+
+  <div class="box note">
+    <p class="box-t">이 장의 진행</p>
+    <ol>
+      <li><b>화면 2~3</b> — 문장에서 명사와 동사를 뽑고, 무엇이 테이블이 될 만한 것인지 가릅니다.</li>
+      <li><b>화면 4~5</b> — 행을 구별하는 열(키)을 고릅니다.</li>
+      <li><b>화면 6~9</b> — 표 사이의 관계(1:N, N:M, 1:1)와 외래키를 봅니다.</li>
+      <li><b>화면 10~12</b> — 그림(ER 다이어그램)으로 그리고 <code>CREATE TABLE</code>로 옮긴 뒤, 이 설계가 몰래 깔고 있는 가정을 확인합니다.</li>
+    </ol>
+  </div>
+
+  <p>1장에서 표를 <b>사실의 종류별로</b> 나눴습니다. 이번에는 그 나누는 일을 요구사항 문장에서 시작해
+  순서대로 해 보는 것입니다. 1장 시트의 "고객"은 이 장부터 <b>회원</b>이라고 부릅니다(1장의 세 사람은 모두 회원이었습니다).</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 2 -->
+<section class="screen" data-title="명사와 동사 뽑기">
+  <p class="kicker">2장 · 화면 2</p>
+  <h2>문장에서 명사와 동사를 뽑는다</h2>
+
+  <p>설계의 첫 단계는 단순합니다. 요구사항 문장에서 <b>명사</b>는 저장할 <b>대상이나 정보</b>의 후보로,
+  <b>동사</b>는 대상 사이의 <b>관계</b>의 후보로 뽑아 둡니다. 뽑은 것을 곧바로 테이블로 만들지 않고 후보로만 적습니다.
+  앞 화면의 다섯 문장에서 명사에 표시해 봅니다.</p>
+
+  <ol>
+    <li>손님은 <span class="hl">회원</span>이거나 <span class="hl">비회원</span>이다. 회원은 <span class="hl">이름</span>과 <span class="hl">전화번호</span>를 가진다.</li>
+    <li>손님은 <span class="hl">메뉴</span>를 골라 <span class="hl">주문</span>한다. 한 주문에는 여러 메뉴가 담기고, 같은 메뉴는 <span class="hl">수량</span>으로 나타낸다.</li>
+    <li>메뉴는 <span class="hl">이름</span>과 <span class="hl">가격</span>을 가진다.</li>
+    <li>주문마다 <span class="hl">접수 시각</span>, <span class="hl">결제수단</span>(카드 또는 현금), 접수한 <span class="hl">바리스타</span>를 기록한다.</li>
+    <li>회원은 여러 번 주문할 수 있다.</li>
+  </ol>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:8rem">뽑은 명사</th><th>이 문장에서 무엇에 붙어 있나</th></tr>
+      <tr><td>손님, 회원, 비회원</td><td>주문하는 사람</td></tr>
+      <tr><td>메뉴</td><td>주문에 담기는 것. 이름과 가격을 가진다</td></tr>
+      <tr><td>주문</td><td>접수 시각, 결제수단, 바리스타를 가진다. 여러 메뉴를 담는다</td></tr>
+      <tr><td>이름, 전화번호</td><td>회원이 가진다</td></tr>
+      <tr><td>이름, 가격</td><td>메뉴가 가진다</td></tr>
+      <tr><td>수량</td><td>"메뉴 하나가 주문에 몇 개 담겼나"</td></tr>
+      <tr><td>접수 시각, 결제수단, 바리스타</td><td>주문이 가진다</td></tr>
+    </table>
+  </div>
+
+  <p>동사는 관계를 알려 줍니다.</p>
+  <ul>
+    <li><b>"주문한다"</b> — 손님과 주문이 이어져 있다. (누가 주문했는가)</li>
+    <li><b>"담기다"</b> — 주문과 메뉴가 이어져 있다. (무엇이 주문에 들었는가)</li>
+    <li><b>"가진다"</b> — 대상과 그 대상에 딸린 정보다. 관계가 아니라 딸린 정보다(다음 화면에서 이름을 붙입니다).</li>
+  </ul>
+
+  <div class="box warn">
+    <p class="box-t">명사가 모두 테이블이 되지는 않는다</p>
+    <p>표에 뽑아 놓고 보면 어떤 명사는 <b>다른 명사에 딸린 정보</b>입니다. "전화번호"는 회원에 딸려 있고,
+    "가격"은 메뉴에 딸려 있습니다. 어떤 명사가 <b>독립된 대상</b>이고 어떤 명사가 <b>딸린 정보</b>인지 가르는 것이 다음 화면의 주제입니다.
+    "비회원"도 그런 후보입니다. 비회원을 위한 표가 필요한지도 다음 화면에서 판단합니다.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 3 -->
+<section class="screen" data-title="엔터티와 속성">
+  <p class="kicker">2장 · 화면 3</p>
+  <h2>무엇이 독립된 대상이고, 무엇이 딸린 정보인가</h2>
+
+  <p>1장에서 표의 한 행이 <b>한 종류의 사실</b>만 뜻해야 한다고 했습니다. 그 "한 종류"가 되는 것,
+  즉 <b>독립해서 구별되고 여러 사실이 딸려 있는 대상</b>을 <span class="term" data-term="entity">엔터티</span>라고 부릅니다.
+  엔터티에 딸린 정보 하나하나는 <span class="term" data-term="attribute">속성</span>입니다.
+  "메뉴"는 엔터티이고, "이름"과 "가격"은 메뉴의 속성입니다.
+  엔터티는 나중에 테이블이 되고, 속성은 그 테이블의 열이 됩니다.</p>
+
+  <p>명사가 엔터티인지 속성인지 가르는 질문 세 개를 씁니다.</p>
+  <ol>
+    <li><b>같은 종류가 여러 개 있는가?</b> 메뉴는 여러 개이고 전화번호도 여러 개입니다. (이 질문은 통과하기 쉽습니다.)</li>
+    <li><b>그것에 대해 적어야 할 사실이 둘 이상인가?</b> 메뉴는 이름과 가격을 가집니다. 전화번호는 그 자체가 값 하나입니다.</li>
+    <li><b>다른 것 없이 혼자서도 구별되는가?</b> 메뉴는 주문이 없어도 존재합니다. 수량은 "어느 주문의 어느 메뉴"가 정해져야 뜻이 생깁니다.</li>
+  </ol>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:8rem">명사</th><th style="width:5rem">판단</th><th>이유</th></tr>
+      <tr><td>메뉴</td><td>엔터티</td><td>여러 개, 이름·가격이 딸림, 주문이 없어도 존재</td></tr>
+      <tr><td>회원</td><td>엔터티</td><td>여러 명, 이름·전화번호가 딸림, 주문이 없어도 존재</td></tr>
+      <tr><td>주문</td><td>엔터티</td><td>여러 건, 시각·결제수단·바리스타가 딸림</td></tr>
+      <tr><td>전화번호, 이름, 가격</td><td>속성</td><td>값 하나이고 다른 대상에 딸림</td></tr>
+      <tr><td>수량</td><td>속성</td><td>"주문 안의 메뉴 한 줄"에 딸림. 이 한 줄이 무엇인지는 화면 7에서</td></tr>
+      <tr><td>접수 시각</td><td>속성</td><td>주문에 딸린 값 하나</td></tr>
+      <tr><td>결제수단</td><td>속성</td><td>지금은 카드·현금 글자 하나. 종류가 늘고 종류마다 정보가 붙으면 엔터티가 될 수 있음</td></tr>
+      <tr><td>바리스타</td><td>경계 사례</td><td>직원이라는 대상 같지만, 이 교재는 직원 관리를 다루지 않으므로 <b>주문의 속성</b>으로 둠(1장 화면 9와 같은 결정)</td></tr>
+      <tr><td>비회원</td><td>엔터티 아님</td><td>저장할 사실이 없음. "회원과 이어지지 않은 주문"으로 표현됨</td></tr>
+    </table>
+  </div>
+
+  <p><b>비회원</b>이 왜 엔터티가 아닐까요? 서연은 비회원의 이름도 전화번호도 받지 않겠다고 했습니다.
+  딸린 사실이 하나도 없으니 표를 만들어도 열이 없습니다. 비회원 주문은 "주문 옆에 회원이 없는 것"으로 충분합니다.
+  이 표현은 화면 8의 선택적 관계에서 다시 만납니다.</p>
+
+  <div class="box note">
+    <p class="box-t">경계는 요구사항이 정한다</p>
+    <p>"결제수단"이나 "바리스타"처럼 속성인지 엔터티인지 <b>정답이 하나가 아닌 경우</b>가 많습니다.
+    기준은 이 시스템이 <b>그 대상에 대해 무엇을 알고 싶은가</b>입니다. 카드사별 수수료를 관리하게 되면 결제수단이 엔터티가 되고,
+    직원별 근태를 저장하게 되면 바리스타가 엔터티가 됩니다. 지금은 아닙니다. 요구사항이 바뀌면 속성이 엔터티로 승격되는 일은 흔합니다.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 4 -->
+<section class="screen" data-title="후보키와 기본키">
+  <p class="kicker">2장 · 화면 4</p>
+  <h2>행을 구별하는 열 — 후보키와 기본키</h2>
+
+  <p>엔터티를 테이블로 옮기려면 먼저 <b>표의 행 하나를 어떻게 구별할지</b> 정해야 합니다.
+  1장에서 표들을 잇는 번호(<code>member_id</code> 같은 것)가 필요하다고 봤습니다. 이번에는 그 번호를 어떻게 정하는지 봅니다.</p>
+
+  <p>회원 표가 다음과 같다고 합시다. 동명이인이 있다고 가정합니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>member_id</th><th>name</th><th>phone</th></tr>
+      <tr><td>1</td><td>민준</td><td>010-1111-2222</td></tr>
+      <tr><td>2</td><td>소라</td><td>010-3333-4444</td></tr>
+      <tr><td>3</td><td>도윤</td><td>010-5555-6666</td></tr>
+      <tr><td>4</td><td>소라</td><td>010-2222-3333</td></tr>
+    </table>
+  </div>
+
+  <p>행 하나를 구별해 낼 수 있는 열 조합의 자격은 두 가지입니다.</p>
+  <ul>
+    <li><b>유일성</b> — 그 조합의 값이 <b>모든 행에서 다르다.</b></li>
+    <li><b>최소성</b> — 그 조합에서 열을 하나라도 빼면 유일성이 깨진다. (필요 없는 열이 붙어 있지 않다)</li>
+  </ul>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>열 조합</th><th>유일성</th><th>최소성</th><th>판정</th></tr>
+      <tr><td><code>name</code></td><td>소라가 두 명이라 <b>실패</b></td><td>—</td><td>후보 아님</td></tr>
+      <tr><td><code>phone</code></td><td>통과</td><td>통과</td><td><b>후보키</b></td></tr>
+      <tr><td><code>member_id</code></td><td>통과</td><td>통과</td><td><b>후보키</b></td></tr>
+      <tr><td><code>name</code> + <code>phone</code></td><td>통과</td><td><code>phone</code>만으로 충분하니 <b>실패</b></td><td>후보 아님</td></tr>
+    </table>
+  </div>
+
+  <p>유일성과 최소성을 모두 만족하는 열 조합이 <span class="term" data-term="candkey">후보키</span>입니다.
+  이 표의 후보키는 <code>phone</code>과 <code>member_id</code> 둘입니다.
+  후보키 중에서 <b>대표로 뽑아 행의 신분증으로 쓰는 것</b>이 <span class="term" data-term="pk">기본키(PK)</span>입니다.
+  나머지 후보키는 <code>UNIQUE</code>로 "겹치면 안 된다"는 규칙만 걸어 둡니다.</p>
+
+  <div class="box warn">
+    <p class="box-t">유일성은 "지금 데이터"가 아니라 "규칙"이어야 한다</p>
+    <p>위 표에서 <code>name</code>이 후보가 아닌 이유는 소라가 둘이어서가 아니라, <b>이름이 같은 회원이 생기는 것이 업무상 자연스럽기 때문</b>입니다.
+    만약 지금 회원 중에 소라가 한 명뿐이라고 해서 <code>name</code>을 키로 삼으면, 동명이인이 가입하는 날 깨집니다.
+    유일성은 <b>업무 규칙</b>에서 나와야 합니다. 이 구별은 3장의 함수 종속에서도 다시 나옵니다.</p>
+  </div>
+
+  <p>후보가 둘인데 어느 쪽을 기본키로 뽑아야 할까요? 다음 화면의 주제입니다.</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 5 -->
+<section class="screen" data-title="자연키 vs 대리키">
+  <p class="kicker">2장 · 화면 5</p>
+  <h2>자연키와 대리키 — 전화번호를 기본키로 써도 될까</h2>
+
+  <p>후보키 중 <code>phone</code>은 <b>업무에 원래 있는 값</b>이고, <code>member_id</code>는 <b>우리가 붙인 번호</b>입니다.
+  앞의 것을 <span class="term" data-term="natkey">자연키</span>, 뒤의 것을 <span class="term" data-term="surkey">대리키</span>라고 부릅니다.
+  전화번호를 기본키로 쓰면 번호를 따로 만들 필요가 없어서 간단해 보입니다. 그런데 문제가 생기는 장면을 봅시다.</p>
+
+  <div class="dialog">
+    <div class="line"><div class="who">민준</div><div class="say">
+      <p>저 번호 바뀌었어요. 010-7777-8888로 바꿔 주세요.</p></div></div>
+  </div>
+
+  <p>회원 표에서 전화번호가 기본키이고, 주문이 회원을 <b>전화번호로 가리킨다면</b> 어떻게 될까요?
+  민준의 번호를 바꾸는 순간 <b>민준을 가리키던 모든 주문의 값도 함께 바꿔야</b> 합니다. 주문이 수만 건이면 그 수만 행을 다 고쳐야 합니다.
+  외래키가 없다면(화면 9) 하나라도 빠진 주문은 "없는 회원의 주문"이 되고, 외래키가 있다면 DB가 번호 수정을 거부하므로 주문을 함께 고치는 절차를 따로 밟아야 합니다.
+  어느 쪽이든 수만 행을 건드리게 됩니다. 1장에서 겪은 갱신 이상이 열쇠 자리에서 다시 생기는 셈입니다.</p>
+
+  <p>대리키는 다릅니다. 민준의 <code>member_id</code>는 1이고, 전화번호가 바뀌어도 1입니다.
+  주문은 1을 가리키므로 회원 표에서 전화번호 <b>한 곳만</b> 고치면 끝입니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:8rem">자연키가 위험한 예</th><th>왜 위험한가</th></tr>
+      <tr><td>전화번호</td><td>사람이 번호를 바꾼다. 통신사가 해지된 번호를 다른 사람에게 다시 주기도 해서, <b>과거 데이터와 새 사람이 섞일</b> 수 있다. 가족이 한 번호를 함께 쓰기도 하지만, 이 교재의 요구사항은 "한 번호에 회원 하나"(화면 1)다.</td></tr>
+      <tr><td>주민등록번호</td><td>수집과 저장이 법으로 엄격히 제한된다. 유출되면 피해가 크고, 한 번 노출되면 바꾸기도 어렵다. 키가 되면 <b>다른 모든 표가 이 값을 복사</b>하게 되므로 피해가 퍼진다.</td></tr>
+      <tr><td>이메일</td><td>바꾸는 사람이 많고 대소문자 표기가 흔들린다.</td></tr>
+    </table>
+  </div>
+
+  <p>그래서 이 교재는 회원·주문 같은 엔터티에 <b>번호를 하나 붙여 기본키</b>로 씁니다.
+  이 대리키는 의미가 없어서 "무엇이 같은 사람인가"는 알려 주지 못합니다. 같은 사람이 다른 번호로 두 번 가입해도
+  대리키만으로는 막을 수 없습니다. 그래서 전화번호에는 <code>UNIQUE</code>를 걸어 <b>같은 번호로 두 번 가입할 수 없게</b> 함께 둡니다.
+  기본키와 <code>UNIQUE</code>를 나란히 쓰는 것이 흔한 패턴입니다.</p>
+
+  <div class="box note">
+    <p class="box-t">자연키가 늘 나쁜 것은 아닙니다</p>
+    <p>국가 코드나 통화 코드(<code>KRW</code>)처럼 <b>표준으로 고정된 짧은 값</b>은 자연키로 써도 안전하고, 조회할 때 표를 이어 붙이지 않아도 뜻이 보인다는 장점이 있습니다.
+    대리키 옹호와 자연키 옹호의 논쟁은 실무에서도 끝나지 않았습니다. 이 교재의 기준은 <b>"바뀔 수 있으면 대리키"</b>입니다.
+    메뉴 이름, 전화번호, 이메일은 모두 바뀝니다.</p>
+  </div>
+
+  <p>한 가지 사실을 알아 둡시다. DB는 기본키와 <code>UNIQUE</code>를 선언하면 <b>값을 빨리 찾기 위한 색인(인덱스)을 자동으로 만듭니다.</b>
+  인덱스가 무엇이고 언제 직접 만들어야 하는지는 7장에서 다룹니다.</p>
+
+  <details class="fold">
+    <summary>더 깊이 — 번호는 누가 붙이나</summary>
+    <div class="fold-body">
+      <p>이 교재의 <code>CREATE TABLE</code>은 간결하게 보이려고 <code>member_id INTEGER PRIMARY KEY</code>로 씁니다. 실제로는
+      새 행이 들어올 때 번호를 <b>DB가 자동으로 붙이게</b> 하는 것이 보통입니다. PostgreSQL에서는 다음처럼 씁니다.</p>
+<pre><code>CREATE TABLE member (
+    member_id  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name       TEXT    NOT NULL,
+    phone      TEXT    NOT NULL UNIQUE
+);
+</code></pre>
+      <p><code>GENERATED ALWAYS AS IDENTITY</code>는 <code>INSERT</code>할 때 번호를 적지 않아도 1, 2, 3 … 순서로 채워 준다는 뜻입니다.
+      MySQL의 <code>AUTO_INCREMENT</code>에 해당하는 표준 문법입니다. 제품마다 문법이 다르고 학습 내용은 같으므로 본문에서는 생략합니다.</p>
+      <p>주의할 점이 둘 있습니다. <code>ALWAYS</code>이면 번호를 직접 적은 <code>INSERT</code>는 오류가 납니다. 이 교재의 예시는 설명을 간결하게 하려고 101, 102처럼 번호를 직접 씁니다.
+      또 자동 번호는 실패한 입력(롤백) 때문에 건너뛸 수 있으니 "빈틈없는 연속 번호"로 믿으면 안 됩니다.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 6 -->
+<section class="screen" data-title="관계와 1:N">
+  <p class="kicker">2장 · 화면 6</p>
+  <h2>엔터티 사이의 관계 — 1:N</h2>
+
+  <p>엔터티가 정해졌으니 동사에서 뽑은 관계를 봅니다. 관계에서 가장 중요한 것은 <b>몇 대 몇으로 이어지는가</b>이고,
+  이것을 <span class="term" data-term="cardinality">카디널리티</span>라고 합니다.</p>
+
+  <p>"회원은 여러 번 주문할 수 있다"를 양쪽에서 읽어 봅시다.</p>
+  <ul>
+    <li><b>회원 → 주문</b>: 회원 한 명은 주문을 <b>여러 건</b> 가진다. (한 건도 없을 수도 있다)</li>
+    <li><b>주문 → 회원</b>: 주문 한 건은 회원을 <b>많아야 한 명</b> 가진다. (비회원이면 0명)</li>
+  </ul>
+
+  <p>한쪽은 "하나", 다른 쪽은 "여러 개"입니다. 이런 관계를 <b>1:N (일대다)</b>라고 부릅니다.
+  구체적인 데이터로 보면 이렇습니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>member_id</th><th>name</th></tr>
+      <tr><td>1</td><td>민준</td></tr>
+      <tr><td>2</td><td>소라</td></tr>
+    </table>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>order_id</th><th>member_id</th><th>ordered_at</th></tr>
+      <tr><td>101</td><td><span class="hl">1</span></td><td>3/4 09:10</td></tr>
+      <tr><td>102</td><td>2</td><td>3/4 09:25</td></tr>
+      <tr><td>103</td><td><span class="hl">1</span></td><td>3/4 10:02</td></tr>
+    </table>
+  </div>
+
+  <p>민준(1번)은 주문 101과 103을 가졌습니다. <b>1:N에서는 "N쪽 표에 1쪽의 번호를 넣습니다."</b>
+  주문 표에 <code>member_id</code> 열을 두어 어느 회원의 주문인지 가리키게 합니다.
+  이렇게 <b>다른 표의 행을 가리키는 열</b>이 <span class="term" data-term="fk">외래키(FK)</span>입니다. 자세한 성질은 화면 9에서 봅니다.</p>
+
+  <div class="box bad">
+    <p class="box-t">1쪽에 번호를 넣으면 안 되는 이유</p>
+    <p>반대로 회원 표에 "주문번호" 열을 두면 민준 행에는 주문번호가 여러 개 들어가야 합니다.
+    한 칸에 "101, 103"처럼 여러 값을 적거나, "주문1, 주문2, 주문3…" 열을 늘려 가야 합니다.
+    앞의 방법은 값을 하나씩 다루기 어렵고 뒤의 방법은 몇 개까지 열을 만들지 정할 수 없습니다.
+    한 칸에 여러 값을 넣는 문제는 3장(1NF)에서 정식으로 다룹니다. 지금은 <b>번호는 N쪽에 넣는다</b>만 기억하세요.</p>
+  </div>
+
+  <div class="box note">
+    <p class="box-t">"카디널리티"는 문맥에 따라 뜻이 둘</p>
+    <p>이 장에서는 <b>관계의 대응 수</b>(1:N)를 뜻합니다. 인덱스를 다루는 7장에서는 같은 낱말이
+    <b>열이 가진 서로 다른 값의 수</b>를 뜻합니다. 이름은 같지만 다른 개념이니 문맥으로 구별하세요.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 7 -->
+<section class="screen" data-title="N:M과 연결 테이블">
+  <p class="kicker">2장 · 화면 7</p>
+  <h2>N:M 관계와 연결 테이블 — 주문과 메뉴</h2>
+
+  <p>"한 주문에는 여러 메뉴가 담기고, 같은 메뉴는 여러 주문에 담긴다." 양쪽에서 읽어 봅시다.</p>
+  <ul>
+    <li><b>주문 → 메뉴</b>: 주문 한 건에 메뉴가 <b>여러 종류</b> 담긴다.</li>
+    <li><b>메뉴 → 주문</b>: 메뉴 한 종류가 <b>여러 주문</b>에 담긴다. (아메리카노는 주문 101에도 103에도 있다)</li>
+  </ul>
+
+  <p>양쪽이 모두 "여러 개"입니다. 이런 관계를 <b>N:M (다대다)</b>라고 부릅니다. 1:N처럼 한쪽 표에 번호를 넣으려 해도
+  안 됩니다. 주문 표에 <code>menu_id</code>를 넣으면 한 주문에 메뉴를 하나만 담을 수 있고,
+  메뉴 표에 <code>order_id</code>를 넣으면 한 메뉴가 주문 하나에만 들어갑니다.</p>
+
+  <div class="box note">
+    <p class="box-t">N:M을 알아보는 법</p>
+    <p>두 엔터티 사이에서 <b>양쪽 방향으로 읽어 모두 "여러"</b>이면 N:M입니다. 한쪽이라도 "하나"면 1:N입니다.
+    "손님은 메뉴를 주문한다"처럼 동사만 보면 방향이 헷갈리니, 항상 양쪽에서 각각 문장으로 읽어 보세요.</p>
+  </div>
+
+  <p>N:M은 <b>두 표 사이에 표를 하나 끼워서</b> 풀어냅니다. 끼운 표의 한 행이 "이 주문에 이 메뉴가 이만큼 담겼다"는
+  <b>짝 하나</b>를 뜻합니다. 이 표가 이미 아는 <code>order_line</code>입니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th colspan="3"><code>order_line</code> — 한 행은 "이 주문에 이 메뉴가 몇 개"</th></tr>
+      <tr><th>order_id</th><th>menu_id</th><th>quantity</th></tr>
+      <tr><td>101</td><td>1</td><td>2</td></tr>
+      <tr><td>101</td><td>3</td><td>1</td></tr>
+      <tr><td>103</td><td>1</td><td>1</td></tr>
+    </table>
+  </div>
+
+  <ul>
+    <li><b>이 표를 연결 테이블이라고 부릅니다.</b> 주문과 메뉴의 번호를 <b>둘 다</b> 가지고, N:M을 두 개의 1:N으로 바꿉니다.
+    (주문 1 — N 라인, 메뉴 1 — N 라인)</li>
+    <li><b>관계 자체에 딸린 속성이 자리를 얻습니다.</b> "몇 개"는 주문의 것도 메뉴의 것도 아니고 <b>둘의 짝</b>에 딸린 정보입니다.
+    그래서 <code>quantity</code>가 <code>order_line</code>에 있습니다. 화면 3에서 미뤄 둔 질문의 답입니다.</li>
+    <li><b>기본키는 두 번호의 조합 <code>(order_id, menu_id)</code></b>로 정했습니다. 그러면 "한 주문 안에 같은 메뉴 행이 두 개 있을 수 없다"는 규칙이 저절로 따라옵니다.
+    같은 메뉴를 또 시키면 새 행이 아니라 수량을 올립니다.</li>
+  </ul>
+
+  <p>모든 테이블이 엔터티인 것은 아닙니다. <code>order_line</code>은 주문과 메뉴라는 두 엔터티의 <b>관계를 담는 표</b>입니다.
+  화면 3의 질문 3에서 이 표가 독립된 대상이 아니라고 판정되는 이유입니다.</p>
+
+  <p>기본키를 이렇게 정한 것에는 <b>몰래 깔린 가정</b>이 있습니다. 그 이야기는 화면 12에서 합니다.</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 8 -->
+<section class="screen" data-title="1:1과 선택적 관계">
+  <p class="kicker">2장 · 화면 8</p>
+  <h2>1:1 관계와 선택적 관계</h2>
+
+  <p>관계의 세 번째 모양은 <b>1:1 (일대일)</b>입니다. 양쪽이 모두 "많아야 하나"입니다.
+  동백커피에서 예를 들어 봅시다. 메뉴마다 영양성분표를 붙이려 한다고 합시다(동백커피의 요구사항은 아니고 설명용입니다).
+  메뉴 하나에 성분표는 하나이고, 성분표 하나는 메뉴 하나에 속합니다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th colspan="3"><code>menu</code></th><th colspan="3"><code>menu_nutrition</code> (설명용)</th></tr>
+      <tr><th>menu_id</th><th>name</th><th>price</th><th>menu_id</th><th>kcal</th><th>caffeine_mg</th></tr>
+      <tr><td>1</td><td>아메리카노</td><td>4500</td><td>1</td><td>10</td><td>150</td></tr>
+      <tr><td>2</td><td>카페라떼</td><td>5000</td><td>2</td><td>180</td><td>75</td></tr>
+      <tr><td>3</td><td>치즈케이크</td><td>6500</td><td>—</td><td>—</td><td>—</td></tr>
+    </table>
+  </div>
+
+  <p>1:1은 <b>한 표에 합쳐도 되는 관계</b>입니다. 열 <code>kcal</code>과 <code>caffeine_mg</code>를 <code>menu</code>에 넣으면 끝입니다.
+  그런데도 표를 나누는 경우는 드뭅니다. <b>나눌 이유가 뚜렷할 때만</b> 나눕니다.</p>
+  <ul>
+    <li><b>일부 행에만 있는 정보</b> — 성분표가 있는 메뉴가 절반이라면, 합친 표는 빈칸이 많아집니다. (위 표에서 치즈케이크에는 성분표가 없다)</li>
+    <li><b>접근 권한이 다른 정보</b> — 회원의 민감한 정보를 다른 표에 두고 일부 사람에게만 열어 줄 때.</li>
+    <li><b>생기는 시점이 다른 정보</b> — 메뉴는 먼저 등록하고 성분표는 나중에 채울 때.</li>
+  </ul>
+
+  <p>DB에서 1:1을 지키려면 성분표 쪽의 <code>menu_id</code>를 <b>기본키이면서 외래키</b>로 둡니다. 기본키이므로 메뉴 하나에 성분표가 둘 붙을 수 없습니다. 기본키를 겸하지 않으면 성분표 여러 개가 한 메뉴에 붙는 1:N이 됩니다.</p>
+
+  <p>위 표의 치즈케이크처럼 <b>짝이 없는 쪽이 있는 관계</b>를 <b>선택적 관계</b>라고 합니다. 반대로 짝이 반드시 있어야 하면 <b>필수적 관계</b>입니다.
+  선택적인지 필수인지는 <b>요구사항 문장</b>이 정합니다. 동백커피 v1의 관계를 다시 읽어 봅시다.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>관계</th><th>카디널리티</th><th>짝이 있어야 하는가</th><th>근거 문장</th></tr>
+      <tr><td>회원 — 주문</td><td>1:N</td><td>주문에게 회원은 <b>선택적</b>(비회원이면 없음), 회원에게 주문도 선택적(0건 가능)</td><td>"회원이 아니어도 주문은 받아야 한다"</td></tr>
+      <tr><td>주문 — 주문 라인</td><td>1:N</td><td>라인은 반드시 주문에 속함(필수)</td><td>"한 주문에는 여러 메뉴가 담긴다"</td></tr>
+      <tr><td>메뉴 — 주문 라인</td><td>1:N</td><td>라인은 반드시 메뉴에 속함(필수)</td><td>"메뉴를 골라 주문한다"</td></tr>
+    </table>
+  </div>
+
+  <p>첫 줄이 화면 3에서 남겨 둔 비회원의 답입니다. <b>비회원 주문은 주문 행의 <code>member_id</code>를 비워 두는 것</b>으로 표현합니다.
+  값이 없다는 것을 나타내는 표시가 <code>NULL</code>입니다. NULL이 무엇이고 어떤 함정이 있는지는 4장에서 자세히 봅니다.
+  <span class="later">4장에서 다시 본다</span></p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 9 -->
+<section class="screen" data-title="외래키와 참조 무결성">
+  <p class="kicker">2장 · 화면 9</p>
+  <h2>외래키와 참조 무결성 — 포인터와 닮았지만 다른 점</h2>
+
+  <p>화면 6에서 "다른 표의 행을 가리키는 열"을 <span class="term" data-term="fk">외래키(FK)</span>라고 불렀습니다.
+  <code>order_line.menu_id</code>가 <code>menu</code>의 행을 가리키는 것이 그 예입니다. 외래키는 단순한 표시가 아닙니다.
+  <b>DB에 선언하면 DB가 가리키는 행이 실제로 있는지 지켜 줍니다.</b> (외래키가 가리킬 수 있는 열은 기본키나 <code>UNIQUE</code>가 걸린 열입니다.) 이것을 <span class="term" data-term="refint">참조 무결성</span>이라고 합니다.</p>
+
+  <p><code>order_line</code>에 <code>menu_id = 9</code>인 행을 넣어 봅시다. <code>menu</code>에는 1, 2, 3번뿐입니다.</p>
+
+<pre><span class="cap">-- 없는 메뉴를 가리키는 라인 넣기 (외래키가 선언되어 있다면)</span><code>INSERT INTO order_line (order_id, menu_id, quantity)
+VALUES (101, 9, 1);
+</code></pre>
+
+  <p>PostgreSQL은 이 입력을 <b>거부</b>합니다.</p>
+
+<pre><span class="cap">-- 오류 메시지 (요지, 줄바꿈은 지면 때문에 넣음)</span><code>ERROR:  insert or update on table "order_line" violates
+        foreign key constraint "order_line_menu_id_fkey"
+DETAIL:  Key (menu_id)=(9) is not present in table "menu".
+</code></pre>
+
+  <p>C++의 포인터에 비교하면 이렇습니다. 외래키 값은 <b>포인터와 닮았지만 다음 점이 다릅니다.</b></p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:8rem">비교</th><th>C++ 포인터</th><th>DB 외래키</th></tr>
+      <tr><td>가리키는 대상</td><td>메모리 주소</td><td>대상 행의 <b>키 값</b>(번호)</td></tr>
+      <tr><td>없는 곳을 가리킬 때</td><td>댕글링. 프로그래머가 조심해야 함</td><td><b>DB가 입력 단계에서 거부</b></td></tr>
+      <tr><td>비어 있을 때</td><td><code>nullptr</code></td><td><code>NULL</code>. 비워 두면 검사하지 않음(화면 8의 비회원 주문)</td></tr>
+      <tr><td>가리키는 대상이 사라질 때</td><td>포인터는 모른 채 남음</td><td>DB가 삭제를 거부하거나 정해 둔 정책대로 처리</td></tr>
+      <tr><td>따라가는 방법</td><td>역참조(주소로 바로 접근)</td><td>값으로 찾아서 <code>JOIN</code></td></tr>
+    </table>
+  </div>
+
+  <p>표의 마지막 줄(가리키는 대상이 사라질 때)은 <b>반대 방향</b>도 지켜 준다는 뜻입니다. 아직 라인에 쓰이는 메뉴 1번을 <code>menu</code>에서 지우려 하면
+  DB는 기본적으로 <b>지우기를 거부</b>합니다. 그럼 메뉴를 내리고 싶을 때는 어떻게 할까요? 과거 주문은 남겨야 하는데요.
+  이 문제는 "메뉴를 내려도 과거 주문은 남긴다"는 규칙으로 4장에서 정리합니다. <span class="later">4장에서 다시 본다</span></p>
+
+  <div class="box warn">
+    <p class="box-t">외래키 열에는 인덱스가 자동으로 생기지 않습니다</p>
+    <p>화면 5에서 기본키와 <code>UNIQUE</code>에는 인덱스가 자동으로 생긴다고 했습니다. <b>외래키는 아닙니다.</b>
+    외래키 열로 조회하거나 <code>JOIN</code>하는 일이 많으면 직접 인덱스를 만들어야 하고, 안 만들면 데이터가 커질수록 느려집니다.
+    v1에서 <code>order_line.order_id</code>는 복합 기본키의 앞 열이라 사실상 색인의 도움을 받지만, <code>order_line.menu_id</code>와 <code>orders.member_id</code>에는 색인이 없습니다.
+    <span class="later">7장에서 다시 본다</span></p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 10 -->
+<section class="screen" data-title="ER 다이어그램">
+  <p class="kicker">2장 · 화면 10</p>
+  <h2>ER 다이어그램 — 설계를 한 장의 그림으로</h2>
+
+  <p>엔터티, 속성, 키, 관계를 한 장에 그린 것을 <span class="term" data-term="erd">ER 다이어그램</span>이라고 합니다.
+  설계를 말로만 나누면 빠진 것이 보이지 않지만 그림으로 그리면 한눈에 보입니다. 동백커피의 지금까지의 설계입니다.</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 700 165" role="img" aria-label="member 1:N orders, orders 1:N order_line, menu 1:N order_line 관계를 보이는 ER 다이어그램">
+      <g class="svg-line" fill="none" stroke-width="1.4">
+        <rect x="10" y="20" width="130" height="90" rx="6"/>
+        <rect x="190" y="20" width="150" height="130" rx="6"/>
+        <rect x="390" y="20" width="130" height="90" rx="6"/>
+        <rect x="570" y="20" width="120" height="90" rx="6"/>
+        <path d="M140 60 H190" stroke-dasharray="5 3"/>
+        <path d="M340 60 H390"/>
+        <path d="M570 60 H520"/>
+      </g>
+      <g class="svg-fg" font-size="13" font-weight="700" text-anchor="middle">
+        <text x="75" y="40">member</text><text x="265" y="40">orders</text>
+        <text x="455" y="40">order_line</text><text x="630" y="40">menu</text>
+      </g>
+      <g class="svg-muted" font-size="11.5">
+        <text x="20" y="62">PK member_id</text><text x="20" y="78">name</text><text x="20" y="94">phone (UNIQUE)</text>
+        <text x="200" y="62">PK order_id</text><text x="200" y="78">FK member_id (선택)</text>
+        <text x="200" y="94">ordered_at</text><text x="200" y="110">payment</text><text x="200" y="126">barista</text>
+        <text x="400" y="62">PK,FK order_id</text><text x="400" y="78">PK,FK menu_id</text><text x="400" y="94">quantity</text>
+        <text x="580" y="62">PK menu_id</text><text x="580" y="78">name</text><text x="580" y="94">price</text>
+      </g>
+      <g class="svg-fg" font-size="12" font-weight="700" text-anchor="middle">
+        <text x="146" y="52">1</text><text x="184" y="52">N</text>
+        <text x="346" y="52">1</text><text x="384" y="52">N</text>
+        <text x="564" y="52">1</text><text x="526" y="52">N</text>
+      </g>
+    </svg>
+    <figcaption>상자는 엔터티(테이블), 상자 안은 속성(열)입니다. <b>PK</b>는 기본키, <b>FK</b>는 외래키입니다.
+    선의 <b>1</b>과 <b>N</b>은 카디널리티이고, 점선은 선택적 관계(비회원 주문)입니다.
+    <b>1이 적힌 쪽이 부모, N이 적힌 쪽이 자식</b>이며, 외래키는 N쪽 표에 있습니다.</figcaption>
+  </figure>
+
+  <p><b>읽는 순서</b>는 이렇습니다. 상자의 이름을 보고 "한 행이 무엇인가"를 묻고, 선을 양쪽에서 문장으로 읽습니다.</p>
+  <ul>
+    <li><code>member</code> — <code>orders</code>: "회원 한 명은 주문을 여러 건 가진다. 주문 한 건은 회원이 많아야 한 명이다(없을 수 있다)."</li>
+    <li><code>orders</code> — <code>order_line</code>: "주문 한 건은 라인을 여러 개 가진다. 라인 하나는 주문 한 건에 속한다."</li>
+    <li><code>menu</code> — <code>order_line</code>: "메뉴 한 종류는 여러 라인에 나온다. 라인 하나는 메뉴 한 종류를 가리킨다."</li>
+    <li><code>order_line</code>은 <code>orders</code>와 <code>menu</code>의 <b>N:M 연결 테이블</b>이고, 기본키가 두 외래키의 조합이라 "PK,FK"가 겹쳐 적혀 있습니다.</li>
+  </ul>
+
+  <div class="box note">
+    <p class="box-t">그릴 때의 순서</p>
+    <ol>
+      <li>요구사항 문장에서 <b>엔터티</b>(화면 3)를 정해 상자로 그린다.</li>
+      <li>각 상자에 <b>속성</b>과 <b>기본키</b>(화면 4·5)를 적는다.</li>
+      <li>동사로 <b>관계</b>를 찾아 선을 잇고 양쪽을 문장으로 읽어 <b>1:N, N:M</b>(화면 6·7)을 정한다.</li>
+      <li><b>N:M은 연결 테이블</b>로 풀고, <b>1:N은 N쪽에 외래키</b>를 적는다(화면 9).</li>
+      <li>선택적 관계는 점선이나 표시로 남긴다(화면 8).</li>
+    </ol>
+    <p>이 다이어그램에서 표기법(까마귀발 기호, 사각형 모양)은 도구마다 다릅니다.
+    기호가 달라도 <b>엔터티·속성·키·카디널리티</b>라는 네 가지 정보는 같습니다.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 11 -->
+<section class="screen" data-title="ER에서 CREATE TABLE로 (v1)">
+  <p class="kicker">2장 · 화면 11</p>
+  <h2>그림을 테이블로 — 스키마 v1</h2>
+
+  <p>화면 10의 다이어그램을 <code>CREATE TABLE</code>로 옮깁니다. 교재 전체가 이 스키마를 시작점으로 삼고
+  장마다 키우기 때문에 <b>스키마 v1</b>이라는 이름을 붙입니다.</p>
+
+<pre><span class="cap">-- 스키마 v1: 동백커피 1호점</span><code>-- 메뉴 한 종류 (0장과 같은 표)
+CREATE TABLE menu (
+    menu_id  INTEGER PRIMARY KEY,
+    name     TEXT    NOT NULL,
+    price    INTEGER NOT NULL
+);
+
+-- 회원 한 명
+CREATE TABLE member (
+    member_id  INTEGER PRIMARY KEY,
+    name       TEXT    NOT NULL,
+    phone      TEXT    NOT NULL UNIQUE
+);
+
+-- 주문 한 건 (비회원 주문이면 member_id 는 NULL)
+CREATE TABLE orders (
+    order_id    INTEGER     PRIMARY KEY,
+    member_id   INTEGER     REFERENCES member (member_id),
+    ordered_at  TIMESTAMPTZ NOT NULL,
+    payment     TEXT        NOT NULL,
+    barista     TEXT        NOT NULL
+);
+
+-- 주문 안의 메뉴 한 줄
+CREATE TABLE order_line (
+    order_id  INTEGER NOT NULL REFERENCES orders (order_id),
+    menu_id   INTEGER NOT NULL REFERENCES menu (menu_id),
+    quantity  INTEGER NOT NULL,
+    PRIMARY KEY (order_id, menu_id)
+);
+</code></pre>
+
+  <ol class="notes">
+    <li><span class="ln">1~6행</span> <code>menu</code> — 0장에서 본 표 그대로입니다. 한 행은 메뉴 한 종류입니다.</li>
+    <li><span class="ln">8~13행</span> <code>member</code> — 한 행은 회원 한 명입니다. 10행 <code>member_id</code>가 <b>대리키 기본키</b>이고(화면 5),
+    12행의 <code>UNIQUE</code>는 같은 전화번호로 두 번 가입할 수 없게 하는 규칙입니다. 전화번호가 후보키라는 뜻이며, DB는 이를 위해 색인을 자동으로 만듭니다(7장).</li>
+    <li><span class="ln">15~22행</span> <code>orders</code> — 한 행은 주문 한 건입니다. 18행 <code>REFERENCES member (member_id)</code>가 <b>외래키 선언</b>입니다("이 열의 값은 member 표의 member_id에 있어야 한다").
+    <b>NOT NULL이 없어서</b> 비워 둘 수 있고, 그 행이 비회원 주문입니다(화면 8).
+    <span class="later">4장에서 다시 본다</span></li>
+    <li><span class="ln">19행</span> <code>TIMESTAMPTZ</code>는 시간대를 고려해 저장하는 시각 타입입니다(내부적으로는 UTC로 바꿔 저장하고, 보여 줄 때 접속한 쪽의 시간대로 바꿉니다). 타입을 고르는 기준은 4장에서 다룹니다.
+    <span class="later">4장에서 다시 본다</span></li>
+    <li><span class="ln">20행</span> <code>payment</code>는 '카드', '현금' 같은 글자로 적습니다. 1장 화면 9에서 본 것처럼 글자로 적는 열은 표기가 흔들릴 수 있고,
+    이를 막는 방법은 4장에서 봅니다. <span class="later">4장에서 다시 본다</span></li>
+    <li><span class="ln">25~30행</span> <code>order_line</code> — 한 행은 "이 주문에 이 메뉴가 몇 개"입니다. 26행과 27행이 각각 주문과 메뉴를 가리키는 외래키이고,
+    29행 <code>PRIMARY KEY (order_id, menu_id)</code>는 <b>두 열을 묶은 기본키</b>입니다(화면 7). 열 옆에 쓰지 않고 표의 마지막에 따로 쓰는 이유는 열이 둘이기 때문입니다.</li>
+    <li><span class="ln">28행</span> <code>quantity</code>에는 "1 이상이어야 한다"는 규칙이 아직 없습니다. 0이나 음수도 들어갑니다. 이 규칙은 4장에서 붙입니다.
+    <span class="later">4장에서 다시 본다</span></li>
+  </ol>
+
+  <div class="box warn">
+    <p class="box-t">표를 만드는 순서가 있습니다</p>
+    <p><code>REFERENCES</code>는 <b>이미 있는 표</b>를 가리켜야 하므로, 가리키는 쪽보다 가리켜지는 쪽을 먼저 만듭니다.
+    <code>orders</code>가 <code>member</code>를, <code>order_line</code>이 <code>orders</code>와 <code>menu</code>를 가리키므로
+    <code>menu</code>, <code>member</code>, <code>orders</code>, <code>order_line</code> 순서로 씁니다.
+    지울 때는 반대 순서입니다. 순서를 바꾸면 <code>CREATE TABLE</code>이 오류를 냅니다.</p>
+  </div>
+
+  <p>1장의 직관 초안이 <code>CREATE TABLE</code> 문이 되었습니다. 표의 이름과 열은 같고, <b>키와 외래키와 <code>UNIQUE</code></b>가 새로 붙었습니다.
+  이 설계가 DB에 선언한 핵심 규칙은 세 가지입니다. <b>"행은 번호로 구별된다", "가리키는 행은 있어야 한다", "같은 전화번호로 두 번 가입할 수 없다."</b> (그 밖에 <code>NOT NULL</code>로 "비워 둘 수 없다"는 규칙도 있습니다.)</p>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 12 -->
+<section class="screen" data-title="v1의 숨은 가정">
+  <p class="kicker">2장 · 화면 12</p>
+  <h2>v1이 몰래 깔고 있는 가정 세 가지</h2>
+
+  <p>v1은 요구사항 다섯 문장을 잘 담았습니다. 하지만 <b>문장에 없어서 아무도 말하지 않은 가정</b>이 스키마 곳곳에 박혀 있습니다.
+  요구사항이 바뀌면 이 가정부터 깨집니다. 지금은 찾아서 표시만 해 둡니다.</p>
+
+  <div class="box warn">
+    <p class="box-t">가정 1 — 가격은 바뀌지 않는다</p>
+    <p><code>order_line</code>에는 <b>단가가 없습니다.</b> 주문 금액은 <code>menu.price</code>를 찾아서 계산합니다.
+    "그 메뉴의 가격은 언제나 하나뿐이다"라는 가정입니다. 메뉴의 가격이 바뀌는 일이 생기면 이 가정이 어떤 결과를 부르는지는
+    3장과 6장에서 확인합니다.
+    <span class="later">6장에서 다시 본다</span></p>
+  </div>
+
+  <div class="box warn">
+    <p class="box-t">가정 2 — 매장은 하나뿐이다</p>
+    <p>어느 표에도 <b>매장이라는 개념이 없습니다.</b> 주문은 "어느 가게에서"를 말하지 않고, 메뉴 가격은 모든 곳에서 같다고 전제합니다.
+    가게가 하나뿐이면 문제가 없습니다.
+    <span class="later">9장에서 다시 본다</span></p>
+  </div>
+
+  <div class="box warn">
+    <p class="box-t">가정 3 — 한 주문에서 같은 메뉴는 한 줄이다</p>
+    <p><code>order_line</code>의 기본키가 <code>(order_id, menu_id)</code>이므로, 한 주문에 <b>같은 메뉴는 한 행</b>만 있을 수 있습니다.
+    같은 메뉴는 수량을 올려서 표현합니다. "같은 메뉴는 어차피 같은 물건이다"라는 가정입니다.
+    <span class="later">5장에서 다시 본다</span></p>
+  </div>
+
+  <p>세 가지 모두 <b>1호점의 지금 요구사항에서는 참</b>입니다. 그래서 설계 잘못이 아닙니다.
+  다만 <b>참이라고 깔아 둔 가정이 언제 거짓이 되는지</b>를 알고 있는 것이 설계자의 일입니다. 뒤의 장에서 이 셋이 하나씩 깨집니다.</p>
+
+  <div class="box note">
+    <p class="box-t">이 설계가 옳은지 어떻게 확인하나</p>
+    <p>이 장은 요구사항에서 테이블을 <b>뽑는</b> 방법을 다뤘습니다. 그런데 뽑은 설계가 <b>중복 없이 옳은지</b>는 어떻게 확인할까요?
+    직관으로 봐서는 놓치는 것이 있습니다. 예를 들어 <code>orders.barista</code>는 직원이라는 다른 종류의 사실이 섞인 것처럼 보이는 열인데, 이 열이 정말 문제인지는
+    <b>엄밀한 기준</b>으로 따져야 합니다. 그 기준이 3장의 정규화입니다. <span class="later">3장에서 다시 본다</span></p>
+  </div>
+
+  <details class="fold">
+    <summary>더 깊이 — ER 설계와 정규화 중 무엇을 먼저 해야 하나</summary>
+    <div class="fold-body">
+      <p>교과서에는 정규화를 먼저 가르치는 순서가 많습니다. 이 교재는 <b>ER 설계를 먼저</b> 합니다.
+      실무에서는 요구사항 문장에서 엔터티를 뽑고 나서 그 결과를 정규화로 <b>점검</b>하는 흐름이 흔하기 때문입니다.
+      경험이 많은 설계자는 ER 단계에서 이미 정규화된 표를 뽑아내기도 합니다. 그렇더라도 검증 단계는 필요합니다.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ─────────────────────────────────────────── 화면 13 (마지막 화면) -->
+<section class="screen" data-title="요약 · 퀴즈 · 과제">
+  <p class="kicker">2장 · 화면 13</p>
+  <h2>2장 마무리</h2>
+
+  <div class="summary">
+    <h3>핵심 요약</h3>
+    <ol>
+      <li>요구사항 문장의 <b>명사</b>에서 엔터티와 속성을, <b>동사</b>에서 관계를 뽑습니다. 독립되어 구별되고 여러 사실이 딸린 것이 엔터티(테이블), 딸린 값이 속성(열)입니다.</li>
+      <li>행을 구별하는 열 조합 중 유일성과 최소성을 만족하는 것이 <b>후보키</b>, 그중 대표가 <b>기본키</b>입니다. 바뀔 수 있는 자연키(전화번호)보다 <b>대리키</b>가 안전하고, 자연키였던 열에는 <code>UNIQUE</code>를 함께 겁니다.</li>
+      <li><b>1:N</b>은 N쪽 표에 외래키를 넣고(짝이 없어도 되는 선택적 관계는 외래키를 비워 표현하고), <b>N:M</b>은 <b>연결 테이블</b>로 풀며, 관계 자체에 딸린 값(수량)은 연결 테이블에 둡니다. 1:1은 나눌 이유가 뚜렷할 때만 나눕니다.</li>
+      <li><b>외래키</b>는 포인터와 달리 없는 행을 가리키는 값을 DB가 막아 줍니다. 그러나 외래키 열에는 인덱스가 자동으로 생기지 않습니다.</li>
+      <li>ER 다이어그램과 <code>CREATE TABLE</code>로 <b>스키마 v1</b>(<code>menu</code>, <code>member</code>, <code>orders</code>, <code>order_line</code>)을 얻었고, v1에는 <b>참이라고 깔아 둔 가정</b>(가격 불변, 매장 하나, 같은 메뉴는 한 줄)이 있습니다.</li>
+    </ol>
+  </div>
+
+  <div class="box note">
+    <p class="box-t">퀴즈에 쓰는 표</p>
+    <p>화면 7의 <code>order_line</code>과 0장의 <code>menu</code> 표입니다. 이전 화면으로 돌아가지 않고 바로 확인하세요.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th colspan="3"><code>menu</code></th></tr>
+        <tr><th>menu_id</th><th>name</th><th>price</th></tr>
+        <tr><td>1</td><td>아메리카노</td><td>4500</td></tr>
+        <tr><td>2</td><td>카페라떼</td><td>5000</td></tr>
+        <tr><td>3</td><td>치즈케이크</td><td>6500</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th colspan="3"><code>order_line</code></th></tr>
+        <tr><th>order_id</th><th>menu_id</th><th>quantity</th></tr>
+        <tr><td>101</td><td>1</td><td>2</td></tr>
+        <tr><td>101</td><td>3</td><td>1</td></tr>
+        <tr><td>103</td><td>1</td><td>1</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 퀴즈 1 -->
+  <div class="quiz" data-answer="2">
+    <p class="q">회원 표의 기본키로 전화번호를 쓰고, 주문이 회원을 전화번호로 가리키게 했습니다. 회원이 번호를 바꾸면 어떤 문제가 생길까요?</p>
+    <ol class="options">
+      <li data-why="틀렸습니다. 외래키는 기본 설정에서 번호 수정을 자동으로 따라가지 않고 오히려 수정을 거부합니다. 연쇄 수정(ON UPDATE CASCADE)을 따로 선언할 수는 있지만 그래도 수만 행이 갱신되는 것은 같습니다.">번호가 바뀌어도 외래키가 자동으로 따라가므로 문제가 없다</li>
+      <li data-why="맞습니다. 기본키 값이 바뀌면 그 값을 가리키던 모든 주문 행도 함께 바꿔야 합니다. 외래키가 없으면 빠진 행이 없는 회원의 주문이 되고, 있으면 수정이 거부됩니다. 대리키(member_id)는 전화번호가 바뀌어도 그대로라 한 곳만 고치면 됩니다.">그 회원을 가리키던 모든 주문의 값도 함께 바꿔야 한다</li>
+      <li data-why="틀렸습니다. 주문 표에 전화번호를 복사해 두면 번호가 바뀔 때 복사본이 모두 옛 값으로 남아 1장의 갱신 이상이 그대로 생깁니다. 값을 복사해 두는 것은 해법이 아닙니다.">주문 표에 회원의 전화번호를 복사해 두면 해결된다</li>
+    </ol>
+    <div class="explain">
+      <p>키가 <b>여러 열의 조합</b>이면 문제가 더 커집니다. 예를 들어 <code>(name, phone)</code>을 기본키로 쓰면 이 키를 가리키는 표마다 열이 두 개씩 늘고
+      <code>JOIN</code> 조건도 길어집니다. 또 주민등록번호처럼 <b>수집할 근거가 없으면 저장 자체가 문제가 되는 값</b>은 키로 쓰기 전에 저장해도 되는지부터 따져야 합니다.
+      대리키는 이런 부담을 모두 피하는 대신, 같은 사람인지 알려 주지 못하므로 <code>UNIQUE</code>를 함께 둡니다.</p>
+    </div>
+  </div>
+
+  <!-- 퀴즈 2 -->
+  <div class="quiz" data-answer="2">
+    <p class="q">화면 4의 회원 표에서 <code>(name, phone)</code> 조합은 모든 행에서 값이 다릅니다. 그런데도 후보키가 아닌 이유는 무엇일까요?</p>
+    <ol class="options">
+      <li data-why="틀렸습니다. 소라가 두 명이어도 (소라, 010-3333-4444)와 (소라, 010-2222-3333)은 서로 다른 조합이라 이 조합은 유일합니다. 유일성은 통과합니다.">이름이 같은 회원(소라)이 있어서 유일하지 않다</li>
+      <li data-why="맞습니다. phone 하나만으로 이미 모든 행이 구별되므로 name은 필요 없는 열입니다. 열을 빼도 유일성이 유지되니 최소성을 만족하지 못하고 후보키가 될 수 없습니다.">phone 하나만으로 이미 유일해서, 최소성을 만족하지 못한다</li>
+      <li data-why="틀렸습니다. 열 두 개 이상을 묶어 키로 쓰는 것은 문법상 가능하고 화면 11의 order_line이 그 예입니다. 문제는 문법이 아니라 최소성입니다.">두 열을 묶어서는 키로 쓸 수 없다</li>
+    </ol>
+    <div class="explain">
+      <p>유일성만 만족하는 열 조합은 <b>슈퍼키</b>라고 부르고, 그중 열을 더 뺄 수 없는 최소의 것이 후보키입니다. <code>(name, phone)</code>은 슈퍼키이고 후보키는 아닙니다.
+      반대로 <code>order_line</code>의 <code>(order_id, menu_id)</code>는 어느 한 열만으로는 유일하지 않으므로 두 열이 모두 필요한 <b>복합 후보키</b>입니다.
+      후보키를 판정할 때는 데이터를 눈으로 보는 것에 그치지 말고 "이 열 없이도 구별되는가?"를 <b>업무 규칙</b>으로 물어야 합니다.</p>
+    </div>
+  </div>
+
+  <!-- 퀴즈 3 -->
+  <div class="quiz" data-answer="1">
+    <p class="q">외래키가 선언된 상태에서 <code>menu</code>에 없는 <code>menu_id = 9</code>를 가진 <code>order_line</code> 행을 <code>INSERT</code>하면 어떻게 될까요?</p>
+    <ol class="options">
+      <li data-why="맞습니다. 외래키는 가리키는 행이 실제로 있는지 DB가 입력 단계에서 검사하고, 없으면 오류로 거부합니다. 앱에 버그가 있어도 이 데이터는 저장되지 않습니다.">DB가 오류를 내며 입력을 거부한다</li>
+      <li data-why="틀렸습니다. 외래키가 없으면 그 행이 저장되고, 조회할 때 이름이 빈칸이 되거나(LEFT JOIN) 결과에서 조용히 빠집니다(JOIN). 그런 상태를 막아 주는 것이 바로 외래키입니다.">저장되고, 조회할 때 메뉴 이름이 빈칸으로 나온다</li>
+      <li data-why="틀렸습니다. DB는 참조되는 행을 대신 만들어 주지 않습니다. 없는 메뉴가 생기면 가격도 이름도 알 수 없는 행이 생기므로 더 위험합니다.">menu 표에 9번 행이 자동으로 만들어진다</li>
+    </ol>
+    <div class="explain">
+      <p>외래키가 없으면 없는 메뉴를 가리키는 행이 조용히 쌓이고, 그 행은 보통의 <code>JOIN</code>에서 <b>오류 없이 결과에서 빠져</b> 매출 합계가 줄어듭니다.
+      1장 화면 7에서 본 "오류 없이 틀린 숫자"와 같은 종류의 문제입니다. 검사는 DB 서버가 하므로 <b>어떤 앱이 접근하든</b> 같은 규칙이 적용되고,
+      외래키가 가리키는 열이 기본키나 <code>UNIQUE</code>여야 한다는 점도 함께 기억해 두세요.</p>
+    </div>
+  </div>
+
+  <div class="box note">
+    <h3>직접 해보기</h3>
+    <p>동백커피가 <b>원두 클래스</b>를 열기로 했습니다. 다음 요구사항 문장에서 엔터티를 뽑고 테이블로 옮겨 보세요.</p>
+    <ol>
+      <li>동백커피는 원두 클래스를 연다. 클래스는 이름과 정원을 가진다.</li>
+      <li>회원은 여러 클래스에 신청할 수 있고, 한 클래스에는 여러 회원이 신청한다.</li>
+      <li>신청할 때 신청일이 기록된다.</li>
+      <li>같은 회원이 같은 클래스에 두 번 신청할 수 없다.</li>
+    </ol>
+    <ol>
+      <li>엔터티와 속성을 적고, 관계의 카디널리티를 정하세요. <code>member</code> 표는 화면 11의 것을 씁니다.</li>
+      <li>N:M이라면 어떤 표가 필요하고, <b>신청일은 어느 표의 열</b>이며 기본키는 무엇인지 적으세요.</li>
+      <li>새 표를 <code>CREATE TABLE</code>로 쓰세요. (테이블 이름은 <code>bean_class</code>, <code>enrollment</code>를 쓰세요. 정원 초과를 막는 것은 지금 다루지 않습니다.)</li>
+    </ol>
+  </div>
+
+  <details class="fold answer">
+    <summary>모범답안 — 그리고 흔한 오답이 왜 틀리는지</summary>
+    <div class="fold-body">
+      <p><b>1. 엔터티와 관계</b> — 엔터티는 <b>클래스</b>(이름, 정원)와 <b>회원</b>(이미 있음)입니다. 회원과 클래스는 양쪽에서 읽어도 "여러 개"이므로 <b>N:M</b>입니다.</p>
+      <p><b>2. 연결 테이블</b> — 신청 하나가 "이 회원이 이 클래스에 신청했다"는 짝이므로 <code>enrollment</code>가 필요합니다.
+      신청일은 회원의 것도 클래스의 것도 아니고 <b>짝의 속성</b>이므로 <code>enrollment</code>에 둡니다.
+      기본키는 <code>(member_id, class_id)</code>이고, 그러면 네 번째 문장("같은 회원이 같은 클래스에 두 번 신청 불가")이 자동으로 지켜집니다.</p>
+<p><b>3. CREATE TABLE</b></p>
+<pre><span class="cap">-- 모범답안</span><code>CREATE TABLE bean_class (
+    class_id  INTEGER PRIMARY KEY,
+    name      TEXT    NOT NULL,
+    capacity  INTEGER NOT NULL
+);
+
+CREATE TABLE enrollment (
+    member_id    INTEGER NOT NULL REFERENCES member (member_id),
+    class_id     INTEGER NOT NULL REFERENCES bean_class (class_id),
+    enrolled_on  DATE    NOT NULL,
+    PRIMARY KEY (member_id, class_id)
+);
+</code></pre>
+      <p><b>흔한 오답 1</b> — 신청일을 <code>member</code>나 <code>bean_class</code>에 둔다. 신청일은 <b>회원 한 명 또는 클래스 하나가 아니라 둘의 짝</b>에 딸린 값입니다.
+      회원 표에 두면 그 회원의 여러 신청을 구별할 수 없고, 클래스 표에 두면 어느 회원의 신청인지 알 수 없습니다.</p>
+      <p><b>흔한 오답 2</b> — 회원 표에 "신청 클래스1, 클래스2…" 열을 만든다. 몇 개까지 열을 만들지 정할 수 없고, 클래스별 조회를 하려면 열마다 찾아야 합니다.
+      화면 6의 "번호는 N쪽에" 규칙과 화면 7의 연결 테이블 규칙을 어긴 것입니다.</p>
+      <p><b>흔한 오답 3</b> — <code>enrollment</code>의 기본키를 <code>class_id</code> 하나로 둔다. 그러면 한 클래스에 <b>한 명만</b> 신청할 수 있게 됩니다.
+      짝을 구별하려면 두 번호를 함께 써야 합니다.</p>
+      <p><b>흔한 오답 4</b> — 신청마다 번호(<code>enrollment_id</code>)를 붙여 기본키로 삼고 <code>(member_id, class_id)</code>에는 아무 규칙도 걸지 않는다.
+      기본키는 번호이므로 같은 회원이 같은 클래스에 두 번 신청한 행이 저장되어 네 번째 문장이 깨집니다.
+      번호를 기본키로 쓰려면 <code>UNIQUE (member_id, class_id)</code>를 함께 선언해야 합니다.</p>
+    </div>
+  </details>
+
+  <div class="chapter-end">
+    <a href="ch01.html"><span>이전 장</span>1장 — 엑셀 한 장의 고통: 나쁜 설계와 이상현상</a>
+    <a href="ch03.html"><span>다음 장</span>3장 — 정규화: 나눈 설계를 검증하는 도구</a>
+  </div>
+</section>
+
+</div></main>
+
+<script src="assets/book.js"></script>
+</body></html>
