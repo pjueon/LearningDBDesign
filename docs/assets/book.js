@@ -21,7 +21,7 @@
     { id: 'ch02', num: '2장', title: '테이블 나누기: 엔터티·키·관계', part: '기본 이론', screens: 13, hours: 2.5, ready: true },
     { id: 'ch03', num: '3장', title: '정규화: 나눈 설계를 검증하는 도구', part: '기본 이론', screens: 16, hours: 3.0, ready: true },
     { id: 'ch04', num: '4장', title: '제약조건: 규칙을 DB에 맡기기', part: '기본 이론', screens: 11, hours: 2.0, ready: true },
-    { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5 },
+    { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
     { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5 },
     { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25 },
     { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5 },
@@ -70,7 +70,15 @@
     unique: 'UNIQUE — 같은 값이 두 행에 있을 수 없게 하는 제약. 기본키와 달리 한 표에 여러 개 둘 수 있고 PostgreSQL에서는 NULL 을 여러 행에 넣을 수 있다.',
     check: 'CHECK — 한 행의 값이 조건식을 만족해야 저장되게 하는 제약. 그 행의 열만 볼 수 있고, 조건이 NULL(알 수 없음)이면 통과한다.',
     ondelete: 'ON DELETE — 외래키가 가리키는 행(부모)을 지울 때 참조하는 행(자식)을 어떻게 할지 정하는 절. NO ACTION(기본)·RESTRICT 는 거부, CASCADE 는 함께 삭제, SET NULL·SET DEFAULT 는 값 변경.',
-    softdelete: '소프트 삭제 — 행을 실제로 지우지 않고 "쓰지 않음" 표시(판매중지 플래그)만 남기는 방식. 과거 기록이 가리키는 행을 보존한다.'
+    softdelete: '소프트 삭제 — 행을 실제로 지우지 않고 "쓰지 않음" 표시(판매중지 플래그)만 남기는 방식. 과거 기록이 가리키는 행을 보존한다.',
+    option: '옵션 — 손님이 메뉴에 덧붙이거나 바꾸는 선택지 하나(샷 추가, 얼음 적게). 메뉴를 바꾸지만 다른 메뉴로 만들지는 않으며, 가격이 붙고 0원일 수도 있다. 세트와 달리 메뉴를 묶지 않는다.',
+    optgroup: '옵션 그룹 — 같은 종류의 옵션을 모은 묶음(샷, 시럽, 얼음). 그룹마다 고를 수 있는 개수의 범위(최소~최대)를 가진다.',
+    setmenu: '세트 — 여러 메뉴를 묶어 하나의 가격으로 파는 상품(음료 + 케이크). 옵션이 메뉴를 바꾼다면 세트는 메뉴를 묶는다.',
+    slot: '구성 슬롯 — 세트 안에서 채워야 하는 자리(음료 1, 디저트 1). 슬롯마다 들어갈 수 있는 후보 메뉴가 정해져 있다.',
+    compfk: '복합 외래키 — 열 둘 이상을 한 덩어리로 묶어 다른 표의 복합키를 가리키는 외래키. 열 조합 전체가 그 표에 있는 행이어야 저장된다.',
+    selfref: '자기 참조 — 외래키가 같은 표의 기본키를 가리키는 것(분류의 상위 분류). 트리를 한 표에 담는 방법이다.',
+    recursive: '재귀 조회(WITH RECURSIVE) — 조회 결과를 다시 조회의 입력으로 넣어 트리를 위아래로 끝까지 따라가는 SQL 문법.',
+    eav: 'EAV(Entity-Attribute-Value) — 속성 이름과 값을 행으로 쌓는 설계(엔터티, 속성 이름, 값 세 열). 열을 늘리지 않고 속성을 더할 수 있지만 타입·제약·외래키·조회를 잃는다.'
   };
 
   /* ── [교재별 4/5] 진도 저장 키 — 교재 슬러그를 접두어로 둔다 ─────
@@ -104,7 +112,7 @@
               'LIMIT|OFFSET|UNION|ALL|ANY|RETURNING|WITH|EXCLUDE|EXPLAIN|ANALYZE|TRUE|FALSE|AND|OR|' +
               'COUNT|SUM|AVG|MIN|MAX|COALESCE|NOW|GENERATED|ALWAYS|IDENTITY|' +
               'INTEGER|INT|BIGINT|SMALLINT|NUMERIC|TEXT|VARCHAR|BOOLEAN|DATE|TIMESTAMP|TIMESTAMPTZ|' +
-              'GENERATED|ALWAYS|IDENTITY|SERIAL';
+              'GENERATED|ALWAYS|IDENTITY|SERIAL|RECURSIVE|OVER|PARTITION|ROW_NUMBER';
 
   var PY_RE = new RegExp(
     '(#[^\\n]*|--[^\\n]*)' +
