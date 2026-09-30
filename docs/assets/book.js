@@ -22,7 +22,7 @@
     { id: 'ch03', num: '3장', title: '정규화: 나눈 설계를 검증하는 도구', part: '기본 이론', screens: 16, hours: 3.0, ready: true },
     { id: 'ch04', num: '4장', title: '제약조건: 규칙을 DB에 맡기기', part: '기본 이론', screens: 11, hours: 2.0, ready: true },
     { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
-    { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5 },
+    { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
     { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25 },
     { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5 },
     { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 2.5 },
@@ -78,7 +78,18 @@
     compfk: '복합 외래키 — 열 둘 이상을 한 덩어리로 묶어 다른 표의 복합키를 가리키는 외래키. 열 조합 전체가 그 표에 있는 행이어야 저장된다.',
     selfref: '자기 참조 — 외래키가 같은 표의 기본키를 가리키는 것(분류의 상위 분류). 트리를 한 표에 담는 방법이다.',
     recursive: '재귀 조회(WITH RECURSIVE) — 조회 결과를 다시 조회의 입력으로 넣어 트리를 위아래로 끝까지 따라가는 SQL 문법.',
-    eav: 'EAV(Entity-Attribute-Value) — 속성 이름과 값을 행으로 쌓는 설계(엔터티, 속성 이름, 값 세 열). 열을 늘리지 않고 속성을 더할 수 있지만 타입·제약·외래키·조회를 잃는다.'
+    eav: 'EAV(Entity-Attribute-Value) — 속성 이름과 값을 행으로 쌓는 설계(엔터티, 속성 이름, 값 세 열). 열을 늘리지 않고 속성을 더할 수 있지만 타입·제약·외래키·조회를 잃는다.',
+    snapshot: '스냅샷 — 주문을 만들 때 그 순간의 이름·단가·옵션가를 주문 줄에 복사해 둔 값. 메뉴가 바뀌어도 고치지 않는다. 지금 값과 잠시 같을 뿐 의미가 다른 사실이라 중복이 아니다.',
+    history: '이력 — 값이 바뀐 내역을 기간과 함께 쌓아 둔 기록. 스냅샷이 "이 주문이 받은 값"이라면 이력은 "이 메뉴가 언제 얼마였나"이고, 잘못 적었으면 바로잡는다.',
+    validity: '유효 기간 — 한 값이 참이던 기간 [시작, 끝). 이 교재는 시작 포함·끝 제외로 적고 끝이 NULL 이면 지금도 유효하다는 뜻이다.',
+    exclude: 'EXCLUDE 제약 — 조건을 만족하는 두 행이 함께 있으면 거부하는 PostgreSQL 제약. UNIQUE 가 같은 값을 막는다면 EXCLUDE 는 겹치는 구간도 막을 수 있다. 정수 열을 함께 쓰려면 btree_gist 확장이 필요하다.',
+    promotion: '프로모션 — 기간을 정한 이벤트. 받는 주인이 없고 조건(기간, 대상 메뉴)만 맞으면 누구나 받는다. 회원이 받는 쿠폰, 회원의 상태인 등급과 구별된다.',
+    coupon: '쿠폰 — 회원이 발급받아 한 번 쓰는 혜택. 종류(coupon)와 발급(coupon_issue)을 나누어 적고, 사용 여부는 열로 저장하지 않고 할인 내역에서 유도한다.',
+    grade: '멤버십 등급 — 회원에게 붙은 상시 자격(일반·실버·골드)과 등급별 할인율. 등급은 바뀌므로 주문이 그때의 등급을 스냅샷으로 들고 있어야 한다.',
+    ledger: '원장(ledger) — 증감 사건을 쌓기만 하는 표. 잔액은 사건의 합계로 구하고, 잘못은 고치지 않고 반대 방향의 행을 더해 바로잡는다. 덮어쓰는 잔액 컬럼과 다르다.',
+    partialidx: '부분 UNIQUE 인덱스 — WHERE 조건을 만족하는 행 사이에서만 유일성을 검사하는 색인(CREATE UNIQUE INDEX ... WHERE ...). "한 주문에 등급 할인은 한 번"처럼 조건부 유일성에 쓴다.',
+    backfill: 'backfill — 새 열을 더한 뒤 이미 있던 행의 값을 채우는 작업. 채울 값을 지금 값에서 가져오면 "그 뒤로 바뀐 적이 없다"는 가정이 필요하다.',
+    temporal: '시간 이력 테이블(temporal table) — 행에 시간 축(유효 시간, 기록 시간)을 붙여 관리하는 표. SQL:2011 에 표준이 있고 제품마다 지원이 다르다. 두 시간을 모두 쓰면 양방향(bitemporal)이라 한다.'
   };
 
   /* ── [교재별 4/5] 진도 저장 키 — 교재 슬러그를 접두어로 둔다 ─────
@@ -112,7 +123,8 @@
               'LIMIT|OFFSET|UNION|ALL|ANY|RETURNING|WITH|EXCLUDE|EXPLAIN|ANALYZE|TRUE|FALSE|AND|OR|' +
               'COUNT|SUM|AVG|MIN|MAX|COALESCE|NOW|GENERATED|ALWAYS|IDENTITY|' +
               'INTEGER|INT|BIGINT|SMALLINT|NUMERIC|TEXT|VARCHAR|BOOLEAN|DATE|TIMESTAMP|TIMESTAMPTZ|' +
-              'GENERATED|ALWAYS|IDENTITY|SERIAL|RECURSIVE|OVER|PARTITION|ROW_NUMBER';
+              'GENERATED|ALWAYS|IDENTITY|SERIAL|RECURSIVE|OVER|PARTITION|ROW_NUMBER|' +
+              'EXTENSION|LEAD|VALID|TSTZRANGE|WITHOUT|OVERLAPS';
 
   var PY_RE = new RegExp(
     '(#[^\\n]*|--[^\\n]*)' +
