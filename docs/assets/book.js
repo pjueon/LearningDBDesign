@@ -23,7 +23,7 @@
     { id: 'ch04', num: '4장', title: '제약조건: 규칙을 DB에 맡기기', part: '기본 이론', screens: 11, hours: 2.0, ready: true },
     { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
     { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
-    { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25 },
+    { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25, ready: true },
     { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5 },
     { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 2.5 },
     { id: 'ch10', num: '10장', title: '마무리: 언제 깨고, 언제 쓰지 말까', part: '마무리', screens: 7, hours: 1.0 },
@@ -89,7 +89,19 @@
     ledger: '원장(ledger) — 증감 사건을 쌓기만 하는 표. 잔액은 사건의 합계로 구하고, 잘못은 고치지 않고 반대 방향의 행을 더해 바로잡는다. 덮어쓰는 잔액 컬럼과 다르다.',
     partialidx: '부분 UNIQUE 인덱스 — WHERE 조건을 만족하는 행 사이에서만 유일성을 검사하는 색인(CREATE UNIQUE INDEX ... WHERE ...). "한 주문에 등급 할인은 한 번"처럼 조건부 유일성에 쓴다.',
     backfill: 'backfill — 새 열을 더한 뒤 이미 있던 행의 값을 채우는 작업. 채울 값을 지금 값에서 가져오면 "그 뒤로 바뀐 적이 없다"는 가정이 필요하다.',
-    temporal: '시간 이력 테이블(temporal table) — 행에 시간 축(유효 시간, 기록 시간)을 붙여 관리하는 표. SQL:2011 에 표준이 있고 제품마다 지원이 다르다. 두 시간을 모두 쓰면 양방향(bitemporal)이라 한다.'
+    temporal: '시간 이력 테이블(temporal table) — 행에 시간 축(유효 시간, 기록 시간)을 붙여 관리하는 표. SQL:2011 에 표준이 있고 제품마다 지원이 다르다. 두 시간을 모두 쓰면 양방향(bitemporal)이라 한다.',
+    fullscan: '풀스캔(full scan) — 인덱스 없이 표의 모든 행을 처음부터 끝까지 읽으며 조건을 검사하는 것. PostgreSQL 실행 계획의 Seq Scan. 비용은 표의 페이지 수에 비례한다.',
+    pagebuf: '페이지(버퍼) — DB가 디스크를 읽고 쓰는 고정 크기 덩어리(PostgreSQL은 8KB). 행 하나가 필요해도 그 행이 든 페이지 전체를 읽는다. 이 교재의 "읽은 페이지 수"가 비용의 척도다.',
+    btree: 'B-tree — 값을 정렬해 페이지에 담고 루트·중간·잎의 나무로 쌓은 인덱스 구조. 모든 잎이 같은 깊이이고 한 페이지에 수백 개의 갈래가 있어 100만 행도 3~4쪽으로 찾는다. 등호·범위·정렬에 쓰이는 기본 인덱스 종류다.',
+    compidx: '복합 인덱스 — 열 둘 이상을 앞 열부터 차례로 정렬해 담은 인덱스. 앞 열(선두 열)의 조건이 있어야 잘 쓰이고, 등호 조건 열을 앞에, 범위나 정렬 열을 뒤에 둔다.',
+    selectivity: '선택도 — 조건 하나가 고르는 행의 비율. 비율이 작을수록 선택도가 높고, 인덱스는 선택도가 높은 조건에서 듣는다. 열의 카디널리티(서로 다른 값의 수)와 관련되지만 값의 분포에 따라 값마다 다르다.',
+    explain: 'EXPLAIN — DB가 조회를 어떻게 실행할지의 계획을 보여 주는 명령. EXPLAIN ANALYZE는 실제로 실행해 실제 행 수와 시간을, BUFFERS는 읽은 페이지 수를 붙인다.',
+    denorm: '비정규화 — 성능을 위해 정규화된 설계를 일부러 되돌려 같은 사실을 중복해 두는 것. 정규화를 안 한 것이 아니라 한 뒤에 되돌린 것이며, 어긋남을 막는 갱신 경로와 점검이 따라와야 한다.',
+    summarytbl: '요약 테이블 — 원본을 미리 집계해 저장한 파생 표(일 매출 daily_sales). 읽는 단위에 맞춰 행 수를 줄여 조회를 빠르게 하지만 원본의 사본이라 어긋날 수 있다.',
+    idempotent: '멱등 — 같은 작업을 몇 번 실행해도 한 번 실행한 것과 결과가 같은 성질. 지우고 다시 계산하기는 멱등이고 증감을 더하기는 아니다.',
+    keyset: 'keyset 페이지네이션 — OFFSET으로 건너뛰는 대신 마지막으로 본 행의 키를 기억하고 그 이후를 조회하는 방식. 몇 번째 페이지든 읽는 양이 같다.',
+    partition: '파티셔닝 — 큰 표를 기간 같은 기준으로 여러 물리 표(파티션)로 나누어 한 표처럼 쓰는 것. 기간 조회는 해당 파티션만 읽고 오래된 기간은 표째로 버릴 수 있다.',
+    archive: '아카이브 — 오래된 행을 보관용 표로 옮기고 원본에서 지우는 것. 자식 표의 순서, 합계가 필요한 표(원장), 요약의 재생성 가능성을 따져야 한다.'
   };
 
   /* ── [교재별 4/5] 진도 저장 키 — 교재 슬러그를 접두어로 둔다 ─────
@@ -124,7 +136,9 @@
               'COUNT|SUM|AVG|MIN|MAX|COALESCE|NOW|GENERATED|ALWAYS|IDENTITY|' +
               'INTEGER|INT|BIGINT|SMALLINT|NUMERIC|TEXT|VARCHAR|BOOLEAN|DATE|TIMESTAMP|TIMESTAMPTZ|' +
               'GENERATED|ALWAYS|IDENTITY|SERIAL|RECURSIVE|OVER|PARTITION|ROW_NUMBER|' +
-              'EXTENSION|LEAD|VALID|TSTZRANGE|WITHOUT|OVERLAPS';
+              'EXTENSION|LEAD|VALID|TSTZRANGE|WITHOUT|OVERLAPS|' +
+              'CONFLICT|DO|EXCLUDED|INCLUDE|DESC|ASC|AT|TIME|ZONE|FULL|RANGE|OF|TO|DETACH|ATTACH|' +
+              'MATERIALIZED|REFRESH|CONCURRENTLY';
 
   var PY_RE = new RegExp(
     '(#[^\\n]*|--[^\\n]*)' +
