@@ -20,13 +20,13 @@
     { id: 'ch01', num: '1장', title: '엑셀 한 장의 고통: 나쁜 설계와 이상현상', part: '입문', screens: 12, hours: 2.0, ready: true },
     { id: 'ch02', num: '2장', title: '테이블 나누기: 엔터티·키·관계', part: '기본 이론', screens: 13, hours: 2.5, ready: true },
     { id: 'ch03', num: '3장', title: '정규화: 나눈 설계를 검증하는 도구', part: '기본 이론', screens: 16, hours: 3.0, ready: true },
-    { id: 'ch04', num: '4장', title: '제약조건: 규칙을 DB에 맡기기', part: '기본 이론', screens: 11, hours: 2.0, ready: true },
-    { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
-    { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
+    { id: 'ch04', num: '4장', title: '제약조건: 규칙을 DB에 맡기기', part: '기본 이론', screens: 11, hours: 2.25, ready: true },
+    { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 3.0, ready: true },
+    { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 3.0, ready: true },
     { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25, ready: true },
     { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5, ready: true },
-    { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 2.5, ready: true },
-    { id: 'ch10', num: '10장', title: '마무리: 언제 깨고, 언제 쓰지 말까', part: '마무리', screens: 7, hours: 1.0, ready: true },
+    { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 3.0, ready: true },
+    { id: 'ch10', num: '10장', title: '마무리: 언제 깨고, 언제 쓰지 말까', part: '마무리', screens: 8, hours: 1.25, ready: true },
     { id: 'glossary', num: '부록', title: '용어집', part: '부록', screens: 9, hours: 0.5, ready: true }
   ];
 
@@ -56,20 +56,20 @@
     refint: '참조 무결성 — 외래키가 가리키는 행이 실제로 존재한다는 보장. 없는 행을 가리키는 값은 DB가 거부한다.',
     erd: 'ER 다이어그램 — 엔터티(상자), 속성, 키, 관계(선, 1과 N)를 한 장에 그린 설계도.',
     fd: '함수 종속(FD) — A 값이 정해지면 B 값이 하나로 정해지는 관계(A → B). 데이터가 아니라 업무 규칙이다. 왼쪽 A를 결정자라고 부른다.',
-    determinant: '결정자 — 함수 종속 A → B 의 왼쪽 A. 이 값이 정해지면 오른쪽 값이 하나로 정해진다.',
+    determinant: '결정자 — 함수 종속 A → B의 왼쪽 A. 이 값이 정해지면 오른쪽 값이 하나로 정해진다.',
     atomic: '원자값 — 업무에서 더 쪼개면 뜻이 깨지는 값 하나. 한 칸에 목록을 넣지 않는 것이 1NF의 요구다.',
-    partdep: '부분 종속 — 복합 키의 일부만으로 정해지는 열이 있는 상태. 2NF가 금지한다.',
+    partdep: '부분 종속 — 복합 키의 일부만으로 정해지는 키가 아닌 열이 있는 상태. 2NF가 금지한다.',
     transdep: '이행 종속 — 키가 아닌 열이 다른 키가 아닌 열을 거쳐서 정해지는 상태(키 → 열 → 열). 3NF가 금지한다.',
     derived: '파생값 — 다른 열에서 계산할 수 있는 값(합계 = 단가 × 수량). 저장하면 원본과 어긋날 위험이 생긴다.',
     lossless: '무손실 분해 — 표를 나눈 뒤 다시 이었을 때 원래의 행이 정확히 복원되는 분해. 공통 열이 한쪽 표의 후보키이면 보장된다.',
     join: '조인(JOIN) — 두 테이블의 행을 키가 같은 것끼리 이어 붙여 한 결과 표로 만드는 조회.',
-    null: 'NULL — 값이 없다 또는 알 수 없다는 표시. 0도 빈 글자도 아니다. NULL과의 비교는 참도 거짓도 아닌 "알 수 없음"이 되어 NULL = NULL 도 참이 아니다. NULL 여부는 IS NULL 로 묻는다.',
-    tvl: '3값 논리 — SQL의 조건식이 참·거짓·알 수 없음 세 가지 결과를 갖는 셈법. WHERE 는 참인 행만 남기고, CHECK 는 거짓인 행만 거부하므로 알 수 없음이면 통과한다.',
+    null: 'NULL — 값이 없다 또는 알 수 없다는 표시. 0도 빈 글자도 아니다. NULL과의 비교는 참도 거짓도 아닌 "알 수 없음"이 되어 NULL = NULL도 참이 아니다. NULL 여부는 IS NULL로 묻는다.',
+    tvl: '3값 논리 — SQL의 조건식이 참·거짓·알 수 없음 세 가지 결과를 갖는 셈법. WHERE는 참인 행만 남기고, CHECK는 거짓인 행만 거부하므로 알 수 없음이면 통과한다.',
     floatpt: '부동소수점(float) — 2진수로 실수를 근사해 저장하는 타입. 0.1 같은 값을 정확히 담지 못해 금액에는 쓰지 않는다. 정확한 십진수는 NUMERIC.',
-    defaultval: 'DEFAULT — INSERT 에서 그 열을 적지 않았을 때 DB가 대신 넣는 값. 규칙이 아니라 편의이며, 열에 NULL을 명시하면 적용되지 않는다.',
-    unique: 'UNIQUE — 같은 값이 두 행에 있을 수 없게 하는 제약. 기본키와 달리 한 표에 여러 개 둘 수 있고 PostgreSQL에서는 NULL 을 여러 행에 넣을 수 있다.',
+    defaultval: 'DEFAULT — INSERT에서 그 열을 적지 않았을 때 DB가 대신 넣는 값. 규칙이 아니라 편의이며, 열에 NULL을 명시하면 적용되지 않는다.',
+    unique: 'UNIQUE — 같은 값이 두 행에 있을 수 없게 하는 제약. 기본키와 달리 한 표에 여러 개 둘 수 있고 PostgreSQL에서는 NULL을 여러 행에 넣을 수 있다.',
     check: 'CHECK — 한 행의 값이 조건식을 만족해야 저장되게 하는 제약. 그 행의 열만 볼 수 있고, 조건이 NULL(알 수 없음)이면 통과한다.',
-    ondelete: 'ON DELETE — 외래키가 가리키는 행(부모)을 지울 때 참조하는 행(자식)을 어떻게 할지 정하는 절. NO ACTION(기본)·RESTRICT 는 거부, CASCADE 는 함께 삭제, SET NULL·SET DEFAULT 는 값 변경.',
+    ondelete: 'ON DELETE — 외래키가 가리키는 행(부모)을 지울 때 참조하는 행(자식)을 어떻게 할지 정하는 절. NO ACTION(기본)·RESTRICT는 거부, CASCADE는 함께 삭제, SET NULL·SET DEFAULT는 값 변경.',
     softdelete: '소프트 삭제 — 행을 실제로 지우지 않고 "쓰지 않음" 표시(판매중지 플래그)만 남기는 방식. 과거 기록이 가리키는 행을 보존한다.',
     option: '옵션 — 손님이 메뉴에 덧붙이거나 바꾸는 선택지 하나(샷 추가, 얼음 적게). 메뉴를 바꾸지만 다른 메뉴로 만들지는 않으며, 가격이 붙고 0원일 수도 있다. 세트와 달리 메뉴를 묶지 않는다.',
     optgroup: '옵션 그룹 — 같은 종류의 옵션을 모은 묶음(샷, 시럽, 얼음). 그룹마다 고를 수 있는 개수의 범위(최소~최대)를 가진다.',
@@ -79,22 +79,22 @@
     selfref: '자기 참조 — 외래키가 같은 표의 기본키를 가리키는 것(분류의 상위 분류). 트리를 한 표에 담는 방법이다.',
     recursive: '재귀 조회(WITH RECURSIVE) — 조회 결과를 다시 조회의 입력으로 넣어 트리를 위아래로 끝까지 따라가는 SQL 문법.',
     eav: 'EAV(Entity-Attribute-Value) — 속성 이름과 값을 행으로 쌓는 설계(엔터티, 속성 이름, 값 세 열). 열을 늘리지 않고 속성을 더할 수 있지만 타입·제약·외래키·조회를 잃는다.',
-    snapshot: '스냅샷 — 주문을 만들 때 그 순간의 이름·단가·옵션가를 주문 줄에 복사해 둔 값. 메뉴가 바뀌어도 고치지 않는다. 지금 값과 잠시 같을 뿐 의미가 다른 사실이라 중복이 아니다.',
+    snapshot: '스냅샷 — 주문을 만들 때 그 순간의 이름·단가·옵션가를 주문 라인에 복사해 둔 값. 메뉴가 바뀌어도 고치지 않는다. 지금 값과 잠시 같을 뿐 의미가 다른 사실이라 중복이 아니다.',
     history: '이력 — 값이 바뀐 내역을 기간과 함께 쌓아 둔 기록. 스냅샷이 "이 주문이 받은 값"이라면 이력은 "이 메뉴가 언제 얼마였나"이고, 잘못 적었으면 바로잡는다.',
-    validity: '유효 기간 — 한 값이 참이던 기간 [시작, 끝). 이 교재는 시작 포함·끝 제외로 적고 끝이 NULL 이면 지금도 유효하다는 뜻이다.',
-    exclude: 'EXCLUDE 제약 — 조건을 만족하는 두 행이 함께 있으면 거부하는 PostgreSQL 제약. UNIQUE 가 같은 값을 막는다면 EXCLUDE 는 겹치는 구간도 막을 수 있다. 정수 열을 함께 쓰려면 btree_gist 확장이 필요하다.',
+    validity: '유효 기간 — 한 값이 참이던 기간 [시작, 끝). 이 교재는 시작 포함·끝 제외로 적고 끝이 NULL이면 지금도 유효하다는 뜻이다.',
+    exclude: 'EXCLUDE 제약 — 조건을 만족하는 두 행이 함께 있으면 거부하는 PostgreSQL 제약. UNIQUE가 같은 값을 막는다면 EXCLUDE는 겹치는 구간도 막을 수 있다. 정수 열을 함께 쓰려면 btree_gist 확장이 필요하다.',
     promotion: '프로모션 — 기간을 정한 이벤트. 받는 주인이 없고 조건(기간, 대상 메뉴)만 맞으면 누구나 받는다. 회원이 받는 쿠폰, 회원의 상태인 등급과 구별된다.',
     coupon: '쿠폰 — 회원이 발급받아 한 번 쓰는 혜택. 종류(coupon)와 발급(coupon_issue)을 나누어 적고, 사용 여부는 열로 저장하지 않고 할인 내역에서 유도한다.',
     grade: '멤버십 등급 — 회원에게 붙은 상시 자격(일반·실버·골드)과 등급별 할인율. 등급은 바뀌므로 주문이 그때의 등급을 스냅샷으로 들고 있어야 한다.',
-    ledger: '원장(ledger) — 증감 사건을 쌓기만 하는 표. 잔액은 사건의 합계로 구하고, 잘못은 고치지 않고 반대 방향의 행을 더해 바로잡는다. 덮어쓰는 잔액 컬럼과 다르다.',
-    partialidx: '부분 UNIQUE 인덱스 — WHERE 조건을 만족하는 행 사이에서만 유일성을 검사하는 색인(CREATE UNIQUE INDEX ... WHERE ...). "한 주문에 등급 할인은 한 번"처럼 조건부 유일성에 쓴다.',
+    ledger: '원장(ledger) — 증감 사건을 쌓기만 하는 표. 잔액은 사건의 합계로 구하고, 잘못은 고치지 않고 반대 방향의 행을 더해 바로잡는다. 덮어쓰는 잔액 열과 다르다.',
+    partialidx: '부분 UNIQUE 인덱스 — WHERE 조건을 만족하는 행 사이에서만 유일성을 검사하는 인덱스(CREATE UNIQUE INDEX ... WHERE ...). "한 주문에 등급 할인은 한 번"처럼 조건부 유일성에 쓴다.',
     backfill: 'backfill — 새 열을 더한 뒤 이미 있던 행의 값을 채우는 작업. 채울 값을 지금 값에서 가져오면 "그 뒤로 바뀐 적이 없다"는 가정이 필요하다.',
-    temporal: '시간 이력 테이블(temporal table) — 행에 시간 축(유효 시간, 기록 시간)을 붙여 관리하는 표. SQL:2011 에 표준이 있고 제품마다 지원이 다르다. 두 시간을 모두 쓰면 양방향(bitemporal)이라 한다.',
+    temporal: '시간 이력 테이블(temporal table) — 행에 시간 축(유효 시간, 기록 시간)을 붙여 관리하는 표. SQL:2011에 표준이 있고 제품마다 지원이 다르다. 두 시간을 모두 쓰면 양방향(bitemporal)이라 한다.',
     fullscan: '풀스캔(full scan) — 인덱스 없이 표의 모든 행을 처음부터 끝까지 읽으며 조건을 검사하는 것. PostgreSQL 실행 계획의 Seq Scan. 비용은 표의 페이지 수에 비례한다.',
     pagebuf: '페이지(버퍼) — DB가 디스크를 읽고 쓰는 고정 크기 덩어리(PostgreSQL은 8KB). 행 하나가 필요해도 그 행이 든 페이지 전체를 읽는다. 이 교재의 "읽은 페이지 수"가 비용의 척도다.',
     btree: 'B-tree — 값을 정렬해 페이지에 담고 루트·중간·잎의 나무로 쌓은 인덱스 구조. 모든 잎이 같은 깊이이고 한 페이지에 수백 개의 갈래가 있어 100만 행도 3~4쪽으로 찾는다. 등호·범위·정렬에 쓰이는 기본 인덱스 종류다.',
     compidx: '복합 인덱스 — 열 둘 이상을 앞 열부터 차례로 정렬해 담은 인덱스. 앞 열(선두 열)의 조건이 있어야 잘 쓰이고, 등호 조건 열을 앞에, 범위나 정렬 열을 뒤에 둔다.',
-    selectivity: '선택도 — 조건 하나가 고르는 행의 비율. 비율이 작을수록 선택도가 높고, 인덱스는 선택도가 높은 조건에서 듣는다. 열의 카디널리티(서로 다른 값의 수)와 관련되지만 값의 분포에 따라 값마다 다르다.',
+    selectivity: '선택도 — 조건 하나가 행을 얼마나 잘 걸러 내는가. 고르는 행의 비율이 작을수록 선택도가 높다고 말한다(PostgreSQL 문서는 그 비율 자체를 선택도라 부르니 숫자로는 작을수록 "높은" 것이다). 인덱스는 선택도가 높은 조건에서 듣는다. 열의 카디널리티(서로 다른 값의 수)와 관련되지만 값의 분포에 따라 값마다 다르다.',
     explain: 'EXPLAIN — DB가 조회를 어떻게 실행할지의 계획을 보여 주는 명령. EXPLAIN ANALYZE는 실제로 실행해 실제 행 수와 시간을, BUFFERS는 읽은 페이지 수를 붙인다.',
     denorm: '비정규화 — 성능을 위해 정규화된 설계를 일부러 되돌려 같은 사실을 중복해 두는 것. 정규화를 안 한 것이 아니라 한 뒤에 되돌린 것이며, 어긋남을 막는 갱신 경로와 점검이 따라와야 한다.',
     summarytbl: '요약 테이블 — 원본을 미리 집계해 저장한 파생 표(일 매출 daily_sales). 읽는 단위에 맞춰 행 수를 줄여 조회를 빠르게 하지만 원본의 사본이라 어긋날 수 있다.',
@@ -105,28 +105,87 @@
     stockitem: '재고 품목 — 수량을 세어 관리하는 대상 한 가지(치즈케이크, 원두). 손님이 사는 그대로인 완제품과 메뉴를 만드는 데 들어가는 원재료로 나뉜다. 남은 양은 기본 단위(g, ml, 개)의 정수로 저장한다.',
     recipe: '레시피(소요량) — 메뉴 1개 또는 옵션 1회가 재고 품목을 얼마나 쓰는지 적은 연결. 소요량은 (메뉴, 품목) 쌍에 딸린 값이라 연결 테이블의 속성이다.',
     acid: 'ACID — 트랜잭션이 지키는 네 성질. 원자성(전부 되거나 전부 안 됨), 일관성(커밋된 상태는 선언한 제약을 지킴), 격리성(동시 트랜잭션이 서로의 중간 상태를 못 봄, 정도를 고른다), 지속성(커밋은 서버가 꺼져도 남음). 일관성은 업무적 옳음을 뜻하지 않는다.',
-    lock: '락(잠금) — 행을 고치는 트랜잭션이 끝날 때까지 다른 트랜잭션이 같은 행을 고치지 못하게 막는 표시. UPDATE 가 자동으로 걸고 SELECT ... FOR UPDATE 는 읽으면서 건다. 막힌 쪽은 기다린다. 일반 SELECT 는 락을 걸지도 기다리지도 않는다.',
+    lock: '락(잠금) — 행을 고치는 트랜잭션이 끝날 때까지 다른 트랜잭션이 같은 행을 고치지 못하게 막는 표시. UPDATE가 자동으로 걸고 SELECT ... FOR UPDATE는 읽으면서 건다. 막힌 쪽은 기다린다. 일반 SELECT는 락을 걸지도 기다리지도 않는다.',
     race: '경쟁 상태(race condition) — 동시 요청의 실행 순서에 따라 결과가 달라지는 버그. 읽고 판단하고 쓰는 사이의 틈에서 생긴다.',
     lostupdate: '갱신 손실(lost update) — 두 트랜잭션이 같은 값을 읽고 각자 계산한 값을 써서 한쪽의 변경이 사라지는 사고. 앱이 계산한 값으로 덮어쓸 때 생긴다.',
     optlock: '낙관적 락 — 충돌이 드물다고 보고 미리 잠그지 않고, 쓸 때 읽은 뒤로 바뀌지 않았는지(version 열 등)만 조건에 넣어 확인하는 방식. 미리 잠그는 쪽은 비관적 락(FOR UPDATE)이다.',
     deadlock: '교착(데드락) — 두 트랜잭션이 서로 상대가 쥔 락을 기다려 영원히 못 나아가는 상태. DB가 감지해 한쪽을 오류(40P01)로 중단시키며, 모두가 같은 순서로 락을 잡는 것이 예방이다.',
-    isolation: '격리 수준 — 동시에 실행되는 트랜잭션이 서로의 변경을 얼마나 보는지 정하는 설정. PostgreSQL 은 READ COMMITTED(기본), REPEATABLE READ, SERIALIZABLE. 올릴수록 보이는 것이 고정되지만 직렬화 실패(40001) 재시도가 필요해진다.',
+    isolation: '격리 수준 — 동시에 실행되는 트랜잭션이 서로의 변경을 얼마나 보는지 정하는 설정. PostgreSQL은 READ COMMITTED(기본), REPEATABLE READ, SERIALIZABLE. 올릴수록 보이는 것이 고정되지만 직렬화 실패(40001) 재시도가 필요해진다.',
     pickupslot: '픽업 슬롯 — 픽업 시간대 하나(30분 간격)와 그 정원. 주문 1건이 정원 1을 쓴다. 5장의 세트 구성 슬롯과는 다른 개념이다.',
-    storescope: '매장 범위 — 표의 행이 매장 소유인지(store_id 가 키나 열에 들어간다), 부모 행을 따라 매장을 아는지(상속, 열을 더하지 않는다), 모든 매장이 같은 행을 보는지(브랜드 공통)의 분류. 값이 매장마다 다른가, 한 매장의 사건인가, 부모로 알 수 있는가를 묻는다.',
+    storescope: '매장 범위 — 표의 행이 매장 소유인지(store_id가 키나 열에 들어간다), 부모 행을 따라 매장을 아는지(상속, 열을 더하지 않는다), 모든 매장이 같은 행을 보는지(브랜드 공통)의 분류. 값이 매장마다 다른가, 한 매장의 사건인가, 부모로 알 수 있는가를 묻는다.',
     expandcontract: '확장→이전→축소(expand-contract) — 운영 중인 구조를 바꿀 때 새 구조를 옛 구조 옆에 더하고(확장), 새 앱을 배포하고 데이터를 채워 옮기고(이전), 아무도 옛 구조를 안 쓰는 것을 확인한 뒤 지우는(축소) 순서. 각 단계 사이에 옛 앱과 새 앱이 모두 동작해야 하고 되돌릴 수 없는 일은 맨 끝에 몰아 둔다.',
-    tablelock: '표 잠금 — 표 전체에 거는 락. ALTER TABLE 은 대개 ACCESS EXCLUSIVE(읽기까지 막는 가장 센 락)를 요구하고, 그 표를 쓰는 트랜잭션이 끝나지 않았으면 기다린다. 기다리는 동안 뒤에 온 요청도 줄을 선다. 행을 잠그는 8장의 락과 층이 다르다.',
+    tablelock: '표 잠금 — 표 전체에 거는 락. ALTER TABLE은 대개 ACCESS EXCLUSIVE(읽기까지 막는 가장 센 락)를 요구하고, 그 표를 쓰는 트랜잭션이 끝나지 않았으면 기다린다. 기다리는 동안 뒤에 온 요청도 줄을 선다. 행을 잠그는 8장의 락과 층이 다르다.',
     locktimeout: 'lock_timeout — 락을 이 시간 안에 못 얻으면 기다리지 않고 오류(55P03)로 포기하게 하는 설정. 스키마 변경이 줄을 세워 서비스를 멈추는 것을 막는다.',
-    notvalid: 'NOT VALID — CHECK·외래키 제약을 "앞으로 들어오는 행만" 검사하는 상태로 걸고, 기존 행 검사는 나중에 VALIDATE CONSTRAINT 로 하는 방법. 긴 검사가 쓰기를 막지 않는다. 단 기존 행을 UPDATE 하면 그 행은 검사된다.',
-    multitenant: '멀티테넌시 — 여러 고객(여기서는 매장)이 한 시스템을 나눠 쓰는 구조. 같은 표에 store_id 열을 두는 공유 스키마, 고객마다 스키마를 나누는 방식, 고객마다 DB 를 나누는 방식이 있다.',
-    normalization: '정규화 — 함수 종속을 따라 표를 나눠 같은 사실이 한 곳에만 있게 하는 과정이자, 설계를 검증하는 도구. 단계가 정규형이다(1NF 원자값, 2NF 부분 종속 없음, 3NF 이행 종속 없음, 더 엄격한 BCNF). 이 교재는 3NF 에서 멈추고, 값의 의미(그때의 가격인지 지금의 가격인지)까지는 보장하지 않는다.',
+    notvalid: 'NOT VALID — CHECK·외래키 제약을 "앞으로 들어오는 행만" 검사하는 상태로 걸고, 기존 행 검사는 나중에 VALIDATE CONSTRAINT로 하는 방법. 긴 검사가 쓰기를 막지 않는다. 단 기존 행을 UPDATE 하면 그 행은 검사된다.',
+    multitenant: '멀티테넌시 — 여러 고객(여기서는 매장)이 한 시스템을 나눠 쓰는 구조. 같은 표에 store_id 열을 두는 공유 스키마, 고객마다 스키마를 나누는 방식, 고객마다 DB를 나누는 방식이 있다.',
+    normalization: '정규화 — 함수 종속을 따라 표를 나눠 같은 사실이 한 곳에만 있게 하는 과정이자, 설계를 검증하는 도구. 단계가 정규형이다(1NF 원자값, 2NF 부분 종속 없음, 3NF 이행 종속 없음, 더 엄격한 BCNF). 이 교재는 3NF에서 멈추고, 값의 의미(그때의 가격인지 지금의 가격인지)까지는 보장하지 않는다.',
     orm: 'ORM(Object-Relational Mapping) — 표의 행과 프로그램의 객체를 자동으로 오가게 해 주는 라이브러리. 반복 코드가 줄지만 읽어서 고치고 저장하는 흐름이 8장의 읽고 판단하고 쓰기와 같아서, 낙관적 락 같은 보호를 직접 켜야 한다.',
-    sqlstate: 'SQLSTATE — DB 가 오류를 알릴 때 붙이는 다섯 글자 분류 코드(표준 SQL 의 개념이고 PostgreSQL 이 따른다). 23505 유일성 위반, 23503 외래키 위반, 23514 CHECK 위반, 40001 직렬화 실패, 40P01 교착, 55P03 락 시간 초과. 글자 P 가 든 40P01, 55P03 은 PostgreSQL 이 따로 정한 코드다. 앱은 이 코드와 제약 이름으로 오류를 번역할지 재시도할지 가른다.'
+    sqlstate: 'SQLSTATE — DB가 오류를 알릴 때 붙이는 다섯 글자 분류 코드(표준 SQL의 개념이고 PostgreSQL이 따른다). 23505 유일성 위반, 23503 외래키 위반, 23514 CHECK 위반, 40001 직렬화 실패, 40P01 교착, 55P03 락 시간 초과. 글자 P가 든 40P01, 55P03은 PostgreSQL이 따로 정한 코드다. 앱은 이 코드와 제약 이름으로 오류를 번역할지 재시도할지 가른다.',
+    linktable: '연결 테이블 — N:M 관계를 풀려고 두 표 사이에 끼운 표. 한 행이 두 엔터티의 짝 하나(이 주문에 이 메뉴)를 뜻하고, 관계 자체에 딸린 값(수량)이 여기에 자리를 얻는다.',
+    compkey: '복합키(복합 키) — 열 둘 이상을 묶어 하나의 키로 쓴 것. 한 열만으로는 유일하지 않아도 조합이 유일하면 된다(order_line의 (order_id, menu_id)).',
+    migration: '마이그레이션 — 스키마를 바꾸는 SQL을 번호 붙은 파일로 두고 순서대로 적용하며, 어디까지 적용했는지를 DB 안에 기록하는 방식. 실패하면 되돌릴 수 있는지를 단계마다 따진다.',
+    commitrollback: '커밋/롤백 — 트랜잭션을 끝내는 두 방법. COMMIT은 묶음의 변경을 확정하고, ROLLBACK은 그 변경을 전부 버린다. 커밋 전의 변경은 다른 연결에 보이지 않는다.',
+    pessimistic: '비관적 락 — 충돌이 잦다고 보고 읽을 때부터 행에 락을 걸어 두는 방식(SELECT ... FOR UPDATE). 락을 쥐는 시간이 읽는 순간부터 커밋까지라 길어지기 쉽고, 충돌이 몰리는 곳에 어울린다.',
+    deferrable: '지연 가능 제약(DEFERRABLE) — 검사를 저장할 때마다가 아니라 트랜잭션이 끝날 때(커밋)까지 미루도록 선언한 제약(DEFERRABLE INITIALLY DEFERRED). 이 교재는 외래키에서 다루며, 중복 열과 그 열을 늘 맞춰야 하는 부담 때문에 쓰지 않는다.'
   };
+
+  /* ── [교재별 3/5 이어서] 규칙·빚·스키마 버전 번호 — 번호 툴팁의 원천 ──
+        본문 텍스트의 C1~C17, D1~D5, v1~v7·v5.1 을 찾아 이 뜻을 툴팁으로 단다(마크업 불필요).
+        번호를 다른 뜻으로 쓰는 일이 생기면 그 자리를 <code> 로 감싸면 건너뛴다. */
+  var RULES = {
+    C1: 'C1 · 주문은 라인이 1개 이상이다. DB 선언으로는 지키지 않고 앱 + 트랜잭션이 지킨다(4장에서 한계 확인, 8장에서 완성).',
+    C2: 'C2 · 라인 수량은 1 이상이다. CHECK로 DB가 지킨다(4장).',
+    C3: 'C3 · 한 주문에서 같은 메뉴(5장부터는 같은 메뉴 + 옵션 조합)는 한 라인으로 합친다(4장 → 5장).',
+    C4: 'C4 · 메뉴 이름은 겹치지 않는다. UNIQUE로 DB가 지킨다(4장).',
+    C5: 'C5 · 없는 메뉴·회원·주문을 참조할 수 없다. 외래키로 DB가 지킨다(2장 → 4장).',
+    C6: 'C6 · 메뉴를 내려도 과거 주문은 남는다. ON DELETE RESTRICT + 판매중지 표시(4장 → 6장).',
+    C7: 'C7 · 주문 상태는 접수 → 제조중 → 완료 → 픽업 순으로만 가고, 취소는 접수·제조중에서만 된다. 값 목록은 CHECK, 순서는 앱(4장 → 8장).',
+    C8: 'C8 · 주문 시점의 메뉴명·단가·옵션가를 주문에 복사해 둔다(스냅샷, 6장).',
+    C9: 'C9 · 옵션 그룹마다 고를 수 있는 개수 범위가 있다(예: 샷 0~3, 시럽 0~1). 앱이 지킨다(5장).',
+    C10: 'C10 · 세트는 구성 칸(음료 1 + 디저트 1)을 모두 채워야 한다. 앱 + 구성 테이블(5장).',
+    C11: 'C11 · 쿠폰은 회원당 한 번만 쓸 수 있다. UNIQUE로 DB가 지킨다(6장 → 8장).',
+    C12: 'C12 · 포인트 잔액은 음수가 될 수 없다. 원장 합계 검증 + 락(6장 → 8장).',
+    C13: 'C13 · 재고는 음수가 될 수 없다. CHECK + 조건부 UPDATE(8장).',
+    C14: 'C14 · 픽업 슬롯 정원을 넘길 수 없다(8장).',
+    C15: 'C15 · 매장마다 판매 메뉴·가격이 다를 수 있다(9장).',
+    C16: 'C16 · 스키마를 바꿔도 과거 데이터는 보존된다. 확장 → 이전 → 축소 절차(9장).',
+    C17: 'C17 · 재료가 부족한 메뉴·옵션은 주문할 수 없다. 조회로 품절 표시, 주문 트랜잭션의 재고 차감으로 최종 확인(8장).',
+    D1: 'D1 · 미뤄 둔 빚: 주문 라인이 단가를 갖지 않아 메뉴 가격을 고치면 과거 주문 금액이 바뀐다. 6장에서 갚는다.',
+    D2: 'D2 · 미뤄 둔 빚: 모든 표가 매장 1개를 가정한다. 9장에서 갚는다.',
+    D3: 'D3 · 미뤄 둔 빚: 라인 기본키가 (order_id, menu_id)라 같은 메뉴를 두 라인으로 못 담는다. 5장에서 갚는다.',
+    D4: 'D4 · 미뤄 둔 빚: 주문 총액을 저장하지 않고 라인에서 계산한다. 7장에서 다시 본다.',
+    D5: 'D5 · 미뤄 둔 빚: C1(라인 1개 이상)을 DB 선언에 맡기지 않고 앱이 지킨다. 8장에서 트랜잭션으로 갚는다.',
+    v1: 'v1 · 2장에서 만든 첫 스키마. menu, member, orders, order_line 표 4개.',
+    v2: 'v2 · 3장에서 v1을 정규화로 검증한 결과. 표는 그대로다.',
+    v3: 'v3 · 4장에서 v2에 제약조건(C1~C7)을 붙인 스키마.',
+    v4: 'v4 · 5장에서 옵션·세트를 더한 스키마(표 11개).',
+    v5: 'v5 · 6장에서 가격 이력·주문 스냅샷·쿠폰·멤버십·포인트 원장을 더한 스키마(표 17개).',
+    'v5.1': 'v5.1 · 7장에서 인덱스와 일 매출 요약 표를 더한 스키마(표 18개).',
+    v6: 'v6 · 8장에서 재고·레시피·픽업 슬롯을 더한 스키마(표 22개).',
+    v7: 'v7 · 9장에서 매장과 매장별 메뉴·가격을 더한 스키마(표 25개).'
+  };
+  // 번호를 처음 소개하는 장. 그보다 앞 장에서는 뜻 대신 중립 문구를 띄워
+  // 뒷장의 요구사항이 미리 드러나지 않게 한다.
+  var RULE_INTRO = {
+    C1: 4, C2: 4, C3: 4, C4: 4, C5: 4, C6: 4, C7: 4, C8: 6, C9: 5, C10: 5,
+    C11: 6, C12: 6, C13: 8, C14: 8, C15: 9, C16: 9, C17: 8,
+    D1: 2, D2: 2, D3: 2, D4: 3, D5: 4,
+    v1: 2, v2: 3, v3: 4, v4: 5, v5: 6, 'v5.1': 7, v6: 8, v7: 9
+  };
+  function ruleDef(key, chNum) {
+    var at = RULE_INTRO[key];
+    if (chNum == null || !at || chNum >= at) return RULES[key];
+    if (key.charAt(0) === 'C') return key + ' · ' + at + '장에서 정하는 규칙입니다.';
+    if (key.charAt(0) === 'D') return key + ' · 지금은 일부러 미뤄 둔 문제의 번호입니다. 4장에서 목록으로 정리합니다.';
+    return key + ' · ' + at + '장에서 만드는 스키마 버전입니다.';
+  }
 
   /* ── [교재별 4/5] 진도 저장 키 — 교재 슬러그를 접두어로 둔다 ─────
         file:// 에서는 로컬로 열린 모든 페이지가 저장소를 공유하므로,
         접두어가 겹치면 다른 교재의 진도를 덮어쓴다. */
   var STORE_KEY = 'dbdesign-book:progress';
+  var NAV_KEY = 'dbdesign-book:nav';     // '다음 장'으로 넘어왔는지 (sessionStorage)
+  var BACK_KEY = 'dbdesign-book:back';   // 다른 장의 참조 링크를 누른 자리 (sessionStorage)
 
   /* ── 진도 저장 (file:// 에서는 모든 로컬 페이지가 저장소를 공유하므로
         키에 반드시 접두어를 붙인다) ──────────────────────────────── */
@@ -216,6 +275,137 @@
     });
   }
 
+  /* 말풍선은 body 에 하나만 두고 화면 안에 들어오게 자리를 잡는다.
+     마우스를 올리거나, 탭(포커스)하면 뜨고, 벗어나거나 Esc 를 누르면 닫힌다. */
+  var tip = null, tipFor = null;
+  function showTip(el) {
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'tip';
+      tip.setAttribute('role', 'tooltip');
+      document.body.appendChild(tip);
+    }
+    tip.textContent = el.getAttribute('data-def');
+    tip.classList.add('on');
+    tipFor = el;
+    var r = el.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, vw - w - 8));
+    var top = r.bottom + 6;
+    if (top + h > vh - 8 && r.top - h - 6 > 8) top = r.top - h - 6;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+  function hideTip() {
+    if (tip) tip.classList.remove('on');
+    tipFor = null;
+  }
+  function initTip() {
+    function termOf(e) { return e.target.closest ? e.target.closest('.term[data-def]') : null; }
+    document.addEventListener('mouseover', function (e) { var t = termOf(e); if (t) showTip(t); });
+    document.addEventListener('mouseout', function (e) {
+      var t = termOf(e);
+      if (t && t === tipFor && !t.contains(e.relatedTarget) && document.activeElement !== t) hideTip();
+    });
+    document.addEventListener('focusin', function (e) { var t = termOf(e); if (t) showTip(t); });
+    document.addEventListener('focusout', function (e) { if (termOf(e) === tipFor) hideTip(); });
+    window.addEventListener('scroll', hideTip, true);
+    window.addEventListener('resize', hideTip);
+  }
+
+  /* ── 규칙·빚·버전 번호 툴팁, 화면 참조 링크 ──────────────────────
+     본문 텍스트에서 "N장 화면 M", "화면 N", C/D/v 번호를 찾아 바꾼다.
+     코드, 이미 링크인 곳, kicker, 그림 안은 건드리지 않는다. */
+  var REF_RE = /(\d{1,2})장 화면 (\d{1,2})((?:\s?[·,~]\s?\d{1,2})*)|화면 (\d{1,2})(?!\d|개|화면)((?:\s?[·,~]\s?\d{1,2})*)|(^|[^A-Za-z0-9_.])(C1[0-7]|C[1-9]|D[1-5]|v5\.1|v[1-7])(?![0-9A-Za-z_]|\.\d)/g;
+  var SKIP_SEL = 'pre, code, a, button, svg, .kicker, .term, .cap, script, style, #tip, #xpop';
+
+  function chapterOf(num) {
+    var id = 'ch' + (num < 10 ? '0' : '') + num;
+    for (var i = 0; i < BOOK.length; i++) if (BOOK[i].id === id && BOOK[i].ready) return BOOK[i];
+    return null;
+  }
+
+  function linkRefs(root, chId, screenCount) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || !/화면 \d|[CDv]\d/.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+        return n.parentNode.closest(SKIP_SEL) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    }, false);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    var chNum = /^ch\d+$/.test(chId) ? parseInt(chId.slice(2), 10) : null;  // 용어집은 제한 없음
+
+    nodes.forEach(function (node) {
+      var text = node.nodeValue, frag = document.createDocumentFragment(), last = 0, m, changed = false;
+      REF_RE.lastIndex = 0;
+      function put(s) { if (s) frag.appendChild(document.createTextNode(s)); }
+      // "화면 4·6", "4장 화면 2~3" 처럼 이어지는 번호도 하나씩 링크로 만든다
+      function putList(prefix, first, tail, make) {
+        var a = make(parseInt(first, 10), prefix + first);
+        if (!a) return false;
+        frag.appendChild(a);
+        var re = /(\s?[·,~]\s?)(\d{1,2})/g, t;
+        while ((t = re.exec(tail))) {
+          put(t[1]);
+          var b = make(parseInt(t[2], 10), t[2]);
+          if (b) frag.appendChild(b); else put(t[2]);
+        }
+        return true;
+      }
+      while ((m = REF_RE.exec(text))) {
+        var start = m.index;
+        if (m[1]) {
+          var ch = chapterOf(parseInt(m[1], 10));
+          if (!ch) continue;
+          put(text.slice(last, start));
+          var sameCh = ch.id === chId;
+          putList(m[1] + '장 화면 ', m[2], m[3] || '', function (n, label) {
+            if (n < 1 || n > ch.screens) return null;
+            return sameCh ? makeXref(n, label) : makeChRef(ch, n, label);
+          });
+        } else if (m[4]) {
+          if (!screenCount) continue;
+          put(text.slice(last, start));
+          if (!putList('화면 ', m[4], m[5] || '', function (n, label) {
+            return (n >= 1 && n <= screenCount) ? makeXref(n, label) : null;
+          })) put(m[0]);
+        } else {
+          put(text.slice(last, start) + m[6]);
+          var s = document.createElement('span');
+          s.className = 'term rule';
+          s.textContent = m[7];
+          s.setAttribute('data-def', ruleDef(m[7], chNum));
+          s.setAttribute('tabindex', '0');
+          frag.appendChild(s);
+        }
+        last = REF_RE.lastIndex;
+        changed = true;
+      }
+      if (!changed) return;
+      put(text.slice(last));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  function makeXref(n, label) {
+    var a = document.createElement('a');
+    a.className = 'xref';
+    a.href = '#s' + n;
+    a.setAttribute('data-screen', n);
+    a.textContent = label;
+    return a;
+  }
+  function makeChRef(ch, n, label) {
+    var a = document.createElement('a');
+    a.className = 'xref xref-ch';
+    a.href = ch.id + '.html#s' + n;
+    a.textContent = label;
+    a.title = ch.num + ' 화면 ' + n + '(으)로 이동합니다';
+    return a;
+  }
+
   /* ── Before / After 탭 ──────────────────────────────────────── */
   function initTabs(root) {
     Array.prototype.forEach.call(root.querySelectorAll('.tabs'), function (wrap) {
@@ -263,7 +453,15 @@
           why.textContent = li.dataset.why;
           li.appendChild(why);
         }
-        li.addEventListener('click', function () {
+        // 키보드로도 고를 수 있게 한다(Tab 으로 옮기고 Enter·Space 로 고른다)
+        li.setAttribute('tabindex', '0');
+        li.setAttribute('role', 'button');
+        li.addEventListener('keydown', function (e) {
+          if (e.target !== li) return;
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); li.click(); }
+        });
+        li.addEventListener('click', function (e) {
+          if (e.target.closest && e.target.closest('a, .term')) return;
           if (quiz.classList.contains('done')) return;
           var picked = i + 1;
           li.classList.add('picked', picked === answer ? 'pick-good' : 'pick-bad');
@@ -342,6 +540,12 @@
     toggle.addEventListener('click', function () { document.body.classList.toggle('toc-open'); });
     document.body.appendChild(toggle);
 
+    // 모바일에서 목차를 열면 본문을 막으로 덮고, 막을 누르면 닫는다
+    var scrim = document.createElement('div');
+    scrim.id = 'toc-scrim';
+    scrim.addEventListener('click', function () { document.body.classList.remove('toc-open'); });
+    document.body.appendChild(scrim);
+
     return toc;
   }
 
@@ -399,17 +603,28 @@
 
     // writeLast=false 이면 이 장의 진도만 남기고 '이어서 읽기' 기준점은 건드리지 않는다.
     // (#s5 같은 딥링크로 특정 화면만 열어볼 때 기준점이 그리로 끌려가는 것을 막는다)
-    function remember(writeLast) {
+    // 완독(✓)은 직전 화면에서 '다음'으로 마지막 화면에 왔을 때만 남긴다.
+    function remember(writeLast, finished) {
       var p = loadProgress();
       var rec = p[chId] || {};
       rec.screen = cur;
-      if (cur === screens.length - 1) rec.done = true;
+      if (finished && cur === screens.length - 1) rec.done = true;
       p[chId] = rec;
       if (writeLast) p['_last'] = { id: chId, screen: cur };
       saveProgress(p);
     }
 
-    function show(i, silentLast) {
+    // 주소의 #sN 을 지금 화면에 맞춰 두면 새로고침·북마크가 그 화면으로 돌아온다.
+    // push=true 이면 기록을 하나 쌓아 브라우저의 뒤로 가기로 돌아올 수 있게 한다.
+    function setHash(push) {
+      var h = '#s' + (cur + 1);
+      try {
+        if (push) history.pushState(null, '', h);
+        else if (location.hash !== h) history.replaceState(null, '', h);
+      } catch (e) { /* file:// 에서 막히는 브라우저가 있어도 화면 넘김은 동작한다 */ }
+    }
+
+    function show(i, silentLast, finished, push) {
       cur = Math.max(0, Math.min(screens.length - 1, i));
       Array.prototype.forEach.call(screens, function (s, j) {
         s.classList.toggle('is-active', j === cur);
@@ -425,8 +640,20 @@
       prevBtn.textContent = (cur === 0 && prevCh) ? '← ' + prevCh.num : '← 이전';
       nextBtn.textContent = (cur === screens.length - 1 && nextCh) ? nextCh.num + ' →' : '다음 →';
 
-      window.scrollTo(0, 0);
-      remember(!silentLast);
+      // 사이드바의 현재 화면 항목이 목차 밖으로 밀려나 있으면 보이게 굴린다(본문은 굴리지 않는다)
+      var on = screenItems[cur];
+      if (on) {
+        var top = on.offsetTop, bottom = top + on.offsetHeight;
+        if (top < toc.scrollTop + 40 || bottom > toc.scrollTop + toc.clientHeight - 40) {
+          toc.scrollTop = top - toc.clientHeight / 3;
+        }
+      }
+
+      hideTip();
+      closePop();
+      try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
+      setHash(push);
+      remember(!silentLast, finished);
     }
 
     prevBtn.addEventListener('click', function () {
@@ -434,26 +661,152 @@
       show(cur - 1);
     });
     nextBtn.addEventListener('click', function () {
-      if (cur === screens.length - 1) { if (nextCh) location.href = nextCh.id + '.html'; return; }
-      show(cur + 1);
+      if (cur === screens.length - 1) {
+        if (nextCh) {
+          // 다음 장은 늘 첫 화면부터 연다. 차례대로 넘어온 것이므로 '이어서 읽기' 기준점도 옮긴다.
+          try { sessionStorage.setItem(NAV_KEY, 'seq'); } catch (e) {}
+          location.href = nextCh.id + '.html#s1';
+        }
+        return;
+      }
+      show(cur + 1, false, cur + 1 === screens.length - 1);
     });
 
     document.addEventListener('keydown', function (e) {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
-      var t = e.target.tagName;
-      if (t === 'INPUT' || t === 'TEXTAREA') return;
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); nextBtn.click(); }
-      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevBtn.click(); }
+      if (e.key === 'Escape') { hideTip(); closePop(); document.body.classList.remove('toc-open'); return; }
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.repeat || e.defaultPrevented) return;
+      var t = e.target;
+      if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || (t.closest && t.closest('[role=slider]'))) return;
+      // PageUp/PageDown 은 긴 화면을 굴리는 데 쓰이므로 가로채지 않는다
+      if (e.key === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); prevBtn.click(); }
     });
 
     highlightAll(book);
     initTerms(book);
+    linkRefs(book, chId, screens.length);
     initTabs(book);
     initQuiz(book);
+    initTip();
+
+    /* ── 화면 참조: 같은 장이면 미리보기, 이동하면 돌아가기 버튼 ── */
+    var pop = null, popTimer = null, popFrom = null;
+    function closePop() {
+      clearTimeout(popTimer);
+      if (pop) pop.classList.remove('on');
+      popFrom = null;
+    }
+    function openPop(a, pinned) {
+      var n = parseInt(a.getAttribute('data-screen'), 10);
+      var target = screens[n - 1];
+      if (!target) return;
+      if (!pop) {
+        pop = document.createElement('div');
+        pop.id = 'xpop';
+        pop.setAttribute('role', 'dialog');
+        pop.innerHTML = '<div class="xpop-head"><b></b><button type="button" class="go">이 화면으로 이동</button>' +
+          '<button type="button" class="x" aria-label="닫기">✕</button></div><div class="xpop-body"></div>';
+        document.body.appendChild(pop);
+        pop.querySelector('.x').addEventListener('click', closePop);
+        pop.querySelector('.go').addEventListener('click', function () { jumpTo(parseInt(pop.dataset.screen, 10)); });
+        pop.addEventListener('mouseenter', function () { clearTimeout(popTimer); });
+        pop.addEventListener('mouseleave', function () { if (!pop.dataset.pinned) popTimer = setTimeout(closePop, 250); });
+      }
+      if (n - 1 === cur) return;
+      pop.dataset.screen = n;
+      pop.dataset.pinned = pinned ? '1' : '';
+      pop.querySelector('.xpop-head b').textContent = '화면 ' + n + ' · ' + titles[n - 1];
+      var body = pop.querySelector('.xpop-body');
+      body.innerHTML = '';
+      var clone = target.cloneNode(true);
+      clone.classList.add('is-active');
+      Array.prototype.forEach.call(clone.querySelectorAll('[id]'), function (x) { x.removeAttribute('id'); });
+      body.appendChild(clone);
+      body.scrollTop = 0;
+      pop.classList.add('on');
+      popFrom = a;
+      // 링크 아래(자리가 없으면 위)에 띄운다. 좁은 화면에서는 CSS 가 아래쪽 시트로 고정한다.
+      var r = a.getBoundingClientRect();
+      var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+      var w = pop.offsetWidth, h = pop.offsetHeight;
+      var left = Math.max(8, Math.min(r.left, vw - w - 8));
+      var top = r.bottom + 8;
+      if (top + h > vh - 8) top = Math.max(8, r.top - h - 8);
+      pop.style.left = left + 'px';
+      pop.style.top = top + 'px';
+    }
+
+    var back = null;
+    function showBack(label, onBack) {
+      if (!back) {
+        back = document.createElement('div');
+        back.id = 'xback';
+        back.innerHTML = '<a href="#"></a><button type="button" aria-label="돌아가기 버튼 닫기">✕</button>';
+        document.body.appendChild(back);
+        back.querySelector('button').addEventListener('click', function () { back.classList.remove('on'); });
+      }
+      var link = back.querySelector('a');
+      link.textContent = '← ' + label + '(으)로 돌아가기';
+      link.onclick = function (e) { e.preventDefault(); back.classList.remove('on'); onBack(); };
+      back.classList.add('on');
+    }
+
+    function jumpTo(n) {
+      var from = cur;
+      show(n - 1, false, false, true);
+      showBack('화면 ' + (from + 1), function () { show(from, false, false, true); });
+    }
+
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a.xref');
+      if (!a) return;
+      if (a.classList.contains('xref-ch')) {
+        try { sessionStorage.setItem(BACK_KEY, JSON.stringify({ id: chId, num: meta.num, screen: cur + 1 })); } catch (err) {}
+        return;  // 다른 장은 그대로 이동한다
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      // 같은 장: 첫 클릭은 미리보기를 고정해서 열고, 미리보기 안의 '이동' 버튼으로 넘어간다
+      if (pop && pop.classList.contains('on') && popFrom === a && pop.dataset.pinned) closePop();
+      else openPop(a, true);
+    }, true);
+    if (window.matchMedia && window.matchMedia('(hover: hover)').matches) {
+      document.addEventListener('mouseover', function (e) {
+        var a = e.target.closest && e.target.closest('a.xref[data-screen]');
+        if (!a || a === popFrom) return;
+        clearTimeout(popTimer);
+        popTimer = setTimeout(function () { openPop(a, false); }, 350);
+      });
+      document.addEventListener('mouseout', function (e) {
+        var a = e.target.closest && e.target.closest('a.xref[data-screen]');
+        if (!a || (pop && pop.contains(e.relatedTarget))) return;
+        clearTimeout(popTimer);
+        if (pop && !pop.dataset.pinned) popTimer = setTimeout(closePop, 250);
+      });
+    }
+    document.addEventListener('mousedown', function (e) {
+      if (pop && pop.classList.contains('on') && !pop.contains(e.target) && !(e.target.closest && e.target.closest('a.xref'))) closePop();
+    });
+
+    // 브라우저의 뒤로/앞으로 가기로 #sN 이 바뀌면 그 화면을 보인다
+    window.addEventListener('popstate', function () {
+      var m = /^#s(\d+)$/.exec(location.hash);
+      if (m) show(parseInt(m[1], 10) - 1);
+      if (back) back.classList.remove('on');
+    });
+    window.addEventListener('hashchange', function () {
+      var m = /^#s(\d+)$/.exec(location.hash);
+      if (m && parseInt(m[1], 10) - 1 !== cur) show(parseInt(m[1], 10) - 1);
+    });
+    window.addEventListener('beforeprint', function () {
+      Array.prototype.forEach.call(document.querySelectorAll('details.fold'), function (d) { d.open = true; });
+    });
 
     // 시작 화면 결정: #last → 마지막, #s3 → 3번째, 그 외에는 저장된 진도
     var start = 0;
     var hash = location.hash;
+    var seq = false;
+    try { seq = sessionStorage.getItem(NAV_KEY) === 'seq'; sessionStorage.removeItem(NAV_KEY); } catch (e) {}
     if (hash === '#last') {
       start = screens.length - 1;
     } else if (/^#s\d+$/.test(hash)) {
@@ -462,7 +815,16 @@
       var saved = loadProgress()[chId];
       if (saved && typeof saved.screen === 'number') start = saved.screen;
     }
-    show(start, !!hash);
+    show(start, !!hash && !seq);
+
+    // 다른 장의 참조 링크로 왔으면 원래 자리로 돌아가는 버튼을 띄운다
+    try {
+      var from = JSON.parse(sessionStorage.getItem(BACK_KEY) || 'null');
+      sessionStorage.removeItem(BACK_KEY);
+      if (from && from.id !== chId) {
+        showBack(from.num + ' 화면 ' + from.screen, function () { location.href = from.id + '.html#s' + from.screen; });
+      }
+    } catch (e) {}
   }
 
   /* ── 표지(index.html) 초기화 ────────────────────────────────── */
@@ -515,6 +877,7 @@
     initTerms(document);
     initTabs(document);
     initQuiz(document);
+    initTip();
   }
 
   document.addEventListener('DOMContentLoaded', function () {

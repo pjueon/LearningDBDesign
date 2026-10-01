@@ -26,6 +26,19 @@
       <p>1장에서 겪은 사고들이 정말 사라졌는지 v1에서 다시 해 볼게요.</p></div></div>
   </div>
 
+  <div class="box note">
+    <p class="box-t">다시 보기: 2장의 스키마 v1 (네 표의 열과 키)</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>표 (한 행은)</th><th>열</th><th>기본키</th><th>외래키</th></tr>
+        <tr><td><code>menu</code> (메뉴 한 종류)</td><td>menu_id, name, price</td><td>menu_id</td><td>—</td></tr>
+        <tr><td><code>member</code> (회원 한 명)</td><td>member_id, name, phone (UNIQUE)</td><td>member_id</td><td>—</td></tr>
+        <tr><td><code>orders</code> (주문 한 건)</td><td>order_id, member_id, ordered_at, payment, barista</td><td>order_id</td><td>member_id → member (비회원이면 비워 둠)</td></tr>
+        <tr><td><code>order_line</code> (주문 안의 메뉴 한 줄)</td><td>order_id, menu_id, quantity</td><td>(order_id, menu_id)</td><td>order_id → orders, menu_id → menu</td></tr>
+      </table>
+    </div>
+  </div>
+
   <p>1장의 세 사고를 v1에서 다시 시도합니다. <code>UPDATE</code>, <code>INSERT</code>, <code>DELETE</code>는 0장에서 배운 그대로입니다.</p>
 
 <pre><span class="cap">-- v1에서 1장의 세 사고를 다시 시도</span><code>-- 갱신: 민준의 전화번호를 바꾼다
@@ -43,8 +56,10 @@ DELETE FROM orders     WHERE order_id = 101;
     <li><b>갱신</b> — 번호는 <code>member</code>의 한 행에만 있으니 한 문장으로 끝납니다.</li>
     <li><b>삽입</b> — 주문이 없어도 <code>menu</code>에 행이 들어갑니다.</li>
     <li><b>삭제</b> — 주문 101을 지워도 <code>menu</code>의 치즈케이크는 그대로입니다.
-    라인을 먼저 지우는 이유는 2장에서 본 외래키 때문입니다. 주문을 먼저 지우면 라인이 없는 주문을 가리키게 되어 DB가 거부합니다.</li>
+    라인을 먼저 지우는 이유는 2장에서 본 외래키 때문입니다. 주문을 먼저 지우면 남은 라인이 사라진 주문을 가리키게 되므로 DB가 거부합니다.</li>
   </ul>
+
+  <p>(시연은 여기까지이고, 다음 화면부터는 시연 전의 v1 데이터를 그대로 씁니다. 민준의 번호는 010-1111-2222, 주문 101도 남아 있습니다.)</p>
 
   <p>세 사고 모두 통과했습니다. 그런데 이 확인에는 <b>약점이 둘</b> 있습니다.</p>
   <ol>
@@ -107,7 +122,9 @@ DELETE FROM orders     WHERE order_id = 101;
     <p>이 관계를 <span class="term" data-term="fd">함수 종속</span>(functional dependency)이라고 합니다.
     <code>A → B</code>는 <b>"A 값이 정해지면 B 값이 하나로 정해진다"</b>는 뜻이고, 왼쪽 A를 <span class="term" data-term="determinant">결정자</span>,
     오른쪽 B를 종속되는 열이라고 부릅니다. "함수"라는 이름은 입력 하나에 출력이 하나인 수학의 함수와 같기 때문입니다.
-    C++ 개발자에게는 <code>std::map</code>의 키가 값을 정하는 것과 같다고 보면 됩니다. 키를 알면 값이 정해지지만 값으로 키를 정할 수는 없습니다.</p>
+    C++ 개발자에게는 <code>std::map</code>의 키가 값을 정하는 것과 같다고 보면 됩니다. 키를 알면 값이 하나로 정해지고, 값에서 키로 가는 반대 방향은 보장되지 않습니다
+    (위의 <code>name → menu_id</code>처럼 업무 규칙이 있으면 따로 성립할 수는 있습니다).
+    다만 비유는 여기까지입니다. map은 키에서만 값을 찾지만, 함수 종속은 행을 구별하는 열이 아닌 열끼리도 생기고(화면 3의 <code>전화 → 고객명</code>), DB는 그런 종속을 저절로 지켜 주지 않습니다.</p>
   </div>
 
   <p>이 관계는 <b>업무의 사실</b>입니다. "메뉴 번호가 가격을 정한다"는 DB가 아니라 가게의 규칙이고, 표는 그 규칙을 담는 그릇입니다.
@@ -336,7 +353,8 @@ WHERE  mp.phone = '010-9999-0000';  -- 민준 1행
   <p class="kicker">3장 · 화면 7</p>
   <h2>2NF — 키의 일부에만 종속된 열</h2>
 
-  <p>화면 3의 시트로 돌아갑니다. 키는 <code>(주문번호, 메뉴)</code>였습니다. 각 열이 <b>키 전체</b>에 종속되는지, <b>키의 일부</b>에만 종속되는지 봅니다.</p>
+  <p>화면 3의 시트로 돌아갑니다. 키는 <code>(주문번호, 메뉴)</code>였습니다. 이제부터 <b>키가 아닌 열</b>은 <b>어떤 후보키에도 속하지 않는 열</b>을 뜻합니다(이 시트에서는 주문번호와 메뉴를 뺀 나머지).
+  키가 아닌 열 각각이 <b>키 전체</b>에 종속되는지, <b>키의 일부</b>에만 종속되는지 봅니다.</p>
 
   <div class="table-wrap">
     <table>
@@ -348,6 +366,22 @@ WHERE  mp.phone = '010-9999-0000';  -- 민준 1행
     </table>
   </div>
 
+  <div class="box note">
+    <p class="box-t">다시 보기: 화면 3의 시트 (반복되는 칸 강조, 고객명·전화 열 생략)</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>주문번호</th><th>일시</th><th>메뉴</th><th>단가</th><th>수량</th><th>결제</th><th>바리스타</th></tr>
+        <tr><td>101</td><td><span class="hl">3/4 09:10</span></td><td>아메리카노</td><td><span class="hl">4500</span></td><td>2</td><td><span class="hl">카드</span></td><td><span class="hl">지호</span></td></tr>
+        <tr><td>101</td><td><span class="hl">3/4 09:10</span></td><td>치즈케이크</td><td>6500</td><td>1</td><td><span class="hl">카드</span></td><td><span class="hl">지호</span></td></tr>
+        <tr><td>102</td><td>3/4 09:25</td><td>카페라떼</td><td>5000</td><td>1</td><td>현금</td><td>지호</td></tr>
+        <tr><td>103</td><td>3/4 10:02</td><td>아메리카노</td><td><span class="hl">4500</span></td><td>1</td><td>카드</td><td>서연</td></tr>
+        <tr><td>104</td><td>3/5 08:55</td><td>아메리카노</td><td><span class="hl">4500</span></td><td>1</td><td>현금</td><td>지호</td></tr>
+        <tr><td>105</td><td>3/5 09:40</td><td>카페라떼</td><td>5000</td><td>2</td><td>카드</td><td>서연</td></tr>
+      </table>
+    </div>
+    <p>강조한 칸은 주문 101의 일시·결제·바리스타(주문번호가 정함)와 아메리카노의 단가(메뉴가 정함)입니다. 아래에서 이 반복을 떼어 냅니다.</p>
+  </div>
+
   <p>키의 일부에만 종속된 열이 있으면 무슨 일이 생길까요? 화면 3의 시트에서 <b>주문 101의 일시·결제·바리스타가 두 번</b>,
   <b>아메리카노의 단가가 세 번</b> 적혀 있습니다. 1장에서 본 중복과 갱신 이상이 그대로입니다.
   주문번호가 정해 주는 사실이 주문 안의 메뉴 개수만큼 반복되고, 메뉴가 정해 주는 사실이 그 메뉴가 팔린 횟수만큼 반복됩니다.</p>
@@ -355,7 +389,7 @@ WHERE  mp.phone = '010-9999-0000';  -- 민준 1행
   <div class="box note">
     <p class="box-t">이름 붙이기</p>
     <p>키의 일부에만 종속되는 열이 있는 상태를 <span class="term" data-term="partdep">부분 종속</span>이라 하고,
-    <b>부분 종속이 없는 것이 제2정규형(2NF)</b>입니다. 정확히는 <b>1NF이면서 모든 열이 후보키 전체에 종속</b>된 표입니다.</p>
+    <b>부분 종속이 없는 것이 제2정규형(2NF)</b>입니다. 정확히는 <b>1NF이면서 키가 아닌 열이 모두 각 후보키의 일부가 아니라 전체에 종속</b>된 표입니다. 키에 속한 열(주문번호, 메뉴)은 이 검사의 대상이 아닙니다.</p>
   </div>
 
   <p>고치는 법은 <b>부분 종속을 결정자와 함께 떼어 새 표로 옮기는 것</b>입니다.</p>
@@ -397,8 +431,8 @@ WHERE  mp.phone = '010-9999-0000';  -- 민준 1행
 
   <p>민준의 이름과 전화번호가 주문 101과 103에 <b>각각</b> 적혀 있습니다. 왜일까요? 함수 종속을 따라가 보면 이렇습니다.</p>
   <ul>
-    <li><code>주문번호 → 전화</code> — 주문이 회원을 정한다.</li>
-    <li><code>전화 → 고객명</code> — 회원이 이름을 정한다.</li>
+    <li><code>주문번호 → 전화</code> — 주문이 회원을 정합니다.</li>
+    <li><code>전화 → 고객명</code> — 회원이 이름을 정합니다.</li>
     <li>그러므로 <code>주문번호 → 전화 → 고객명</code>. <b>고객명은 주문이 아니라 전화(회원)가 정하는데, 주문 표에 실려 있습니다.</b></li>
   </ul>
 
@@ -407,12 +441,12 @@ WHERE  mp.phone = '010-9999-0000';  -- 민준 1행
   <div class="box note">
     <p class="box-t">이름 붙이기</p>
     <p>키가 아닌 열이 다른 <b>키가 아닌 열</b>을 정하는 <span class="term" data-term="transdep">이행 종속</span>이 없는 것이 <b>제3정규형(3NF)</b>입니다.
-    2NF와 3NF를 한 문장으로 외우는 유명한 표현이 있습니다. 모든 열은 <b>"키에 의해, 키 전체에 의해, 오직 키에 의해"</b> 정해져야 한다.
+    2NF와 3NF를 한 문장으로 외우는 유명한 표현이 있습니다. 키가 아닌 열은 모두 <b>"키에 의해, 키 전체에 의해, 오직 키에 의해"</b> 정해져야 한다는 것입니다.
     "키에 의해"는 1NF의 기본, "키 전체"는 2NF(부분 종속 금지), "오직 키"는 3NF(이행 종속 금지)입니다.</p>
   </div>
 
   <p>고치는 법은 같습니다. <b>이행 종속을 결정자(전화)와 함께 떼어 새 표로 옮깁니다.</b> 회원 표가 생기고,
-  2장에서 골랐듯 번호 <code>member_id</code>를 대리키로 붙이면 주문 표는 회원을 그 번호로 가리킵니다.</p>
+  2장에서 골랐듯(바뀔 수 있는 전화번호 대신 바뀌지 않는 번호를 기본키로) 번호 <code>member_id</code>를 대리키로 붙이면 주문 표는 회원을 그 번호로 가리킵니다.</p>
 
   <div class="table-wrap">
     <table>
@@ -424,7 +458,7 @@ WHERE  mp.phone = '010-9999-0000';  -- 민준 1행
     </table>
   </div>
 
-  <p>여기까지 오면 <b>v1의 네 표</b>(<code>menu</code>, <code>member</code>, <code>orders</code>, <code>order_line</code>)가 나옵니다. 메뉴도 회원처럼 이름을 열쇠로 쓰지 않고 2장의 대리키 <code>menu_id</code>를 붙이면 열과 키까지 v1과 같아집니다.
+  <p>여기까지 오면 <b>v1의 네 표</b>(<code>menu</code>, <code>member</code>, <code>orders</code>, <code>order_line</code>)가 나옵니다. 회원을 전화 대신 대리키 <code>member_id</code>로 가리키게 했듯이 메뉴도 이름 대신 2장의 대리키 <code>menu_id</code>로 가리키게 하면 열과 키까지 v1과 같아집니다.
   2장에서 요구사항 문장으로 뽑은 설계와 정규화로 나온 설계가 <b>같은 곳에 도착한 것</b>입니다.</p>
 
   <div class="box warn">
@@ -493,6 +527,22 @@ ORDER BY o.order_id;
     </table>
   </div>
 
+  <div class="box note">
+    <p class="box-t">다시 보기: 계산에 쓴 order_line과 menu (v1 데이터)</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th colspan="3"><code>order_line</code></th><th></th><th colspan="3"><code>menu</code></th></tr>
+        <tr><th>order_id</th><th>menu_id</th><th>quantity</th><th></th><th>menu_id</th><th>name</th><th>price</th></tr>
+        <tr><td>101</td><td>1</td><td>2</td><td></td><td>1</td><td>아메리카노</td><td>4500</td></tr>
+        <tr><td>101</td><td>3</td><td>1</td><td></td><td>2</td><td>카페라떼</td><td>5000</td></tr>
+        <tr><td>102</td><td>2</td><td>1</td><td></td><td>3</td><td>치즈케이크</td><td>6500</td></tr>
+        <tr><td>103</td><td>1</td><td>1</td><td colspan="4"></td></tr>
+        <tr><td>104</td><td>1</td><td>1</td><td colspan="4"></td></tr>
+        <tr><td>105</td><td>2</td><td>2</td><td colspan="4"></td></tr>
+      </table>
+    </div>
+  </div>
+
   <p>101번 주문은 아메리카노 2잔(9000)과 치즈케이크 1개(6500)이므로 15500입니다.
   1장 시트의 합계 열과 같은 값을 <b>저장 없이</b> 얻었습니다.</p>
 </section>
@@ -500,7 +550,7 @@ ORDER BY o.order_id;
 <!-- ─────────────────────────────────────────── 화면 10 (선택) -->
 <section class="screen" data-title="BCNF 맛보기 (선택)">
   <p class="kicker">3장 · 화면 10 · 선택</p>
-  <h2>BCNF 맛보기 — 3NF로 못 잡는 드문 경우</h2>
+  <h2>BCNF 맛보기 (선택) — 3NF로 못 잡는 드문 경우</h2>
 
   <p>이 화면은 <b>선택</b>입니다. 건너뛰어도 뒤를 읽는 데 지장이 없습니다.</p>
 
@@ -638,11 +688,11 @@ ORDER BY o.order_id;
 <!-- ─────────────────────────────────────────── 화면 13 (선택) -->
 <section class="screen" data-title="무손실 분해와 종속 보존 (선택)">
   <p class="kicker">3장 · 화면 13 · 선택</p>
-  <h2>무손실 분해와 종속 보존 — 나눌 때 지킬 두 가지</h2>
+  <h2>무손실 분해와 종속 보존 (선택) — 나눌 때 지킬 두 가지</h2>
 
   <p>이 화면은 <b>선택</b>입니다. 표를 나눌 때 <b>어디서 나누느냐</b>에 따라 나눈 결과가 원래 정보를 잃어버릴 수 있다는 직관을 봅니다.</p>
 
-  <p>설명용 표 T(주문번호, 결제, 바리스타, 메뉴)의 두 행을 잘못 나눠 봅시다. (v1의 <code>orders</code>와 다른 표입니다.)</p>
+  <p>설명용 표 T(주문번호, 결제, 바리스타, 메뉴)의 두 행을 잘못 나눠 봅시다. (v1의 <code>orders</code>와 다른 표입니다. 한 주문은 한 가지 방법으로만 결제하므로 <code>주문번호 → 결제</code>입니다.)</p>
   <div class="table-wrap">
     <table>
       <tr><th>주문번호</th><th>결제</th><th>바리스타</th><th>메뉴</th></tr>
@@ -651,37 +701,38 @@ ORDER BY o.order_id;
     </table>
   </div>
 
-  <p><b>바리스타</b>를 기준으로 나눕니다. (바리스타, 메뉴)와 (바리스타, 결제) 두 표입니다.</p>
+  <p><b>바리스타</b>를 공통 열로 남기고 나눕니다. P(주문번호, 바리스타, 메뉴)와 Q(바리스타, 결제) 두 표입니다. 원래 표의 네 열은 모두 어느 한쪽에 들어 있습니다.</p>
   <div class="table-wrap">
     <table>
-      <tr><th colspan="2">P</th><th></th><th colspan="2">Q</th></tr>
-      <tr><th>바리스타</th><th>메뉴</th><th></th><th>바리스타</th><th>결제</th></tr>
-      <tr><td>지호</td><td>아메리카노</td><td></td><td>지호</td><td>카드</td></tr>
-      <tr><td>지호</td><td>카페라떼</td><td></td><td>지호</td><td>현금</td></tr>
+      <tr><th colspan="3">P</th><th></th><th colspan="2">Q</th></tr>
+      <tr><th>주문번호</th><th>바리스타</th><th>메뉴</th><th></th><th>바리스타</th><th>결제</th></tr>
+      <tr><td>101</td><td>지호</td><td>아메리카노</td><td></td><td>지호</td><td>카드</td></tr>
+      <tr><td>102</td><td>지호</td><td>카페라떼</td><td></td><td>지호</td><td>현금</td></tr>
     </table>
   </div>
 
-  <p>P와 Q를 바리스타로 <code>JOIN</code>하면 4행이 나옵니다.</p>
+  <p>P와 Q를 바리스타로 <code>JOIN</code>하면 4행이 나옵니다. P의 행마다 Q에서 지호인 행 두 개가 모두 짝이 되기 때문입니다.</p>
   <div class="table-wrap">
     <table>
-      <tr><th>바리스타</th><th>메뉴</th><th>결제</th><th></th></tr>
-      <tr><td>지호</td><td>아메리카노</td><td>카드</td><td>원래 있던 행</td></tr>
-      <tr><td>지호</td><td>아메리카노</td><td>현금</td><td><b>가짜 행</b></td></tr>
-      <tr><td>지호</td><td>카페라떼</td><td>카드</td><td><b>가짜 행</b></td></tr>
-      <tr><td>지호</td><td>카페라떼</td><td>현금</td><td>원래 있던 행</td></tr>
+      <tr><th>주문번호</th><th>바리스타</th><th>메뉴</th><th>결제</th><th></th></tr>
+      <tr><td>101</td><td>지호</td><td>아메리카노</td><td>카드</td><td>원래 있던 행</td></tr>
+      <tr><td>101</td><td>지호</td><td>아메리카노</td><td>현금</td><td><b>가짜 행</b></td></tr>
+      <tr><td>102</td><td>지호</td><td>카페라떼</td><td>카드</td><td><b>가짜 행</b></td></tr>
+      <tr><td>102</td><td>지호</td><td>카페라떼</td><td>현금</td><td>원래 있던 행</td></tr>
     </table>
   </div>
 
-  <p>원래 두 행이 네 행으로 늘어났고, 어느 것이 진짜인지 알 수 없습니다. 이렇게 나눈 결과를 다시 이었을 때 원래와 같은 행이 나오지 않는 분해를 <b>손실 분해</b>라고 합니다.</p>
+  <p>원래 두 행이 네 행으로 늘어났습니다. 이제 주문 101이 카드로도 현금으로도 결제한 것처럼 보이고, 표만 봐서는 어느 것이 진짜인지 알 수 없습니다. 이렇게 나눈 결과를 다시 이었을 때 원래에 없던 행이 섞여 원래 표로 돌아가지 않는 분해를 <b>손실 분해</b>라고 합니다.</p>
 
   <div class="box note">
     <p class="box-t">두 가지 원칙</p>
     <ul>
-      <li><b><span class="term" data-term="lossless">무손실 분해</span></b> — 나눈 표를 다시 이으면 <b>원래의 행이 정확히</b> 나온다. 나눌 때 공통으로 남기는 열이 <b>한쪽 표의 후보키</b>이면 보장됩니다(충분조건).
-      위 예에서 바리스타는 어느 쪽에서도 키가 아니어서 실패했고, 화면 8에서 회원 표를 떼어낼 때의 공통 열(<code>member_id</code>)은 회원 표의 키여서 성공했습니다.</li>
-      <li><b>종속 보존</b> — 원래 표에 있던 함수 종속이 나눈 표 <b>어딘가 한 표 안에서</b> 여전히 지켜질 수 있다. 화면 10의 BCNF 분해가 이것을 잃는 예였습니다.</li>
+      <li><b><span class="term" data-term="lossless">무손실 분해</span></b> — 나눈 표를 다시 이으면 <b>원래의 행이 정확히</b> 나옵니다. 나눌 때 공통으로 남기는 열이 <b>한쪽 표의 후보키</b>이면 보장됩니다(충분조건).
+      위 예에서 바리스타는 어느 쪽에서도 키가 아니어서 실패했고, 화면 8에서 회원 표를 떼어낼 때의 공통 열(전화)은 회원 표의 키여서 성공했습니다(그 뒤 대리키 <code>member_id</code>로 바꿔 가리켜도 마찬가지입니다).</li>
+      <li><b>종속 보존</b> — 원래 표에 있던 함수 종속이 나눈 표 <b>어딘가 한 표 안에서</b> 여전히 지켜질 수 있습니다. 화면 10의 BCNF 분해가 이것을 잃는 예였습니다.</li>
     </ul>
-    <p>2NF와 3NF의 분해는 결정자를 함께 떼어내므로 항상 <b>무손실</b>입니다. 그래서 이 장에서 실제로 걱정할 것은 이 정도입니다. 직접 나눌 때는 공통 열이 키인지만 확인하세요.</p>
+    <p>2NF와 3NF의 분해는 결정자를 함께 떼어내므로 항상 <b>무손실</b>입니다. 화면 10의 BCNF 분해도 공통 열 <code>강사</code>가 (강사, 클래스 종류) 표의 키라서 무손실이고,
+    그 분해가 잃는 것은 정보가 아니라 종속 보존입니다. 그래서 이 장에서 실제로 걱정할 것은 이 정도입니다. 직접 나눌 때는 공통 열이 키인지만 확인하세요.</p>
   </div>
 </section>
 
@@ -695,7 +746,7 @@ ORDER BY o.order_id;
   <ul>
     <li><b>조회가 복잡해집니다.</b> 화면 9의 총액 조회는 표 세 개를 이었습니다. 시트라면 열 하나를 더하면 되었습니다.</li>
     <li><b>이어 붙이는 데 일이 듭니다.</b> DB는 <code>JOIN</code>할 때 두 표의 행을 짝지어야 하고, 행이 많아질수록 이 일이 커집니다.
-    다만 <b>이어 붙이는 열에 색인(인덱스)이 있으면 그 일이 크게 줄어듭니다.</b> 그래서 "정규화하면 느리다"는 말은 반만 맞습니다. <span class="later">7장에서 다시 본다</span></li>
+    다만 <b>이어 붙이는 열에 인덱스가 있으면 그 일이 크게 줄어듭니다.</b> 그래서 "정규화하면 느리다"는 말은 반만 맞습니다. <span class="later">7장에서 다시 본다</span></li>
     <li><b>표가 늘어납니다.</b> 표가 많으면 이해하고 관리하기 어려워집니다.</li>
   </ul>
 
@@ -725,7 +776,7 @@ ORDER BY o.order_id;
 </section>
 
 <!-- ─────────────────────────────────────────── 화면 15 -->
-<section class="screen" data-title="v2와 D1 예고">
+<section class="screen" data-title="v2와 남은 구멍">
   <p class="kicker">3장 · 화면 15</p>
   <h2>스키마 v2 — 그런데 정규화했으니 끝일까</h2>
 
@@ -782,7 +833,7 @@ ORDER BY o.order_id;
     <ol>
       <li><b>함수 종속</b> <code>A → B</code>는 "A가 정해지면 B가 하나로 정해진다"는 <b>업무 규칙</b>입니다. 데이터는 반례를 찾는 데만 쓰고, 성립 여부는 업무에 묻습니다.</li>
       <li><b>1NF</b>는 한 칸에 값 하나, <b>2NF</b>는 키의 일부에만 종속된 열 금지, <b>3NF</b>는 다른 열을 거쳐 종속된 열 금지입니다.
-      "키에 의해, 키 전체에 의해, 오직 키에 의해" 정해져야 합니다.</li>
+      키가 아닌 열은 모두 "키에 의해, 키 전체에 의해, 오직 키에 의해" 정해져야 합니다.</li>
       <li>1장 시트에 2NF와 3NF를 적용하면 v1의 네 표가 나옵니다. <b>스키마 v2 = v1</b>이고, 정규화는 새로 만드는 도구이기보다 <b>검증 도구</b>입니다.</li>
       <li>계산할 수 있는 <b>파생값(총액)은 저장하지 않는다</b>가 기본이고, 느려지면 측정한 뒤 의도적으로 되돌립니다(7장).</li>
       <li>정규화는 중복을 없앨 뿐 <b>값의 의미</b>는 보장하지 않습니다. 과거 주문 금액이 위험한 이유는 6장에서 다룹니다.</li>
@@ -812,7 +863,7 @@ ORDER BY o.order_id;
     </ol>
     <div class="explain">
       <p>데이터가 적을수록 우연히 성립해 보이는 종속이 많아서, <b>테스트 데이터로 종속을 정하는 것은 위험</b>합니다.
-      또 하나의 사실: 기본 제약(<code>PRIMARY KEY</code>, <code>UNIQUE</code>)이 지켜 주는 함수 종속은 <b>키(유일성)에서 나오는 것</b>입니다. "메뉴 번호가 가격을 정한다"는 기본키가 지켜 주지만,
+      또 하나의 사실: 키 제약(<code>PRIMARY KEY</code>, <code>UNIQUE</code>)이 지켜 주는 함수 종속은 <b>키에서 나머지 열로 가는 것</b>뿐입니다. "메뉴 번호가 가격을 정한다"는 기본키가 지켜 주지만,
       키가 아닌 열 사이의 종속(<code>전화 → 고객명</code> 같은 것)은 표를 나누어 <b>구조로 지키는 것</b>이 기본입니다.</p>
     </div>
   </div>
@@ -823,7 +874,7 @@ ORDER BY o.order_id;
     <ol class="options">
       <li data-why="맞습니다. menu_name은 키의 일부인 menu_id만으로 정해지므로 부분 종속이고 2NF 위반입니다. 메뉴 이름이 라인마다 반복되고 이름을 고칠 때 여러 행을 고쳐야 합니다.">2NF (부분 종속)</li>
       <li data-why="틀렸습니다. 모든 칸에 값이 하나씩 들어 있으므로 1NF는 만족합니다. 1NF는 칸 안에 목록이 있는지를 봅니다.">1NF (원자값)</li>
-      <li data-why="틀렸습니다. 이 표는 부분 종속이 있으므로 위반이 있습니다. 위반이 없다고 판단하려면 모든 열이 키 전체에 종속되는지부터 확인해야 합니다.">어기는 규칙이 없다</li>
+      <li data-why="틀렸습니다. 이 표는 부분 종속이 있으므로 위반이 있습니다. 위반이 없다고 판단하려면 키가 아닌 열이 모두 키 전체에 종속되는지부터 확인해야 합니다.">어기는 규칙이 없다</li>
     </ol>
     <div class="explain">
       <p>이 표에서 메뉴 이름 하나를 고치려면 <b>그 메뉴가 나온 라인 수만큼의 행</b>을 모두 고쳐야 하고, 하나라도 빠지면 같은 메뉴가 이름 두 개를 갖습니다.
@@ -881,7 +932,7 @@ ORDER BY o.order_id;
         <li><b>3NF 위반</b> — <code>회원명</code>은 <code>회원전화</code>를 거쳐 판매번호에 종속됩니다(이행 종속).</li>
       </ul>
       <p><b>3. 나눈 결과</b></p>
-<pre><span class="cap">-- 열과 기본키</span><code>bean(bean_id, name, origin, price_per_100g)      -- PK bean_id, 원두 한 종류
+<pre><span class="cap">-- 열과 기본키</span><code class="plain">bean(bean_id, name, origin, price_per_100g)      -- PK bean_id, 원두 한 종류
 member(member_id, name, phone)                   -- PK member_id, phone 은 UNIQUE
 sale(sale_id, sold_on, member_id)                -- PK sale_id, 판매 한 건
 sale_line(sale_id, bean_id, quantity)            -- PK (sale_id, bean_id)
