@@ -24,7 +24,7 @@
     { id: 'ch05', num: '5장', title: '옵션과 세트: 변형이 폭발하는 메뉴', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
     { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
     { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25, ready: true },
-    { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5 },
+    { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5, ready: true },
     { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 2.5 },
     { id: 'ch10', num: '10장', title: '마무리: 언제 깨고, 언제 쓰지 말까', part: '마무리', screens: 7, hours: 1.0 },
     { id: 'glossary', num: '부록', title: '용어집', part: '부록', screens: 1, hours: 0 }
@@ -101,7 +101,17 @@
     idempotent: '멱등 — 같은 작업을 몇 번 실행해도 한 번 실행한 것과 결과가 같은 성질. 지우고 다시 계산하기는 멱등이고 증감을 더하기는 아니다.',
     keyset: 'keyset 페이지네이션 — OFFSET으로 건너뛰는 대신 마지막으로 본 행의 키를 기억하고 그 이후를 조회하는 방식. 몇 번째 페이지든 읽는 양이 같다.',
     partition: '파티셔닝 — 큰 표를 기간 같은 기준으로 여러 물리 표(파티션)로 나누어 한 표처럼 쓰는 것. 기간 조회는 해당 파티션만 읽고 오래된 기간은 표째로 버릴 수 있다.',
-    archive: '아카이브 — 오래된 행을 보관용 표로 옮기고 원본에서 지우는 것. 자식 표의 순서, 합계가 필요한 표(원장), 요약의 재생성 가능성을 따져야 한다.'
+    archive: '아카이브 — 오래된 행을 보관용 표로 옮기고 원본에서 지우는 것. 자식 표의 순서, 합계가 필요한 표(원장), 요약의 재생성 가능성을 따져야 한다.',
+    stockitem: '재고 품목 — 수량을 세어 관리하는 대상 한 가지(치즈케이크, 원두). 손님이 사는 그대로인 완제품과 메뉴를 만드는 데 들어가는 원재료로 나뉜다. 남은 양은 기본 단위(g, ml, 개)의 정수로 저장한다.',
+    recipe: '레시피(소요량) — 메뉴 1개 또는 옵션 1회가 재고 품목을 얼마나 쓰는지 적은 연결. 소요량은 (메뉴, 품목) 쌍에 딸린 값이라 연결 테이블의 속성이다.',
+    acid: 'ACID — 트랜잭션이 지키는 네 성질. 원자성(전부 되거나 전부 안 됨), 일관성(커밋된 상태는 선언한 제약을 지킴), 격리성(동시 트랜잭션이 서로의 중간 상태를 못 봄, 정도를 고른다), 지속성(커밋은 서버가 꺼져도 남음). 일관성은 업무적 옳음을 뜻하지 않는다.',
+    lock: '락(잠금) — 행을 고치는 트랜잭션이 끝날 때까지 다른 트랜잭션이 같은 행을 고치지 못하게 막는 표시. UPDATE 가 자동으로 걸고 SELECT ... FOR UPDATE 는 읽으면서 건다. 막힌 쪽은 기다린다. 일반 SELECT 는 락을 걸지도 기다리지도 않는다.',
+    race: '경쟁 상태(race condition) — 동시 요청의 실행 순서에 따라 결과가 달라지는 버그. 읽고 판단하고 쓰는 사이의 틈에서 생긴다.',
+    lostupdate: '갱신 손실(lost update) — 두 트랜잭션이 같은 값을 읽고 각자 계산한 값을 써서 한쪽의 변경이 사라지는 사고. 앱이 계산한 값으로 덮어쓸 때 생긴다.',
+    optlock: '낙관적 락 — 충돌이 드물다고 보고 미리 잠그지 않고, 쓸 때 읽은 뒤로 바뀌지 않았는지(version 열 등)만 조건에 넣어 확인하는 방식. 미리 잠그는 쪽은 비관적 락(FOR UPDATE)이다.',
+    deadlock: '교착(데드락) — 두 트랜잭션이 서로 상대가 쥔 락을 기다려 영원히 못 나아가는 상태. DB가 감지해 한쪽을 오류(40P01)로 중단시키며, 모두가 같은 순서로 락을 잡는 것이 예방이다.',
+    isolation: '격리 수준 — 동시에 실행되는 트랜잭션이 서로의 변경을 얼마나 보는지 정하는 설정. PostgreSQL 은 READ COMMITTED(기본), REPEATABLE READ, SERIALIZABLE. 올릴수록 보이는 것이 고정되지만 직렬화 실패(40001) 재시도가 필요해진다.',
+    pickupslot: '픽업 슬롯 — 픽업 시간대 하나(30분 간격)와 그 정원. 주문 1건이 정원 1을 쓴다. 5장의 세트 구성 슬롯과는 다른 개념이다.'
   };
 
   /* ── [교재별 4/5] 진도 저장 키 — 교재 슬러그를 접두어로 둔다 ─────
@@ -138,7 +148,8 @@
               'GENERATED|ALWAYS|IDENTITY|SERIAL|RECURSIVE|OVER|PARTITION|ROW_NUMBER|' +
               'EXTENSION|LEAD|VALID|TSTZRANGE|WITHOUT|OVERLAPS|' +
               'CONFLICT|DO|EXCLUDED|INCLUDE|DESC|ASC|AT|TIME|ZONE|FULL|RANGE|OF|TO|DETACH|ATTACH|' +
-              'MATERIALIZED|REFRESH|CONCURRENTLY';
+              'MATERIALIZED|REFRESH|CONCURRENTLY|' +
+              'NOWAIT|SKIP|LOCKED|ISOLATION|LEVEL|READ|COMMITTED|REPEATABLE|SERIALIZABLE';
 
   var PY_RE = new RegExp(
     '(#[^\\n]*|--[^\\n]*)' +
