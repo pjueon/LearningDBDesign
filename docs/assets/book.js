@@ -25,7 +25,7 @@
     { id: 'ch06', num: '6장', title: '가격이 변할 때: 스냅샷·이력·할인·멤버십', part: '요구사항 변화', screens: 13, hours: 2.5, ready: true },
     { id: 'ch07', num: '7장', title: '데이터가 커질 때: 인덱스와 의도적 비정규화', part: '운영 접점', screens: 12, hours: 2.25, ready: true },
     { id: 'ch08', num: '8장', title: '동시에 들어올 때: 트랜잭션과 제약', part: '운영 접점', screens: 14, hours: 2.5, ready: true },
-    { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 2.5 },
+    { id: 'ch09', num: '9장', title: '가게가 늘어날 때: 스키마를 데이터째 바꾸기', part: '운영 접점', screens: 13, hours: 2.5, ready: true },
     { id: 'ch10', num: '10장', title: '마무리: 언제 깨고, 언제 쓰지 말까', part: '마무리', screens: 7, hours: 1.0 },
     { id: 'glossary', num: '부록', title: '용어집', part: '부록', screens: 1, hours: 0 }
   ];
@@ -111,7 +111,13 @@
     optlock: '낙관적 락 — 충돌이 드물다고 보고 미리 잠그지 않고, 쓸 때 읽은 뒤로 바뀌지 않았는지(version 열 등)만 조건에 넣어 확인하는 방식. 미리 잠그는 쪽은 비관적 락(FOR UPDATE)이다.',
     deadlock: '교착(데드락) — 두 트랜잭션이 서로 상대가 쥔 락을 기다려 영원히 못 나아가는 상태. DB가 감지해 한쪽을 오류(40P01)로 중단시키며, 모두가 같은 순서로 락을 잡는 것이 예방이다.',
     isolation: '격리 수준 — 동시에 실행되는 트랜잭션이 서로의 변경을 얼마나 보는지 정하는 설정. PostgreSQL 은 READ COMMITTED(기본), REPEATABLE READ, SERIALIZABLE. 올릴수록 보이는 것이 고정되지만 직렬화 실패(40001) 재시도가 필요해진다.',
-    pickupslot: '픽업 슬롯 — 픽업 시간대 하나(30분 간격)와 그 정원. 주문 1건이 정원 1을 쓴다. 5장의 세트 구성 슬롯과는 다른 개념이다.'
+    pickupslot: '픽업 슬롯 — 픽업 시간대 하나(30분 간격)와 그 정원. 주문 1건이 정원 1을 쓴다. 5장의 세트 구성 슬롯과는 다른 개념이다.',
+    storescope: '매장 범위 — 표의 행이 매장 소유인지(store_id 가 키나 열에 들어간다), 부모 행을 따라 매장을 아는지(상속, 열을 더하지 않는다), 모든 매장이 같은 행을 보는지(브랜드 공통)의 분류. 값이 매장마다 다른가, 한 매장의 사건인가, 부모로 알 수 있는가를 묻는다.',
+    expandcontract: '확장→이전→축소(expand-contract) — 운영 중인 구조를 바꿀 때 새 구조를 옛 구조 옆에 더하고(확장), 새 앱을 배포하고 데이터를 채워 옮기고(이전), 아무도 옛 구조를 안 쓰는 것을 확인한 뒤 지우는(축소) 순서. 각 단계 사이에 옛 앱과 새 앱이 모두 동작해야 하고 되돌릴 수 없는 일은 맨 끝에 몰아 둔다.',
+    tablelock: '표 잠금 — 표 전체에 거는 락. ALTER TABLE 은 대개 ACCESS EXCLUSIVE(읽기까지 막는 가장 센 락)를 요구하고, 그 표를 쓰는 트랜잭션이 끝나지 않았으면 기다린다. 기다리는 동안 뒤에 온 요청도 줄을 선다. 행을 잠그는 8장의 락과 층이 다르다.',
+    locktimeout: 'lock_timeout — 락을 이 시간 안에 못 얻으면 기다리지 않고 오류(55P03)로 포기하게 하는 설정. 스키마 변경이 줄을 세워 서비스를 멈추는 것을 막는다.',
+    notvalid: 'NOT VALID — CHECK·외래키 제약을 "앞으로 들어오는 행만" 검사하는 상태로 걸고, 기존 행 검사는 나중에 VALIDATE CONSTRAINT 로 하는 방법. 긴 검사가 쓰기를 막지 않는다. 단 기존 행을 UPDATE 하면 그 행은 검사된다.',
+    multitenant: '멀티테넌시 — 여러 고객(여기서는 매장)이 한 시스템을 나눠 쓰는 구조. 같은 표에 store_id 열을 두는 공유 스키마, 고객마다 스키마를 나누는 방식, 고객마다 DB 를 나누는 방식이 있다.'
   };
 
   /* ── [교재별 4/5] 진도 저장 키 — 교재 슬러그를 접두어로 둔다 ─────
@@ -149,7 +155,8 @@
               'EXTENSION|LEAD|VALID|TSTZRANGE|WITHOUT|OVERLAPS|' +
               'CONFLICT|DO|EXCLUDED|INCLUDE|DESC|ASC|AT|TIME|ZONE|FULL|RANGE|OF|TO|DETACH|ATTACH|' +
               'MATERIALIZED|REFRESH|CONCURRENTLY|' +
-              'NOWAIT|SKIP|LOCKED|ISOLATION|LEVEL|READ|COMMITTED|REPEATABLE|SERIALIZABLE';
+              'NOWAIT|SKIP|LOCKED|ISOLATION|LEVEL|READ|COMMITTED|REPEATABLE|SERIALIZABLE|' +
+              'VALIDATE|RENAME|LOCK|SHARE|ROW|EXCLUSIVE|MODE';
 
   var PY_RE = new RegExp(
     '(#[^\\n]*|--[^\\n]*)' +
