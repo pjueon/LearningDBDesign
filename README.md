@@ -51,7 +51,7 @@ README.md          이 파일
 docs/              산출물(독자가 여는 것)
   index.html       표지·목차·학습 트랙
   ch00.html … ch10.html, glossary.html
-  assets/          book.css, book.js (목차, 화면 넘김, 퀴즈, 용어·번호 툴팁, 화면 참조 미리보기, 코드 색칠)
+  assets/          book.css, book.js (목차, 화면 넘김, 퀴즈, 용어·번호 툴팁, 화면 참조 이동·돌아가기, 코드 색칠)
 authoring/         제작용 문서
   00-기획.md       독자·학습 목표·관통 시나리오·규칙 표(C1~C17)
   01-커리큘럼.md   장별 항목·화면 수·시간·학습 스케줄
