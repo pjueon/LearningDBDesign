@@ -7,8 +7,8 @@
 </head>
 <body>
 <main id="book"><div class="inner">
-  <section class="screen" data-title="첫 화면">
-    <h1>첫 화면</h1>
+  <section class="screen" data-title="첫 페이지">
+    <h1>첫 페이지</h1>
     <p>점선 용어 <span class="term" data-term="_smoke">용어</span> 확인.</p>
 <pre><span class="cap"># cap.py</span><code>def place(self, x: int) -&gt; None:
     # 주석 "가짜문자열" 아님
@@ -17,14 +17,14 @@
     self.total = 1_000
 </code></pre>
   </section>
-  <section class="screen" data-title="둘째 화면">
+  <section class="screen" data-title="둘째 페이지">
     <h2>둘째</h2>
     <div class="tabs">
       <div class="tab" data-label="Before"><p>before 내용</p></div>
       <div class="tab" data-label="After"><p>after 내용</p></div>
     </div>
   </section>
-  <section class="screen" data-title="셋째 화면">
+  <section class="screen" data-title="셋째 페이지">
     <div class="quiz" data-answer="2">
       <p class="q">질문?</p>
       <ol class="options">
@@ -48,13 +48,13 @@ window.addEventListener('load', function () {
   ok('사이드바 생성', !!toc);
   ok('목차에 장이 나열됨', toc && toc.querySelectorAll('.ch').length >= 1, toc ? toc.querySelectorAll('.ch').length + '개' : '-');
   ok('현재 장 표시', !!toc.querySelector('a.ch.here'));
-  ok('화면 목차 3개', toc.querySelectorAll('ol.screens > li').length === 3);
+  ok('페이지 목차 3개', toc.querySelectorAll('ol.screens > li').length === 3);
   ok('집필 전 장은 링크가 아님', toc.querySelectorAll('span.ch').length + toc.querySelectorAll('a.ch').length === toc.querySelectorAll('.ch').length, 'span ' + toc.querySelectorAll('span.ch').length + ' + a ' + toc.querySelectorAll('a.ch').length);
 
-  ok('첫 화면만 활성', screens[0].classList.contains('is-active') && !screens[1].classList.contains('is-active'));
-  ok('화면 카운터', nav.querySelector('.cnt').textContent === '1 / 3', nav.querySelector('.cnt').textContent);
+  ok('첫 페이지만 활성', screens[0].classList.contains('is-active') && !screens[1].classList.contains('is-active'));
+  ok('페이지 카운터', nav.querySelector('.cnt').textContent === '1 / 3', nav.querySelector('.cnt').textContent);
   ok('진행률 33%', document.querySelector('#progress > i').style.width.indexOf('33.3') === 0, document.querySelector('#progress > i').style.width);
-  ok('첫 화면의 이전 버튼', /^←/.test(nav.querySelector('#prev').textContent), nav.querySelector('#prev').textContent);
+  ok('첫 페이지의 이전 버튼', /^←/.test(nav.querySelector('#prev').textContent), nav.querySelector('#prev').textContent);
 
   // 코드 하이라이팅
   var code = document.querySelector('pre > code');
@@ -73,11 +73,11 @@ window.addEventListener('load', function () {
   var term = document.querySelector('.term');
   ok('용어 정의 주입', (term.getAttribute('data-def') || '').indexOf('스모크 점검용') > -1);
 
-  // 다음 화면 이동
+  // 다음 페이지 이동
   nav.querySelector('#next').click();
-  ok('2번 화면 활성', screens[1].classList.contains('is-active') && !screens[0].classList.contains('is-active'));
+  ok('2번 페이지 활성', screens[1].classList.contains('is-active') && !screens[0].classList.contains('is-active'));
   ok('카운터 갱신', nav.querySelector('.cnt').textContent === '2 / 3', nav.querySelector('.cnt').textContent);
-  ok('사이드바 현재 화면 표시', toc.querySelectorAll('ol.screens > li')[1].classList.contains('on'));
+  ok('사이드바 현재 페이지 표시', toc.querySelectorAll('ol.screens > li')[1].classList.contains('on'));
 
   // 탭
   var tabs = document.querySelector('.tabs');
@@ -90,7 +90,7 @@ window.addEventListener('load', function () {
   // 키보드
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
   ok('→ 키로 이동', screens[2].classList.contains('is-active'));
-  ok('마지막 화면에서 다음은 다음 장 또는 비활성', nav.querySelector('#next').disabled || nav.querySelector('#next').textContent !== '다음 →', nav.querySelector('#next').textContent + ' / disabled=' + nav.querySelector('#next').disabled);
+  ok('마지막 페이지에서 다음은 다음 장 또는 비활성', nav.querySelector('#next').disabled || nav.querySelector('#next').textContent !== '다음 →', nav.querySelector('#next').textContent + ' / disabled=' + nav.querySelector('#next').disabled);
 
   // 퀴즈 (틀린 답 선택)
   var quiz = document.querySelector('.quiz');
