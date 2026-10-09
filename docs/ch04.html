@@ -11,7 +11,7 @@
 <main id="book"><div class="inner">
 
 <!-- ─────────────────────────────────────────── 페이지 1 -->
-<section class="screen" data-title="규칙은 누가 지키나">
+<section class="screen" data-title="규칙을 지키는 주체">
   <p class="kicker">4장 · 페이지 1</p>
   <h1>제약조건: 규칙을 DB에 맡기기</h1>
 
@@ -106,7 +106,7 @@
       <tr><td>DB 제약을 지지</td><td>앱이 몇 개든, 버그가 있든, 사람 손이 들어가든 <b>마지막 방어선</b>이 된다. 또 앱에서 "이미 있나 조회한 뒤 없으면 저장"하면 두 요청이 동시에 검사를 통과할 수 있지만, DB 제약은 검사와 저장이 한 곳에서 일어난다.
       <span class="later">8장에서 다시 본다</span></td></tr>
       <tr><td>앱 검증을 지지</td><td>규칙이 자주 바뀌면 스키마 변경이 무겁다. 오류 메시지가 불친절하다. 규칙이 DB와 앱 두 곳에 있으면 서로 어긋날 수 있다. 일부 조직은 대규모 운영 사정으로 외래키를 일부러 쓰지 않는다.</td></tr>
-      <tr><td>이 교재의 입장</td><td><b>DB가 싸게 표현할 수 있는 규칙(한 행·키·참조)은 DB에 맡기고, 그 밖의 규칙은 앱과 트랜잭션이 지킨다.</b> 앱의 검사는 친절을 위해, DB 제약은 최후 방어선으로 <b>둘 다 둔다.</b> 중복이 아니라 역할 분담이다.</td></tr>
+      <tr><td>이 교재의 입장</td><td><b>DB에 부담 없이 선언할 수 있는 규칙(한 행·키·참조)은 DB에 맡기고, 그 밖의 규칙은 앱과 트랜잭션이 지킨다.</b> 앱의 검사는 친절을 위해, DB 제약은 최후 방어선으로 <b>둘 다 둔다.</b> 중복이 아니라 역할 분담이다.</td></tr>
     </table>
   </div>
 
@@ -123,12 +123,12 @@
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 2 -->
-<section class="screen" data-title="NULL이란 무엇인가">
+<section class="screen" data-title="NULL과 비교의 함정">
   <p class="kicker">4장 · 페이지 2</p>
-  <h2>NULL — 값이 없다는 표시, 그리고 세 가지 함정</h2>
+  <h2>NULL과 비교의 함정</h2>
 
   <p>2장에서 비회원 주문은 <code>orders.member_id</code>를 <b>비워 두는</b> 것으로 표현했습니다. 그 "비어 있음"이 <code>NULL</code>입니다.
-  v2의 <code>orders</code>에 비회원 주문 106이 있다고 <b>가정</b>해 봅시다(이 교재의 v2 데이터에는 없는, 설명용 행입니다).</p>
+  다음 세 행만 있는 <code>orders</code>를 <b>가정</b>해 봅시다(설명용 행입니다).</p>
 
   <div class="table-wrap">
     <table>
@@ -155,7 +155,7 @@ SELECT COUNT(*), COUNT(member_id) FROM orders;         -- 3, 2
     <li><span class="ln">4행</span> <code>COUNT(*)</code>는 행 수(3)를, <code>COUNT(member_id)</code>는 그 열이 NULL이 <b>아닌</b> 행 수(2)를 셉니다. <code>SUM</code>, <code>AVG</code>도 NULL인 칸은 건너뜁니다.</li>
   </ol>
 
-  <p>이 세 가지 함정에는 같은 원인이 있습니다. 아래 이름 붙이기에서 설명합니다.</p>
+  <p>1·3·4행의 함정에는 같은 원인이 있습니다. 아래 이름 붙이기에서 설명합니다.</p>
 
   <div class="box note">
     <p class="box-t">이름 붙이기</p>
@@ -184,25 +184,25 @@ SELECT COUNT(*), COUNT(member_id) FROM orders;         -- 3, 2
     </table>
   </div>
 
+  <p>이 교재는 PostgreSQL 기준이라 위 표가 맞습니다. 다만 <b>Oracle은 빈 글자 <code>''</code>를 NULL로 취급합니다.</b> 다른 DB로 옮길 때는 이 차이를 확인해야 합니다.</p>
+
   <p><b>0원과 NULL은 다릅니다.</b> 가격 0원은 "공짜라는 사실"이고, 가격 NULL은 "얼마인지 모른다"입니다.
   <code>NULL</code>이 섞인 값에 <code>4500 + NULL</code>처럼 계산하면 결과가 통째로 NULL이 됩니다.
   그래서 돈을 받지 않는 항목이 생기면 그 가격은 NULL이 아니라 <b>0으로 저장</b>해야 합니다. <span class="later">5장에서 다시 본다</span></p>
 
   <div class="box warn">
-    <p class="box-t">C++의 비유는 여기서 틀립니다</p>
+    <p class="box-t">C++ 비유의 한계</p>
     <p>C++에서는 <code>nullptr == nullptr</code>이 참이고 비어 있는 <code>std::optional</code> 둘도 같다고 나옵니다. SQL의 NULL은 <b>값이 아니라 "모른다"는 표시</b>라서 비교하면 참이 되지 않습니다.
     (NaN끼리의 비교가 참이 되지 않는 것과 조금 닮았지만, SQL은 거짓이 아니라 "알 수 없음"으로 셈합니다.)
     NULL끼리도 같다고 보고 싶으면 <code>IS NOT DISTINCT FROM</code>이라는 비교 연산자가 따로 있습니다.</p>
   </div>
 
   <details class="fold">
-    <summary>더 깊이 — NOT IN과 NULL, 그리고 다른 DB의 빈 글자</summary>
+    <summary>더 깊이 — NOT IN과 NULL</summary>
     <div class="fold-body">
       <p><code>x NOT IN (1, NULL)</code>은 <b>어떤 x에 대해서도 참이 되지 않습니다.</b> "1도 아니고 NULL(모르는 값)도 아닌가"에서 뒷부분이 알 수 없음이 되기 때문입니다.
       그래서 <code>WHERE menu_id NOT IN (SELECT menu_id FROM order_line)</code>처럼 <b>서브쿼리의 결과에 NULL이 하나라도 섞이면</b> 조회가 통째로 빈 결과를 돌려줍니다.
       이 교재의 <code>order_line.menu_id</code>는 <code>NOT NULL</code>이라 안전하지만, NULL이 들어올 수 있는 열이라면 <code>NOT EXISTS</code>로 쓰는 것이 안전합니다.</p>
-      <p>또 하나, <b>Oracle은 빈 글자 <code>''</code>를 NULL로 취급합니다.</b> PostgreSQL은 둘을 구별합니다. 이 교재는 PostgreSQL 기준이라 앞의 표가 맞지만,
-      다른 DB로 옮길 때는 이 차이를 확인해야 합니다.</p>
     </div>
   </details>
 </section>
@@ -210,7 +210,7 @@ SELECT COUNT(*), COUNT(member_id) FROM orders;         -- 3, 2
 <!-- ─────────────────────────────────────────── 페이지 3 -->
 <section class="screen" data-title="데이터 타입 선택">
   <p class="kicker">4장 · 페이지 3</p>
-  <h2>데이터 타입을 고르는 것도 설계다</h2>
+  <h2>데이터 타입 선택</h2>
 
   <p>열의 <b>타입</b>은 가장 기본적인 제약입니다. <code>INTEGER</code> 열에 글자를 넣으려 하면 DB가 거부합니다. 그래서 타입을 고르는 것은 "이 열에 들어올 수 있는 값의 범위를 정하는" 설계 결정입니다.
   v2의 열 몇 개를 다시 봅시다. 0~2장에서는 이유를 미뤄 두었습니다.</p>
@@ -244,7 +244,7 @@ SELECT 0.1::numeric + 0.2::numeric = 0.3::numeric;   -- t (참)
   </ul>
 
   <div class="box bad">
-    <p class="box-t">금액 열에 float을 쓰지 않습니다</p>
+    <p class="box-t">금액 열과 float</p>
     <p>SQL 책의 예제에서도 <code>price FLOAT</code>를 가끔 볼 수 있지만, 돈은 <b>정확해야 하는 값</b>입니다. 오차는 합계·비교·정산 모든 곳에서 조용히 쌓입니다.</p>
   </div>
 
@@ -264,7 +264,7 @@ SELECT 0.1::numeric + 0.2::numeric = 0.3::numeric;   -- t (참)
   반대로 <b>날짜만 의미 있는 값</b>(생일, 영업일)은 <code>DATE</code>를 씁니다.</p>
 
   <details class="fold">
-    <summary>더 깊이 — TEXT와 VARCHAR(n), 그리고 다른 DB에서는</summary>
+    <summary>더 깊이 — TEXT와 VARCHAR(n)</summary>
     <div class="fold-body">
       <p>PostgreSQL에서는 <code>TEXT</code>와 <code>VARCHAR(n)</code>의 <b>성능 차이가 없습니다.</b> <code>VARCHAR(n)</code>의 의미는 "n자를 넘으면 거부"라는 길이 규칙 하나뿐입니다.
       길이 한도가 <b>업무 규칙</b>이면(예: 메뉴 이름은 30자까지) <code>VARCHAR(30)</code>이나 <code>CHECK (length(name) &lt;= 30)</code>으로 적고, 그렇지 않다면 <code>TEXT</code>로 충분합니다.
@@ -280,7 +280,7 @@ SELECT 0.1::numeric + 0.2::numeric = 0.3::numeric;   -- t (참)
 <!-- ─────────────────────────────────────────── 페이지 4 -->
 <section class="screen" data-title="NOT NULL과 DEFAULT">
   <p class="kicker">4장 · 페이지 4</p>
-  <h2>NOT NULL과 DEFAULT — 비워도 되는 열은 이유를 댈 수 있어야 한다</h2>
+  <h2>NOT NULL과 DEFAULT</h2>
 
   <p>페이지 2에서 NULL은 쓰기는 쉬워도 조회에서 함정을 만든다는 것을 보았습니다. 그런데 열에 아무 선언도 하지 않으면 <b>기본값은 "NULL 허용"</b>입니다.
   그래서 설계의 원칙은 이렇습니다.</p>
@@ -303,9 +303,9 @@ SELECT 0.1::numeric + 0.2::numeric = 0.3::numeric;   -- t (참)
     </table>
   </div>
 
-  <p>"값이 없다"는 사실은 없앨 수 없고, 어디서 표현할지 고르는 문제입니다. 이 교재는 <b>NULL을 그 열 하나에 가두고</b>, 그 열을 조회할 때 <code>IS NULL</code>을 잊지 않는 쪽을 택했습니다.</p>
+  <p>"값이 없다"는 사실은 없앨 수 없고, 어디서 표현할지 고르는 문제입니다. 이 교재는 <b>NULL을 그 열 하나로 한정하고</b>, 그 열을 조회할 때 <code>IS NULL</code>을 잊지 않는 쪽을 택했습니다.</p>
 
-  <h3>DEFAULT — 값을 적지 않았을 때 채워 줄 값</h3>
+  <h3>DEFAULT</h3>
 
   <p><span class="term" data-term="defaultval">DEFAULT</span>는 <code>INSERT</code>에서 그 열을 <b>적지 않았을 때</b> DB가 대신 넣어 줄 값입니다. 주문 시각이 대표적입니다.
   v3에서 <code>orders.ordered_at</code>에 붙입니다.</p>
@@ -339,9 +339,9 @@ VALUES (106, NULL, '카드', '지호');
 <!-- ─────────────────────────────────────────── 페이지 5 -->
 <section class="screen" data-title="PRIMARY KEY와 UNIQUE (C4)">
   <p class="kicker">4장 · 페이지 5</p>
-  <h2>PRIMARY KEY와 UNIQUE — 메뉴 이름은 겹치지 않는다 (C4)</h2>
+  <h2>PRIMARY KEY와 UNIQUE (C4)</h2>
 
-  <p>기본키는 2장에서 배웠습니다. 이제 <b>기본키의 사촌</b>을 정리합니다. 둘 다 "같은 값이 두 행에 있을 수 없다"를 DB가 강제하고, DB는 그것을 위해 인덱스를 자동으로 만듭니다(7장).</p>
+  <p>기본키는 2장에서 배웠습니다. 이제 <b>기본키와 비슷한 제약</b>(<code>UNIQUE</code>)을 정리합니다. 둘 다 "같은 값이 두 행에 있을 수 없다"를 DB가 강제하고, DB는 그것을 위해 인덱스를 자동으로 만듭니다(7장).</p>
 
   <div class="table-wrap">
     <table>
@@ -367,7 +367,7 @@ INSERT INTO menu (menu_id, name, price) VALUES (4, '아메리카노', 4000);
   <h3>UNIQUE가 못 막는 것 세 가지</h3>
 
   <div class="box warn">
-    <p class="box-t">UNIQUE는 "글자가 완전히 같은가"만 봅니다</p>
+    <p class="box-t">UNIQUE가 확인하는 범위</p>
     <ul>
       <li><b>표기 차이.</b> <code>'아메리카노 '</code>(끝 공백)는 <code>'아메리카노'</code>와 <b>다른 값</b>이라 통과합니다. 1장이 본 "끝 공백" 문제 그대로입니다. 영문 메뉴라면 <code>'Americano'</code>와 <code>'americano'</code>도 다른 값입니다.
       해결은 페이지 7의 <code>CHECK</code>로 공백을 막는 것입니다.</li>
@@ -391,13 +391,13 @@ INSERT INTO menu (menu_id, name, price) VALUES (4, '아메리카노', 4000);
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 6 -->
-<section class="screen" data-title="외래키와 ON DELETE (C5, C6)">
+<section class="screen" data-title="외래키와 삭제 정책 (C5, C6)">
   <p class="kicker">4장 · 페이지 6</p>
-  <h2>외래키와 삭제 정책 — 메뉴를 내려도 과거 주문은 남는다 (C5, C6)</h2>
+  <h2>외래키와 삭제 정책 (C5, C6)</h2>
 
   <p>C5(없는 것을 참조할 수 없다)는 2장에서 선언했고 페이지 1의 8번이 거부되는 이유였습니다. 그런데 외래키는 <b>반대 방향</b>에서도 일합니다.
   가리켜지는 쪽(부모: <code>menu</code>)의 행을 지우려 할 때, 그 행을 가리키는 쪽(자식: <code>order_line</code>)이 있다면 어떻게 해야 할까요?
-  서연이 "치즈케이크는 이제 안 팔아요. 메뉴에서 빼 주세요"라고 합니다.</p>
+  서연이 "치즈케이크는 이제 안 팔아요. 메뉴에서 빼 주세요"라고 합니다. 이 요구가 C6 "메뉴를 내려도 과거 주문은 남는다"와 부딪칩니다.</p>
 
 <pre><span class="cap">-- 치즈케이크(3번)를 지우려 하면 (v2 에서도 그대로입니다)</span><code>DELETE FROM menu WHERE menu_id = 3;
 -- ERROR:  update or delete on table "menu" violates foreign key
@@ -412,14 +412,14 @@ INSERT INTO menu (menu_id, name, price) VALUES (4, '아메리카노', 4000);
     <table>
       <tr><th style="width:8.5rem">선택지</th><th>치즈케이크 라인은</th><th>동백커피에서</th></tr>
       <tr><td><code>NO ACTION</code><br>(쓰지 않으면 이것)</td><td>지우기를 거부한다. 검사는 문장이 끝날 때</td><td>기본값. 지금까지 본 동작</td></tr>
-      <tr><td><code>RESTRICT</code></td><td>지우기를 거부한다. 즉시 검사</td><td><b>C6에 맞음.</b></td></tr>
+      <tr><td><code>RESTRICT</code></td><td>지우기를 거부한다. 즉시 검사</td><td><b>C6에 맞는다.</b></td></tr>
       <tr><td><code>CASCADE</code></td><td>라인도 <b>함께 지워진다</b></td><td>과거 주문의 치즈케이크 라인이 사라져 그 주문의 금액과 매출이 줄어든다. <b>C6 위반</b></td></tr>
       <tr><td><code>SET NULL</code></td><td><code>menu_id</code>가 NULL로 바뀐다</td><td>라인이 무슨 메뉴였는지 모르게 된다. 이 열은 <code>NOT NULL</code>이라 맞지 않는다</td></tr>
       <tr><td><code>SET DEFAULT</code></td><td><code>menu_id</code>가 기본값으로 바뀐다</td><td>"없는 메뉴"를 뜻하는 행을 따로 만들어야 해서 거의 쓰지 않는다</td></tr>
     </table>
   </div>
 
-  <p><code>NO ACTION</code>과 <code>RESTRICT</code>의 차이는 검사 시점뿐이라 지금은 같다고 보아도 됩니다. (외래키를 커밋 때 검사하도록 미루면 부모를 지울 때의 검사까지 커밋으로 미뤄지는 것은 <code>NO ACTION</code>뿐이고, <code>RESTRICT</code>는 그래도 즉시 검사합니다. 페이지 9에서 한 번 더 나옵니다.) 이 교재는 <b>의도를 드러내려고 C6에만 <code>RESTRICT</code>를 적습니다.</b></p>
+  <p><code>NO ACTION</code>과 <code>RESTRICT</code>의 차이는 검사 시점뿐이라 지금은 같다고 보아도 됩니다. (외래키 검사를 커밋 때로 미루도록 선언하면 <code>NO ACTION</code>은 부모를 지울 때의 검사도 커밋으로 미루지만, <code>RESTRICT</code>는 그래도 즉시 검사합니다. 지연 검사는 페이지 9에서 다시 나옵니다.) 이 교재는 <b>의도를 드러내려고 C6에만 <code>RESTRICT</code>를 적습니다.</b></p>
 
   <h3>삭제 대신 판매중지</h3>
 
@@ -437,10 +437,10 @@ SELECT menu_id, name, price FROM menu WHERE is_active; -- 키오스크 메뉴판
     <li>3행 <code>WHERE is_active</code>는 참/거짓 열을 그대로 조건으로 씁니다. 판매중지가 아닌 메뉴만 고릅니다.</li>
   </ul>
 
-  <p>이 방식을 <span class="term" data-term="softdelete">소프트 삭제</span>(판매중지 플래그)라 부릅니다. 이 교재에서 <code>menu</code>의 삭제는 <b>DB 제약(<code>RESTRICT</code>)이 막고, 판매중지 플래그가 길을 대신</b>합니다.</p>
+  <p>이 방식을 <span class="term" data-term="softdelete">소프트 삭제</span>(판매중지 플래그)라 부릅니다. 이 교재에서 <code>menu</code>의 삭제는 <b>DB 제약(<code>RESTRICT</code>)이 막고, 메뉴를 내리는 일은 판매중지 플래그가 맡습니다.</b></p>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
+    <p class="box-t">이후 장에서 드러나는 한계</p>
     <ul>
       <li><b>새 주문에 판매중지 메뉴를 담는 것은 DB가 막지 않습니다.</b> <code>is_active = FALSE</code>인 메뉴도 <code>order_line</code>이 가리킬 수 있습니다. 그것을 거르는 것은 <b>앱</b>(주문을 만들 때 <code>is_active</code>를 확인)의 일입니다.</li>
       <li>이름이나 가격을 <b>고치면</b> 과거 주문의 조회 결과도 같이 바뀝니다. D1 그대로입니다. 판매중지 플래그가 지켜 주는 것은 "행이 남는다"뿐입니다. <span class="later">6장에서 다시 본다</span></li>
@@ -452,16 +452,16 @@ SELECT menu_id, name, price FROM menu WHERE is_active; -- 키오스크 메뉴판
   <div class="table-wrap">
     <table>
       <tr><th style="width:9rem">외래키</th><th style="width:7rem">삭제 정책</th><th>이유</th></tr>
-      <tr><td><code>order_line.menu_id</code> → <code>menu</code></td><td><b><code>RESTRICT</code></b> 명시</td><td>C6. 메뉴를 지우는 길을 막고 판매중지로 대신한다</td></tr>
-      <tr><td><code>order_line.order_id</code> → <code>orders</code></td><td>기본(<code>NO ACTION</code>)</td><td><b>주문은 지우지 않고 "취소" 상태로 남기는 것이 원칙</b>입니다(페이지 8). 지우려는 시도가 있다면 실수일 가능성이 커서 <code>CASCADE</code>로 조용히 라인까지 지우는 것보다 거부되는 편이 안전합니다. 테스트 데이터를 지울 때는 불편하지만 그것은 운영이 아니라 개발 환경의 사정입니다</td></tr>
-      <tr><td><code>orders.member_id</code> → <code>member</code></td><td>기본(<code>NO ACTION</code>)</td><td>회원을 지울 때 과거 주문을 어떻게 할지(탈퇴 정책)는 업무 결정이 더 필요해서 이 장에서는 "막는다"로 둡니다. <code>SET NULL</code>은 그 주문을 비회원 주문으로 바꾸는 효과를 내는 선택지로만 기억해 두세요</td></tr>
+      <tr><td><code>order_line.menu_id</code> → <code>menu</code></td><td><b><code>RESTRICT</code></b> 명시</td><td>C6. 메뉴를 지우는 것을 막고 판매중지로 대신한다</td></tr>
+      <tr><td><code>order_line.order_id</code> → <code>orders</code></td><td>기본(<code>NO ACTION</code>)</td><td><b>주문은 지우지 않고 "취소" 상태로 남기는 것이 원칙</b>이다(페이지 8). 지우려는 시도는 실수일 가능성이 커서 <code>CASCADE</code>로 조용히 라인까지 지우는 것보다 거부되는 편이 안전하다. 테스트 데이터를 지울 때는 불편하지만 그것은 운영이 아니라 개발 환경의 사정이다</td></tr>
+      <tr><td><code>orders.member_id</code> → <code>member</code></td><td>기본(<code>NO ACTION</code>)</td><td>회원을 지울 때 과거 주문을 어떻게 할지(탈퇴 정책)는 업무 결정이 더 필요해서 이 장에서는 "막는다"로 둔다. <code>SET NULL</code>은 그 주문을 비회원 주문으로 바꾸는 효과를 내는 선택지로만 기억해 둔다</td></tr>
     </table>
   </div>
 
   <p>외래키에는 <code>ON UPDATE</code>도 있지만, 키 값(대리키)은 <b>바꾸지 않는 것</b>이 원칙이라 이 교재에서는 쓰지 않습니다.</p>
 
   <div class="box warn">
-    <p class="box-t">삭제를 막는 검사에도 비용이 있습니다</p>
+    <p class="box-t">삭제 검사의 비용</p>
     <p><code>menu</code>에서 행을 지울 때 DB는 <b><code>order_line.menu_id</code>에 그 값이 있는지 찾아봐야</b> 합니다. 2장에서 말했듯 외래키 열에는 인덱스가 자동으로 생기지 않고,
     <code>order_line</code>의 기본키 <code>(order_id, menu_id)</code>는 앞 열이 <code>order_id</code>라서 <code>menu_id</code>로 찾는 데 거의 도움이 되지 않습니다.
     주문이 수백만 건이 되면 이 검사가 느려집니다. <span class="later">7장에서 다시 본다</span></p>
@@ -471,9 +471,9 @@ SELECT menu_id, name, price FROM menu WHERE is_active; -- 키오스크 메뉴판
 <!-- ─────────────────────────────────────────── 페이지 7 -->
 <section class="screen" data-title="CHECK (C2)">
   <p class="kicker">4장 · 페이지 7</p>
-  <h2>CHECK — 수량은 1 이상이다 (C2)</h2>
+  <h2>CHECK (C2)</h2>
 
-  <p>페이지 1의 입력 중 수량·가격·이름 표기·결제수단·전화번호 형식은 모두 <b>"한 행의 값이 지켜야 할 조건"</b>에 관한 규칙이었습니다. 이런 규칙을 선언하는 것이
+  <p>C2 "수량은 1 이상이다"를 포함해, 페이지 1의 입력 중 수량·가격·이름 표기·결제수단·전화번호 형식은 모두 <b>"한 행의 값이 지켜야 할 조건"</b>에 관한 규칙이었습니다. 이런 규칙을 선언하는 것이
   <span class="term" data-term="check"><code>CHECK</code></span>입니다. <b>한 행의 값이 조건식을 만족해야 저장</b>하고, 만족하지 않으면 그 <code>INSERT</code>나 <code>UPDATE</code>를 거부합니다.</p>
 
 <pre><span class="cap">-- C2: 수량은 1 이상</span><code>quantity  INTEGER NOT NULL CHECK (quantity &gt;= 1)
@@ -505,11 +505,11 @@ CHECK (phone ~ '^01[0-9]-[0-9]{3,4}-[0-9]{4}$')
     <code>&lt;&gt; ''</code>와 함께면 "빈 글자"와 "공백만 있는 글자"도 막힙니다(공백만 있는 글자는 <code>btrim</code> 결과가 <code>''</code>라서 원래 값과 달라집니다).</li>
     <li>2행 <code>~</code>는 <b>정규식에 맞는지</b> 묻는 연산자입니다. 정규식 <code>^01[0-9]-[0-9]{3,4}-[0-9]{4}$</code>는 "<code>01</code>과 숫자 한 자리, 하이픈, 숫자 3~4자리, 하이픈, 숫자 4자리"가 글자 전체라는 뜻입니다.
     <code>010-1111-2222</code>는 통과하고 <code>01011112222</code>는 거부됩니다. 읽기만 하면 충분하고, 이 교재가 정규식을 가르치지는 않습니다.</li>
-    <li>한계도 있습니다. <b>유선 번호나 해외 번호는 이 형식으로 받을 수 없습니다.</b> 요구가 바뀌면 제약을 바꿔야 합니다. 그것이 DB 제약의 가격입니다(페이지 1의 반대 의견).</li>
+    <li>한계도 있습니다. <b>유선 번호나 해외 번호는 이 형식으로 받을 수 없습니다.</b> 요구가 바뀌면 제약을 바꿔야 합니다. 그것이 DB 제약의 비용입니다(페이지 1의 반대 의견).</li>
   </ul>
 
   <div class="box warn">
-    <p class="box-t">CHECK는 조건이 NULL이면 통과합니다</p>
+    <p class="box-t">CHECK와 NULL</p>
     <p>페이지 2의 3값 논리를 떠올리세요. <code>quantity</code>가 NULL이면 <code>NULL &gt;= 1</code>은 <b>알 수 없음</b>이고, <code>CHECK</code>는 "거짓인 행"만 거부하므로 <b>통과</b>합니다.
     그래서 <code>CHECK</code>가 있는 열은 <b><code>NOT NULL</code>과 짝</b>으로 써야 합니다. <code>order_line.quantity</code>에 이미 <code>NOT NULL</code>이 있었던 이유입니다.</p>
   </div>
@@ -527,7 +527,7 @@ CHECK (phone ~ '^01[0-9]-[0-9]{3,4}-[0-9]{4}$')
 <!-- ─────────────────────────────────────────── 페이지 8 -->
 <section class="screen" data-title="글자로 고르는 열과 주문 상태 (C7)">
   <p class="kicker">4장 · 페이지 8</p>
-  <h2>글자로 고르는 열 — 결제수단과 주문 상태 (C7)</h2>
+  <h2>글자로 고르는 열과 주문 상태 (C7)</h2>
 
   <p>결제수단(<code>orders.payment</code>)은 '카드', '현금' 중 하나입니다. 페이지 1의 5번이 보여 준 것처럼 글자로 적는 열은 <code>'card'</code>, <code>'카드 '</code> 같은 표기 흔들림이 생깁니다.
   이처럼 <b>값이 정해진 목록 중 하나</b>인 열을 지키는 방법은 셋입니다.</p>
@@ -563,7 +563,7 @@ status   TEXT  NOT NULL DEFAULT '접수'
 
   <p>새 주문은 <code>status</code>를 적지 않으면 <code>DEFAULT</code>에 따라 <b>'접수'</b>로 시작합니다. <code>CHECK</code>는 <code>'제조 중'</code>(띄어쓰기)이나 <code>'cooking'</code> 같은 목록 밖의 값을 막습니다.</p>
 
-  <h3>전이 순서는 앱의 일</h3>
+  <h3>상태 전이 순서의 검사</h3>
 
   <p>그런데 <code>CHECK</code>가 <b>막지 못하는 것</b>이 있습니다. 페이지 7에서 말했듯 <code>CHECK</code>는 새 값만 보기 때문에 <code>'접수'</code>에서 곧바로 <code>'픽업'</code>으로 바꾸는 <code>UPDATE</code>도 목록 안의 값이라 통과합니다.
   허용되는 전이는 다음과 같습니다.</p>
@@ -594,7 +594,7 @@ WHERE  order_id = 106 AND status IN ('접수', '제조중'); -- 0 이면 이미 
   </ul>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
+    <p class="box-t">남는 한계</p>
     <p><code>status</code> 열은 <b>지금 상태</b>만 담습니다. "몇 시에 제조중이 되었는가"는 알 수 없습니다. 상태가 바뀐 시각과 이력이 필요해지면 그것을 담는 표를 따로 설계해야 합니다.
     또 취소된 주문은 지워지지 않고 남으므로, 매출을 셀 때는 <b><code>status</code>를 조건에 넣는 것</b>을 잊으면 안 됩니다.</p>
   </div>
@@ -603,9 +603,9 @@ WHERE  order_id = 106 AND status IN ('접수', '제조중'); -- 0 이면 이미 
 <!-- ─────────────────────────────────────────── 페이지 9 -->
 <section class="screen" data-title="선언으로 바로 못 막는 규칙 (C1)">
   <p class="kicker">4장 · 페이지 9</p>
-  <h2>선언으로 바로 못 막는 규칙 — 주문은 라인이 1개 이상이다 (C1)</h2>
+  <h2>선언으로 바로 못 막는 규칙 (C1)</h2>
 
-  <p>C1을 DB에 맡겨 봅시다. 먼저 페이지 1의 7번이 왜 저장되는지 확인합니다.</p>
+  <p>C1 "주문은 라인이 1개 이상이다"를 DB에 맡겨 봅시다. 먼저 페이지 1의 7번이 왜 저장되는지 확인합니다.</p>
 
 <pre><span class="cap">-- 라인 없는 주문이 저장된다</span><code>INSERT INTO orders (order_id, member_id, payment, barista)
 VALUES (107, 1, '카드', '지호');
@@ -615,7 +615,7 @@ VALUES (107, 1, '카드', '지호');
 SELECT o.order_id
 FROM   orders AS o
 LEFT JOIN order_line AS ol ON ol.order_id = o.order_id
-WHERE  ol.order_id IS NULL;      -- 107
+WHERE  ol.order_id IS NULL;      -- 107 (라인 없는 주문이 더 있으면 그 번호도 나온다)
 </code></pre>
 
   <ul>
@@ -638,24 +638,25 @@ WHERE  ol.order_id IS NULL;      -- 107
   <code>CHECK</code>, 외래키, <code>UNIQUE</code>처럼 <b>저장할 때마다 바로 검사하는 보통의 선언으로는 표현되지 않습니다.</b></p>
 
   <div class="box note">
-    <p class="box-t">"DB로는 절대 못 한다"는 아닙니다</p>
+    <p class="box-t">DB로 표현하는 우회 방법</p>
     <p>외래키는 검사를 <b>트랜잭션이 끝날 때(커밋)까지 미루도록</b> 선언할 수 있습니다(<code>DEFERRABLE INITIALLY DEFERRED</code>, 지연 가능 외래키).
-    이것으로 <code>orders</code>에 "첫 라인"의 키를 담는 <code>NOT NULL</code> 열을 더하고, 자기 주문 번호와 함께(복합 외래키로) 자기 라인을 가리키게 한 뒤, <b>이 외래키(주문 → 라인) 하나만</b> 커밋 때로 미루면 C1을 <b>선언으로 표현할 수는 있습니다.</b>
+    먼저 <code>orders</code>에 "첫 라인"의 키를 담는 <code>NOT NULL</code> 열을 더합니다. 이 열을 자기 주문 번호와 묶어(복합 외래키) 자기 라인을 가리키게 합니다.
+    <b>이 외래키(주문 → 라인) 하나만</b> 커밋 때로 미루면 C1을 <b>선언으로 표현할 수는 있습니다.</b>
     라인이 주문을 가리키는 원래 외래키는 주문 행을 먼저 넣으므로 미룰 필요가 없습니다.
-    대가는 <code>orders</code>에 라인 정보를 겹쳐 담는 <b>중복 열</b>이 생기고, 그 라인을 지우거나 바꿀 때마다 이 열을 <b>늘 맞춰 고쳐야</b> 한다는 것입니다.</p>
+    비용은 <code>orders</code>에 라인 정보를 겹쳐 담는 <b>중복 열</b>이 생기고, 그 라인을 지우거나 바꿀 때마다 이 열을 <b>늘 맞춰 고쳐야</b> 한다는 것입니다.</p>
     <p>PostgreSQL에는 검사를 미룰 수 있는 <b>제약 트리거</b>(<code>CONSTRAINT TRIGGER</code>)도 있지만, 그것은 선언이 아니라 <b>DB 안에 넣는 프로그램 코드</b>라 DB마다 다르고 테스트하고 관리할 대상이 늘어납니다.
-    이 교재는 두 길 모두 쓰지 않고, 이 규칙을 <b>앱이 트랜잭션 안에서 지킨다</b>고 정리합니다.</p>
+    이 교재는 두 방법 모두 쓰지 않고, 이 규칙을 <b>앱이 트랜잭션 안에서 지킨다</b>고 정리합니다.</p>
   </div>
 
   <p>앱이 지킨다는 것은 구체적으로 이렇습니다.</p>
   <ol>
     <li>주문을 만드는 코드가 <b>라인 목록이 비어 있지 않은지</b> 먼저 확인합니다.</li>
     <li>주문 한 건과 그 라인들을 <b>하나의 트랜잭션</b>(0장에서 본 "전부 성공 아니면 전부 취소"의 묶음)으로 저장합니다. 중간에 실패하면 주문도 취소됩니다.</li>
-    <li>라인을 지우는 코드도 지우고 나서 <b>그 주문의 라인이 0개가 되지 않는지</b> 확인합니다(반대편 구멍입니다).</li>
-    <li>위의 점검 조회를 주기적으로 돌려 구멍이 없는지 봅니다.</li>
+    <li>라인을 지우는 코드도 지우고 나서 <b>그 주문의 라인이 0개가 되지 않는지</b> 확인합니다(반대편 허점입니다).</li>
+    <li>위의 점검 조회를 주기적으로 돌려 허점이 없는지 봅니다.</li>
   </ol>
 
-  <p>이 트랜잭션을 <b>동시에 여러 요청이 들어와도</b> 안전하게 만드는 방법이 8장의 주제이고, D5(C1의 빚)를 그때 갚습니다. <span class="later">8장에서 다시 본다</span></p>
+  <p>이 트랜잭션을 <b>동시에 여러 요청이 들어와도</b> 안전하게 만드는 방법이 8장의 주제이고, D5(C1을 DB 선언에 맡기지 못한 문제)를 그때 해결합니다. <span class="later">8장에서 다시 본다</span></p>
 
   <div class="box warn">
     <p class="box-t">DB에 못 맡기는 규칙의 모양</p>
@@ -665,14 +666,14 @@ WHERE  ol.order_id IS NULL;      -- 107
       <li><b>다른 표의 상태에 따라</b> 달라지는 규칙(판매중지 메뉴는 새 주문에 못 담는다)</li>
       <li><b>값이 바뀌는 순서</b>에 대한 규칙(주문 상태 전이)</li>
     </ul>
-    <p>이런 규칙은 뒤의 장에서 계속 만납니다. 그때마다 <b>"이것은 선언할 수 있는가, 아니면 앱과 트랜잭션의 몫인가"</b>를 먼저 묻는 습관이 이 장의 결론입니다.</p>
+    <p>이런 규칙은 뒤의 장에서 계속 만납니다. 그때마다 <b>"이것은 선언할 수 있는가, 아니면 앱과 트랜잭션이 지킬 일인가"</b>를 먼저 묻는 습관이 이 장의 결론입니다.</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 10 -->
 <section class="screen" data-title="스키마 v3과 제약 표">
   <p class="kicker">4장 · 페이지 10</p>
-  <h2>스키마 v3 — 제약조건 표 정리</h2>
+  <h2>스키마 v3과 제약 표</h2>
 
   <p>이 장에서 고른 것을 한 번에 모으면 <b>스키마 v3</b>입니다. 표 4개와 관계는 v2와 같고, <b>제약과 새 열 둘</b>(<code>menu.is_active</code>, <code>orders.status</code>)이 달라졌습니다.</p>
 
@@ -721,8 +722,9 @@ CREATE TABLE order_line (
     <li><span class="ln">22행</span> <code>ordered_at</code>: 시각은 <code>TIMESTAMPTZ</code>, 적지 않으면 DB가 지금 시각을 넣습니다(페이지 3, 4).</li>
     <li><span class="ln">23행</span> <code>payment</code>: 글자 목록 <code>CHECK</code>입니다(페이지 8).</li>
     <li><span class="ln">25~26행</span> <code>status</code>: 새 열입니다. 적지 않으면 '접수'로 시작하고(25행), 목록 밖의 값은 거부됩니다(26행). 열을 더하면 기존 주문 101~105도 DEFAULT로 '접수'가 되므로, 모두 끝난 주문인 이들은 이어서 <code>UPDATE</code>로 '픽업'으로 바꿔 둡니다(주문 상태가 바뀌는 것이 아니라 새 열을 처음 채우는 작업이라 C7의 전이와는 별개입니다). 전이 순서는 이 제약이 아니라 앱이 지킵니다(C7).</li>
+    <li><span class="ln">31행</span> <code>order_id</code>는 삭제 정책을 적지 않은 기본값입니다(주문은 지우지 않고 '취소'로 남김).</li>
     <li><span class="ln">32행</span> <code>ON DELETE RESTRICT</code>가 C6입니다. 메뉴를 지우려 하면 거부되고, 판매중지 플래그로 대신합니다.</li>
-    <li><span class="ln">31행·33행</span> 31행의 <code>order_id</code>는 삭제 정책을 적지 않은 기본값입니다(주문은 지우지 않고 '취소'로 남김). 33행 <code>CHECK (quantity &gt;= 1)</code>이 C2입니다.</li>
+    <li><span class="ln">33행</span> <code>CHECK (quantity &gt;= 1)</code>이 C2입니다.</li>
     <li><span class="ln">34행</span> 기본키 <code>(order_id, menu_id)</code>는 v1에서 바뀌지 않았습니다. <b>이것이 C3의 v1 형태입니다.</b></li>
   </ol>
 
@@ -744,10 +746,10 @@ CREATE TABLE order_line (
   </div>
 
   <div class="box warn">
-    <p class="box-t">제약을 붙였어도 남은 빚</p>
+    <p class="box-t">제약을 붙인 뒤에도 남은 문제</p>
     <div class="table-wrap">
       <table>
-        <tr><th>빚</th><th>내용</th><th>갚는 장</th></tr>
+        <tr><th>문제</th><th>내용</th><th>다루는 장</th></tr>
         <tr><td>D1</td><td>단가를 주문 라인이 갖지 않음. 가격을 고치면 과거 주문 금액이 바뀜</td><td>6장</td></tr>
         <tr><td>D2</td><td>매장 1개를 가정</td><td>9장</td></tr>
         <tr><td>D3</td><td>라인 기본키가 <code>(order_id, menu_id)</code></td><td>5장</td></tr>
@@ -814,7 +816,7 @@ CREATE TABLE order_line (
     </ol>
     <div class="explain">
       <p>그래서 전이는 <code>UPDATE ... WHERE status = '접수'</code>처럼 <b>이전 상태를 조건에 넣고 갱신된 행 수</b>를 확인하는 방식으로 앱이 지킵니다.
-      한 가지 더, 이 <code>CHECK</code>에는 <b>NULL이 통과한다는 구멍</b>이 있습니다. <code>status</code>에 <code>NOT NULL</code>이 함께 있어야 "상태가 없는 주문"이 막힙니다.</p>
+      한 가지 더, 이 <code>CHECK</code>에는 <b>NULL이 통과한다는 허점</b>이 있습니다. <code>status</code>에 <code>NOT NULL</code>이 함께 있어야 "상태가 없는 주문"이 막힙니다.</p>
     </div>
   </div>
 
@@ -827,7 +829,7 @@ CREATE TABLE order_line (
       <li data-why="맞습니다. CHECK는 저장되는 그 한 행의 값만 볼 수 있고, 다른 표의 행 수는 셀 수 없습니다. 게다가 주문을 먼저 저장하는 순서 때문에 '매 순간' 검사하는 것도 맞지 않아 묶음(트랜잭션) 단위의 검사가 필요합니다.">규칙이 한 행이 아니라 여러 행(라인)의 개수에 대한 것이고, 검사 시점도 저장 한 번이 아니라 묶음이 끝났을 때이기 때문이다</li>
     </ol>
     <div class="explain">
-      <p>4장의 이해도 체크포인트가 이 질문입니다. 답은 두 줄이면 됩니다. <b>"보통의 선언은 한 행의 값, 중복, 참조의 존재까지를 저장할 때마다 검사한다. C1은 여러 행의 개수를 묶음이 끝났을 때 보는 규칙이라서 앱이 트랜잭션 안에서 지킨다."</b>
+      <p>이 질문이 4장의 핵심입니다. 답은 두 줄이면 됩니다. <b>"보통의 선언은 한 행의 값, 중복, 참조의 존재까지를 저장할 때마다 검사한다. C1은 여러 행의 개수를 묶음이 끝났을 때 보는 규칙이라서 앱이 트랜잭션 안에서 지킨다."</b>
       그 뒤에 커밋 때 검사하는 지연 가능 외래키로 표현할 수는 있지만 중복 열과 그 열을 늘 맞추는 부담 때문에 쓰지 않는다는 것(페이지 9)까지 덧붙이면 정확합니다.</p>
     </div>
   </div>
@@ -867,7 +869,7 @@ CREATE TABLE order_line (
   </div>
 
   <details class="fold answer">
-    <summary>모범답안 — 그리고 흔한 오답이 왜 틀리는지</summary>
+    <summary>모범답안과 흔한 오답</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 모범답안 (member 는 v3 의 표를 그대로 사용)</span><code>CREATE TABLE bean (
     bean_id         INTEGER PRIMARY KEY,
