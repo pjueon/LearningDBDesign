@@ -27,18 +27,18 @@
     <div class="line"><div class="who">지호</div><div class="say">
       <p>픽업 시간대 정원도 매장마다 달라요. 2호점은 한 시간대에 두 건이면 꽉 차요.</p></div></div>
     <div class="line"><div class="who">개발자</div><div class="say">
-      <p>2장에서 "매장은 하나뿐"이라는 가정을 적어 두었는데, 그 청구서가 왔네요. 그리고 가게가 영업 중이라 DB를 몇 시간 꺼 둘 수도 없습니다.</p></div></div>
+      <p>2장에서 "매장은 하나뿐"이라는 가정을 적어 두었는데, 그 가정이 이제 문제가 되네요. 그리고 가게가 영업 중이라 DB를 몇 시간 꺼 둘 수도 없습니다.</p></div></div>
   </div>
 
   <div class="box bad">
-    <p class="box-t">D2 청구 — "매장은 하나뿐이다"가 어디에 박혀 있나</p>
-    <p>2장 페이지 12가 가정 2로 남긴 것입니다. 이 장이 갚는 첫 번째 빚입니다. 이 가정은 한 군데가 아니라 <b>표의 키와 열 곳곳</b>에 굳어 있습니다.</p>
+    <p class="box-t">D2: "매장은 하나뿐이다" 가정이 들어 있는 곳</p>
+    <p>2장 페이지 12가 가정 2로 남긴 것입니다. 이 장에서 가장 먼저 해결할 문제입니다. 이 가정은 한 군데가 아니라 <b>표의 키와 열 곳곳</b>에 굳어 있습니다.</p>
   </div>
 
   <div class="table-wrap">
     <table>
-      <tr><th style="width:9rem">v6의 표</th><th>박혀 있는 가정</th><th style="width:7rem">다시 볼 곳</th></tr>
-      <tr><td><code>menu_price</code></td><td>기본키 <code>(menu_id, valid_from)</code> — 메뉴 하나에 가격 이력이 한 줄기뿐. 라떼 5000원과 5300원이 같은 시각에 있을 수 없다</td><td>페이지 3·9</td></tr>
+      <tr><th style="width:9rem">v6의 표</th><th>굳어 있는 가정</th><th style="width:7rem">다시 볼 곳</th></tr>
+      <tr><td><code>menu_price</code></td><td>기본키 <code>(menu_id, valid_from)</code> — 메뉴 하나에 가격 이력이 하나뿐이다. 라떼 5000원과 5300원이 같은 시각에 있을 수 없다</td><td>페이지 3·9</td></tr>
       <tr><td><code>stock_item</code></td><td><code>qty</code> 한 숫자 — 케이크가 "몇 개 남았나"가 가게 전체의 답 하나</td><td>페이지 10</td></tr>
       <tr><td><code>pickup_slot</code></td><td>기본키 <code>slot_start</code> — 8시 30분 슬롯이 전국에 하나. 정원도 하나</td><td>페이지 9</td></tr>
       <tr><td><code>daily_sales</code></td><td>기본키 <code>sales_date</code> — 하루에 한 행. 매장별 매출을 담을 자리가 없다</td><td>페이지 9</td></tr>
@@ -49,18 +49,18 @@
   <div class="box note">
     <p class="box-t">이 장의 진행</p>
     <ol>
-      <li><b>설계</b>(페이지 2~4): 22개 표를 훑어 어디에 <code>store_id</code>가 들어가야 하는지 가르고, 매장별 가격(C15)과 회원의 범위를 정합니다.</li>
+      <li><b>설계</b>(페이지 2~4): 22개 표를 훑어 어디에 <code>store_id</code>가 들어가야 하는지 구분하고, 매장별 가격(C15)과 회원의 범위를 정합니다.</li>
       <li><b>운영</b>(페이지 5~11): 같은 설계를 <b>데이터가 든 채로</b> 옮깁니다. ALTER의 락, 확장→이전→축소(C16), 열 추가와 채우기, 인덱스, 기본키 교체, 표 분리. 모두 진짜 PostgreSQL 18.4에서 돌려 본 결과를 보입니다.</li>
       <li><b>결과</b>(페이지 12): 스키마 v7과 전체 ER 다이어그램.</li>
     </ol>
   </div>
 </section>
 <!-- ─────────────────────────────────────────── 페이지 2 -->
-<section class="screen" data-title="표 22개를 세 바구니로">
+<section class="screen" data-title="표 22개의 매장 범위 구분">
   <p class="kicker">9장 · 페이지 2</p>
-  <h2>store_id는 어디에 들어가나 — 22개 표 훑기</h2>
+  <h2>표 22개의 매장 범위 구분</h2>
 
-  <p>"모든 표에 <code>store_id</code>를 붙이면 되지 않나요?"가 첫 반응이지만, 그러면 회원이 매장마다 따로 생기고 옵션 정의가 열 벌이 됩니다. 표마다 이 세 질문을 던져 <span class="term" data-term="storescope">매장 범위</span>를 가릅니다.</p>
+  <p>"모든 표에 <code>store_id</code>를 붙이면 되지 않나요?"가 첫 반응이지만, 그러면 회원이 매장마다 따로 생기고 옵션 정의가 열 벌이 됩니다. 표마다 이 세 질문을 던져 <span class="term" data-term="storescope">매장 범위</span>를 구분합니다.</p>
 
   <div class="table-wrap">
     <table>
@@ -76,7 +76,7 @@
     <figcaption>v6의 표 22개(①②③)와 새로 생기는 표 3개. 색 테두리는 매장이 키나 열로 들어가는 표, 점선은 부모를 따라 매장을 아는 표입니다. <code>stock_item</code>은 한 표에 <b>두 종류의 사실</b>(품목 정의, 매장별 수량)이 섞여 있어 페이지 10에서 쪼갭니다.</figcaption>
   </figure>
 
-  <h3>상속 — 라인 표에 store_id를 또 적지 않는 이유</h3>
+  <h3>라인 표에 store_id를 적지 않는 이유</h3>
 
   <p><code>order_line</code>의 한 행에 <code>store_id</code>를 적었다고 합시다. 이 값은 <code>order_id</code>만으로 정해집니다(<code>order_id → store_id</code>). 기본키 <code>(order_id, line_no)</code>의 <b>일부만으로 정해지는 열</b>이므로 3장의 <span class="term" data-term="partdep">부분 종속</span>, 곧 2NF 위반입니다. 두 곳에 적힌 매장이 어긋나면(주문은 2호점인데 라인은 1호점) 어느 쪽이 맞는지 DB는 모릅니다. 그래서 <code>order_line</code>, <code>order_line_option</code>, <code>order_line_pick</code>, <code>order_discount</code> 네 표는 <b>주문을 따라가서</b> 매장을 알고, 새 열이 없으며 기본키도 그대로입니다.</p>
 
@@ -88,7 +88,7 @@
   </div>
 
   <details class="fold">
-    <summary>반대 의견 — 자식 표에도 store_id를 넣고 DB가 일치를 강제하게 하는 설계</summary>
+    <summary>반대 의견: 자식 표에도 store_id를 넣고 DB가 일치를 강제하는 설계</summary>
     <div class="fold-body">
       <p>"어느 매장 라인인지 라인 표만 봐도 알고 싶다", "매장이 안 파는 메뉴가 주문 라인에 들어오는 것을 DB가 막았으면 한다"는 요구가 있으면 자식에 <code>store_id</code>를 복사하고 <b>복합 외래키 두 개</b>를 겁니다. <code>orders</code>에 <code>UNIQUE (order_id, store_id)</code>를 두고, 라인 표가 <code>(order_id, store_id)</code>로 <code>orders</code>를, <code>(store_id, menu_id)</code>로 <code>store_menu</code>(페이지 3)를 가리킵니다. 실제 서버에서 실행한 결과, 주문 801(2호점)에 <code>store_id</code> 1인 라인은 <code>violates foreign key constraint "line_x_order_id_store_id_fkey"</code>, 2호점이 취급하지 않는 메뉴 4는 <code>line_x_store_id_menu_id_fkey</code>로 거부되었습니다. 이 방식은 <b>매장 일관성을 DB가 지키는 대신</b> 자식 표마다 열 하나와 복합 외래키가 늘고, 부분 종속이라는 중복을 <b>제약으로 감시하며 받아들이는</b> 것입니다. 이 교재 v7은 "그 매장이 파는 메뉴만 주문받는다"를 <b>주문 생성 트랜잭션</b>이 지키게 하고(페이지 10: 가격 조회가 <code>store_id</code>로 걸러 행이 없으면 주문을 거부), 자식 표는 건드리지 않습니다.</p>
     </div>
@@ -97,7 +97,7 @@
 <!-- ─────────────────────────────────────────── 페이지 3 -->
 <section class="screen" data-title="매장별 메뉴·가격 (C15)">
   <p class="kicker">9장 · 페이지 3</p>
-  <h2>매장별 판매 메뉴와 가격 — C15</h2>
+  <h2>매장별 메뉴·가격 (C15)</h2>
 
   <p>규칙 C15는 "매장마다 판매 메뉴·가격이 다를 수 있다"입니다. 먼저 떠오르는 풀이는 "<code>menu</code>의 가격을 <code>menu</code> + <code>store_menu</code>로 쪼갠다"입니다. 그런데 6장이 <code>menu</code>에서 <code>price</code>를 이미 지웠습니다. 가격은 <code>menu_price</code>(이력)가 가지고 있어서 <code>menu</code>에는 쪼갤 가격 열이 남아 있지 않습니다. 그래서 매장별 가격을 <b>어디에 둘지</b>부터 다시 따져 봅니다.</p>
 
@@ -106,7 +106,7 @@
       <tr><th style="width:8rem">방법</th><th>구조</th><th>판단</th></tr>
       <tr><td>가격 열을 <code>store_menu</code>에</td><td><code>store_menu(store_id, menu_id, price)</code></td><td>기각. 6장이 <code>menu.price</code>를 지운 이유(지금 값과 이력의 열린 행이 같은 사실의 중복)가 그대로 되살아나고, 매장별 <b>가격 이력</b>이 사라진다</td></tr>
       <tr><td>본사 기본가 + 매장 예외</td><td><code>store_id</code>가 NULL이면 전 매장 공통 행</td><td>기각. 기본키 열은 NULL일 수 없고, "예외가 있으면 그것, 없으면 기본"이라는 조회가 모든 가격 질문에 붙는다</td></tr>
-      <tr><td><b><code>menu_price</code>에 <code>store_id</code></b></td><td>가격 이력이 매장별로 갈라진다. 매장마다 <b>명시적인 행</b></td><td><b>채택</b>. 가격의 집이 한 곳(<code>menu_price</code>)인 6장의 결정이 유지된다. 본사 일괄 인상은 한 문장의 <code>INSERT ... SELECT</code></td></tr>
+      <tr><td><b><code>menu_price</code>에 <code>store_id</code></b></td><td>가격 이력이 매장별로 갈라진다. 매장마다 <b>명시적인 행</b></td><td><b>채택</b>. 가격을 두는 표가 <code>menu_price</code> 한 곳이라는 6장의 결정이 유지된다. 본사 일괄 인상은 한 문장의 <code>INSERT ... SELECT</code></td></tr>
     </table>
   </div>
 
@@ -151,20 +151,20 @@ CREATE TABLE menu_price (
     <li><span class="ln">26~27행</span> 6장의 겹침 방지가 <b>매장 단위로 넓어졌습니다.</b> <code>store_id WITH =</code>가 앞에 붙어 "같은 매장·같은 메뉴의 기간끼리만" 겹치면 안 됩니다. 1호점의 5000원과 2호점의 5300원은 같은 시각에 있어도 됩니다. 그래서 나중에는 이 <code>EXCLUDE</code>를 어떻게 바꿔 끼우느냐가 문제가 됩니다. 페이지 9에서 다시 봅니다.</li>
   </ol>
 
-  <p>실제 서버에서 돌려 보았습니다. 2호점의 라떼를 11월 1일부터 5500원으로 올리려면 6장과 같이 열린 행을 닫고 새 행을 넣되 <code>store_id</code>로 한 매장만 고릅니다(1호점은 그대로). 본사가 아메리카노를 전 매장 5000원으로 올릴 때는 닫는 <code>UPDATE</code>를 <code>store_id</code> 조건 없이, 새 행은 <code>INSERT INTO menu_price (...) SELECT store_id, menu_id, '2026-11-15 00:00+09', 5000 FROM store_menu WHERE menu_id = 1</code> 한 문장으로 두 매장 몫을 넣었습니다. 취급하지 않는 메뉴에 가격을 넣으면 <code>violates foreign key constraint "menu_price_store_id_menu_id_fkey"</code>로 거부됩니다.</p>
+  <p>실제 서버에서 돌려 보았습니다. 2호점의 라떼를 11월 1일부터 5500원으로 올리려면 6장과 같이 열린 행을 닫고 새 행을 넣되 <code>store_id</code>로 한 매장만 고릅니다(1호점은 그대로). 본사가 아메리카노를 전 매장 5000원으로 올릴 때는 닫는 <code>UPDATE</code>를 <code>store_id</code> 조건 없이, 새 행은 <code>INSERT INTO menu_price (...) SELECT store_id, menu_id, '2026-11-15 00:00+09', 5000 FROM store_menu WHERE menu_id = 1</code> 한 문장으로 두 매장의 행을 넣었습니다. 취급하지 않는 메뉴에 가격을 넣으면 <code>violates foreign key constraint "menu_price_store_id_menu_id_fkey"</code>로 거부됩니다.</p>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
-    <p>이 표들이 <b>데이터가 든 채로</b> v6에서 만들어져야 합니다. 새 <code>EXCLUDE</code>와 기본키가 옛 것을 대체하기 전에는 2호점의 가격 행을 넣을 수 없고(옛 기본키 <code>(menu_id, valid_from)</code>가 같은 메뉴의 두 번째 <code>-infinity</code> 행을 <code>duplicate key value violates unique constraint "menu_price_pkey"</code>로 거부, 실행 확인), 옛 것을 먼저 지우면 그사이 무방비입니다. 순서가 문제의 전부입니다(페이지 6~9).</p>
+    <p class="box-t">남은 문제</p>
+    <p>이 표들을 <b>데이터가 든 채로</b> v6에서 v7로 바꿔야 합니다. 새 <code>EXCLUDE</code>와 기본키가 옛 것을 대체하기 전에는 2호점의 가격 행을 넣을 수 없고(옛 기본키 <code>(menu_id, valid_from)</code>가 같은 메뉴의 두 번째 <code>-infinity</code> 행을 <code>duplicate key value violates unique constraint "menu_price_pkey"</code>로 거부, 실행 확인), 옛 것을 먼저 지우면 그사이 무방비입니다. 문제는 순서입니다(페이지 6~9).</p>
     <p>(<code>-infinity</code>: 6장 페이지 11의 이전이 "언제부터 그 가격이었는지 모르는" 옛 가격을 이력의 첫 행으로 옮기며 적은 시작 시각입니다. 2호점의 첫 가격 행도 같은 시작으로 넣으므로, 매장이 키에 없으면 메뉴마다 이 행이 둘이 됩니다.)</p>
   </div>
 </section>
 <!-- ─────────────────────────────────────────── 페이지 4 -->
-<section class="screen" data-title="회원은 매장 소속인가">
+<section class="screen" data-title="회원의 범위 결정">
   <p class="kicker">9장 · 페이지 4</p>
-  <h2>판단 — 회원은 매장 소속인가, 브랜드 전체인가</h2>
+  <h2>회원의 범위 결정</h2>
 
-  <p>페이지 2에서 <code>member</code>를 브랜드 공통 바구니에 넣었지만 이것은 설계의 가장 큰 결정 하나이므로 근거를 따로 적습니다. 두 선택지는 표 모양이 이렇게 달라집니다.</p>
+  <p>페이지 2에서 <code>member</code>를 브랜드 공통으로 분류했지만 이것은 설계의 가장 큰 결정 하나이므로 근거를 따로 적습니다. 두 선택지는 표 모양이 이렇게 달라집니다.</p>
 
   <div class="table-wrap">
     <table>
@@ -175,14 +175,14 @@ CREATE TABLE menu_price (
     </table>
   </div>
 
-  <h3>결정: A. 근거는 세 가지입니다</h3>
+  <h3>A안을 택한 근거</h3>
   <ol>
     <li><b>이미 쌓인 설계가 회원 단위입니다.</b> 6장의 포인트 원장은 <code>member_id</code>의 행 합계가 잔액이고(C12), 등급 할인과 쿠폰 발급(C11)도 회원에 붙어 있습니다. 하윤의 요구 "어느 매장에서든 포인트를 쓴다"는 잔액이 한 곳에 있다는 뜻입니다. B를 택하면 이 세 구조를 모두 <code>(store_id, member_id)</code>로 다시 짜야 합니다.</li>
     <li><b>같은 사람이 같은 행이어야 중복이 안 생깁니다.</b> 전화번호가 회원을 식별하는 업무 규칙(<code>phone</code> <code>UNIQUE</code>)은 "한 사람 = 한 행"입니다. B에서는 한 사람이 매장마다 다른 <code>member_id</code>를 가져 3장의 중복(같은 사실이 여러 곳)이 생깁니다.</li>
     <li><b>되돌리기 쉬운 쪽이 A입니다.</b> A에서 B로 가려면 행을 쪼개야 하지만, A에 "주 이용 매장"이나 "가맹점별 동의"를 열·표로 <b>더하는 것</b>은 확장만으로 됩니다.</li>
   </ol>
 
-  <h3>같은 판단이 닿는 다른 표</h3>
+  <h3>같은 판단을 적용하는 다른 표</h3>
 
   <div class="table-wrap">
     <table>
@@ -195,12 +195,12 @@ CREATE TABLE menu_price (
   </div>
 
   <div class="box warn">
-    <p class="box-t">이 결정의 대가 — 8장의 회원 락이 매장을 가로지른다</p>
+    <p class="box-t">이 결정의 비용: 매장을 가로지르는 회원 락</p>
     <p>8장의 주문 생성 트랜잭션은 맨 처음 <code>member</code> 행을 <code>FOR UPDATE</code>로 잠가 한 회원의 동시 주문을 한 줄로 세웁니다. 회원이 브랜드 공통이므로 <b>같은 회원이 두 매장에서 동시에 주문하면 서로 기다립니다.</b> 실제 서버에서 확인했습니다. 한 연결이 회원 2번을 잠근 동안 다른 연결의 <code>SELECT ... FOR UPDATE</code>는 <code>pg_stat_activity</code>에서 <code>wait_event_type = 'Lock'</code>으로 대기했고, 첫 연결이 끝나자 풀렸습니다. 쿠폰·포인트를 한 번에 한 주문씩 처리해야 정확하므로 <b>의도한 직렬화</b>이고, 같은 회원의 동시 주문은 드물어 비용도 작습니다. 반면 <b>다른 회원</b>의 주문은 매장이 같든 다르든 회원 락에서 부딪치지 않습니다.</p>
   </div>
 
   <details class="fold">
-    <summary>반대 의견 — 매장마다 DB(또는 스키마)를 따로 두는 길과 "가맹점 데이터의 주인"</summary>
+    <summary>반대 의견: 매장마다 DB를 따로 두는 설계</summary>
     <div class="fold-body">
       <p>한 시스템을 여러 고객(여기서는 매장)이 나눠 쓰는 구조를 <span class="term" data-term="multitenant">멀티테넌시</span>라 부릅니다. 이 장은 <b>공유 스키마 + <code>store_id</code> 열</b>을 택했지만 세 가지 길이 있습니다. ① 매장마다 DB를 따로: 격리가 가장 강하고 한 매장의 사고가 번지지 않지만, 본사 리포트와 "어느 매장에서든 포인트"가 DB 사이 조인이 되어 앱이 합쳐야 하고, 스키마 변경(이 장 전체)을 <b>매장 수만큼 반복</b>해야 합니다. ② 매장마다 스키마를 따로(같은 DB): 중간 정도. ③ 공유 스키마: 변경은 한 번이지만 <b>매장 조건을 빠뜨린 쿼리 하나가 다른 매장 데이터를 보여 줍니다.</b> 가맹점이 수십 곳이고 회원이 공통이므로 ③이 맞다는 것이 이 교재의 판단입니다. ①의 비용은 매장 수에 비례하므로 매장이 많아질수록 불리해지고, ①이 정당해지는 것은 매장마다 법·계약상 데이터를 물리적으로 떼어 두어야 하거나 한 매장의 데이터와 부하가 DB 하나를 따로 둘 만큼 클 때입니다. PostgreSQL의 행 단위 보안(RLS)으로 ③에서도 DB가 매장 조건을 강제할 수 있지만 권한 관리라 범위 밖입니다. "가맹점주가 자기 매장 회원만 보게 하는" 개인정보 정책도 DB 설계가 아니라 <b>권한과 계약</b>의 문제입니다.</p>
     </div>
@@ -209,7 +209,7 @@ CREATE TABLE menu_price (
 <!-- ─────────────────────────────────────────── 페이지 5 -->
 <section class="screen" data-title="운영 중 변경의 위험">
   <p class="kicker">9장 · 페이지 5</p>
-  <h2>운영 중 스키마 변경의 위험 — ALTER의 락과 데이터 보존</h2>
+  <h2>운영 중 스키마 변경의 위험</h2>
 
   <p>설계는 정했으니 v6 DB를 v7로 바꿔야 합니다. 개발용 DB라면 <code>ALTER TABLE</code>을 치면 끝입니다. 운영 DB에는 두 가지가 걸려 있습니다.</p>
 
@@ -217,12 +217,12 @@ CREATE TABLE menu_price (
     <table>
       <tr><th style="width:8rem">위험</th><th>무슨 일이 생기나</th></tr>
       <tr><td><b>① 락 줄 서기</b></td><td><code>ALTER TABLE</code>의 대부분은 그 표에 <span class="term" data-term="tablelock">표 잠금</span>(<code>ACCESS EXCLUSIVE</code>, 읽기까지 막는 가장 센 락)을 요구합니다. 그 표를 이미 읽고 있는 트랜잭션이 하나라도 끝나지 않았으면 ALTER는 <b>기다리고, 그 뒤에 온 요청도 ALTER 뒤에 줄을 섭니다.</b></td></tr>
-      <tr><td><b>② 오래 걸리는 작업</b></td><td>표를 다시 쓰거나(재작성), 모든 행을 검사하거나, 모든 행을 고치는 문장은 그동안 락을 쥐거나 표를 부풀립니다(페이지 7·8)</td></tr>
+      <tr><td><b>② 오래 걸리는 작업</b></td><td>표를 다시 쓰거나(재작성), 모든 행을 검사하거나, 모든 행을 고치는 문장은 그동안 락을 잡거나 표를 부풀립니다(페이지 7·8)</td></tr>
       <tr><td><b>③ 데이터 보존</b></td><td>열을 지우는 순간 그 안의 값은 돌아오지 않습니다. 옛 앱이 새 구조에서 조용히 틀린 일을 하기도 합니다(페이지 6)</td></tr>
     </table>
   </div>
 
-  <h3>① 줄 서기를 눈으로 보기</h3>
+  <h3>① 락 줄 서기 재현</h3>
 
   <p>8장의 락은 "행"에 거는 것이었습니다(그때 "일반 <code>SELECT</code>는 락을 걸지도 기다리지도 않는다"고 한 것은 행 락 이야기입니다). 표 전체에 거는 락은 층이 다르고, 여기서는 <code>SELECT</code>도 가장 약한 표 락(<code>ACCESS SHARE</code>)을 잡습니다. 실제 PostgreSQL에서 연결 셋으로 재현했습니다. 연결 A가 <code>orders</code>를 읽은 채 트랜잭션을 열어 두고(<code>BEGIN</code> 뒤 <code>SELECT</code>, 아직 <code>COMMIT</code> 안 함), B가 <code>ALTER TABLE orders ADD COLUMN store_id INTEGER</code>, C가 단순 <code>SELECT</code>를 보냅니다.</p>
 
@@ -236,11 +236,11 @@ ALTER TABLE orders ADD COLUMN store_id INTEGER;
 SELECT order_id FROM orders WHERE order_id = 102;
 </code></pre>
 
-  <p><code>pg_locks</code>를 보면 A는 <code>AccessShareLock</code>을 <b>쥐고</b>(granted = true), B는 <code>AccessExclusiveLock</code>을 <b>기다리고</b>(false), C는 <code>AccessShareLock</code>을 <b>기다렸습니다</b>(false). 읽기끼리는 서로 막지 않는데, 중간에 ALTER가 끼어들면 C가 A와 충돌하지도 않으면서 막힙니다. 먼저 와서 기다리는 ALTER를 새치기하지 않는 줄 규칙 때문입니다. 결과적으로 <b>가장 짧은 ALTER 한 줄이 가게의 모든 주문 조회를 멈춥니다.</b> A가 끝나자(<code>COMMIT</code>) B는 곧바로 끝났고 C가 풀렸습니다.</p>
+  <p><code>pg_locks</code>를 보면 A는 <code>AccessShareLock</code>을 <b>잡고</b>(granted = true), B는 <code>AccessExclusiveLock</code>을 <b>기다리고</b>(false), C는 <code>AccessShareLock</code>을 <b>기다렸습니다</b>(false). 읽기끼리는 서로 막지 않는데, 중간에 ALTER가 끼어들면 C가 A와 충돌하지도 않으면서 막힙니다. 먼저 와서 기다리는 ALTER를 새치기하지 않는 줄 규칙 때문입니다. 결과적으로 <b>가장 짧은 ALTER 한 줄이 가게의 모든 주문 조회를 멈춥니다.</b> A가 끝나자(<code>COMMIT</code>) B는 곧바로 끝났고 C가 풀렸습니다.</p>
 
   <p>방어는 <code>lock_timeout</code>입니다. <span class="term" data-term="locktimeout">락 타임아웃</span>을 짧게(예: 2초) 걸어 두면 ALTER가 자리를 못 얻을 때 <b>스스로 포기</b>하고 줄이 풀립니다. 같은 실험에서 B에 <code>SET lock_timeout = '2s'</code>를 걸자 2.0초 뒤 <code>ERROR 55P03: canceling statement due to lock timeout</code>이 났고, 그 순간 C의 조회도 통과했습니다. 스키마 변경 스크립트는 <b>맨 앞에 짧은 <code>lock_timeout</code>을 걸고, 실패하면 한가한 때 다시 시도</b>하는 것이 습관입니다.</p>
 
-  <h3>② 오래 걸리는 것은 따로 있다</h3>
+  <h3>② 오래 걸리는 문장의 시간 측정</h3>
 
   <p>같은 서버에 <code>orders</code> 200만 행(표 130MB, 인덱스 146MB)을 채워 잰 값입니다(페이지 7·8에서 하나씩 풉니다).</p>
 
@@ -268,9 +268,9 @@ SELECT order_id FROM orders WHERE order_id = 102;
 <!-- ─────────────────────────────────────────── 페이지 6 -->
 <section class="screen" data-title="확장 → 이전 → 축소 (C16)">
   <p class="kicker">9장 · 페이지 6</p>
-  <h2>확장 → 이전 → 축소 — C16 "스키마를 바꿔도 과거 데이터는 보존된다"</h2>
+  <h2>확장 → 이전 → 축소 (C16)</h2>
 
-  <p>한 번에 바꾸면 무엇이 깨지는지부터 봅니다. v6 앱이 돌고 있는 DB에서 <code>stock_item.qty</code>를 지우면(실행 확인) 옛 앱의 <code>UPDATE stock_item SET qty = qty - 1 ...</code>는 <code>ERROR 42703: column "qty" does not exist</code>로 <b>모든 주문이 실패</b>합니다. <code>orders.store_id</code>를 <code>NOT NULL</code>로 만든 뒤에 옛 앱이 <code>store_id</code> 없이 주문을 넣으면 <code>null value in column "store_id" of relation "orders" violates not-null constraint</code>입니다. 소리가 나는 쪽은 그나마 낫습니다. 2호점이 열린 뒤 옛 앱이 <code>UPDATE pickup_slot SET reserved = reserved + 1 WHERE slot_start = '2026-10-02 08:30+09' AND reserved &lt; capacity</code>를 보내면 <b>오류 없이 두 매장의 슬롯 행 둘을 모두 갱신</b>했습니다(영향 행 2). 옛 앱은 슬롯이 전국에 하나라고 믿기 때문입니다.</p>
+  <p>한 번에 바꾸면 무엇이 깨지는지부터 봅니다. v6 앱이 돌고 있는 DB에서 <code>stock_item.qty</code>를 지우면(실행 확인) 옛 앱의 <code>UPDATE stock_item SET qty = qty - 1 ...</code>는 <code>ERROR 42703: column "qty" does not exist</code>로 <b>모든 주문이 실패</b>합니다. <code>orders.store_id</code>를 <code>NOT NULL</code>로 만든 뒤에 옛 앱이 <code>store_id</code> 없이 주문을 넣으면 <code>null value in column "store_id" of relation "orders" violates not-null constraint</code>입니다. 오류로 드러나는 쪽은 그나마 낫습니다. 2호점이 열린 뒤 옛 앱이 <code>UPDATE pickup_slot SET reserved = reserved + 1 WHERE slot_start = '2026-10-02 08:30+09' AND reserved &lt; capacity</code>를 보내면 <b>오류 없이 두 매장의 슬롯 행 둘을 모두 갱신</b>했습니다(영향 행 2). 옛 앱은 슬롯이 전국에 하나라고 믿기 때문입니다.</p>
 
   <p>해법은 새 구조를 옛 구조 <b>옆에</b> 먼저 놓는 것입니다. 이것을 <span class="term" data-term="expandcontract">확장→이전→축소</span>(expand-contract)라 부릅니다.</p>
 
@@ -357,18 +357,18 @@ COMMIT;
     <li><span class="ln">3~9행</span> <code>store</code>를 만들고 <b>1호점</b>을 한 행 넣습니다(9행). "기존 행은 전부 1호점"이라는 이전의 약속이 이 행에 기대고 있습니다.</li>
     <li><span class="ln">11~19행</span> <code>store_menu</code>를 만들고 <code>INSERT ... SELECT</code>로 <code>menu</code>의 모든 행을 1호점 메뉴판에 올립니다. <code>is_active</code>는 지금 값을 그대로 복사해 기존 판매 상태를 보존합니다. 같은 값이어도 의미(브랜드 단종 / 이 매장 판매 여부)가 다른 사실입니다.</li>
     <li><span class="ln">21~27행</span> <code>store_stock</code>은 일부러 <b>비워 둡니다.</b> 재고 수량은 계속 변하는 값이라 지금 복사하면 곧 어긋납니다. 2단계에 배포하는 새 앱도 재고는 당분간 <code>stock_item.qty</code>로 다루고, 재고 경로를 <code>store_stock</code>으로 넘기는 일은 페이지 10의 점검 시간에 합니다.</li>
-    <li><span class="ln">29~35행</span> 새 열 넷. <b><code>orders</code>는 NULL을 허용하고 기본값도 없이</b> 더하고(30행), 작은 표 셋은 <code>NOT NULL DEFAULT 1</code>로 더합니다. 옛 앱이 이 열을 모르고 행을 넣어도 작은 표는 <code>DEFAULT</code>가 1호점으로 채워 <b>옛 앱이 계속 동작</b>하고, <code>orders</code>는 NULL로 들어와 페이지 7의 채우기가 거둡니다. <code>DEFAULT</code>는 이전용이라 3단계에서 거둡니다(페이지 7).</li>
+    <li><span class="ln">29~35행</span> 새 열 넷. <b><code>orders</code>는 NULL을 허용하고 기본값도 없이</b> 더하고(30행), 작은 표 셋은 <code>NOT NULL DEFAULT 1</code>로 더합니다. 옛 앱이 이 열을 모르고 행을 넣어도 작은 표는 <code>DEFAULT</code>가 1호점으로 채워 <b>옛 앱이 계속 동작</b>하고, <code>orders</code>는 NULL로 들어와 페이지 7의 채우기가 처리합니다. <code>DEFAULT</code>는 이전용이라 3단계에서 없앱니다(페이지 7).</li>
   </ol>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
-    <p>이 장의 스크립트는 단계마다 <code>SET lock_timeout = '2s'</code>를 건 세션에서 실행하는 것을 전제로 합니다(페이지 5). "옛 앱이 모르게"가 이 장의 전부를 지배합니다. 열 하나를 더하는 일도 <b>어떤 값으로 채울지, 언제 NOT NULL로 조일지, 옛 앱이 계속 넣는 행은 누가 거둘지</b>를 정해야 합니다. 다음 페이지부터 하나씩 합니다. <code>C16</code>(과거 데이터 보존)은 이전 뒤 점검 조회로 지킵니다. 모든 <code>orders</code>에 <code>store_id</code>가 있는가(<code>SELECT COUNT(*) FROM orders WHERE store_id IS NULL</code>이 0), 재고 합계가 복사 전과 같은가입니다.</p>
+    <p class="box-t">남은 문제</p>
+    <p>이 장의 스크립트는 단계마다 <code>SET lock_timeout = '2s'</code>를 건 세션에서 실행하는 것을 전제로 합니다(페이지 5). "옛 앱이 모르게"가 이 장 전체의 조건입니다. 열 하나를 더하는 일도 <b>어떤 값으로 채울지, 언제 NOT NULL로 조일지, 옛 앱이 계속 넣는 행은 누가 처리할지</b>를 정해야 합니다. 다음 페이지부터 하나씩 합니다. <code>C16</code>(과거 데이터 보존)은 이전 뒤 점검 조회로 지킵니다. 모든 <code>orders</code>에 <code>store_id</code>가 있는가(<code>SELECT COUNT(*) FROM orders WHERE store_id IS NULL</code>이 0), 재고 합계가 복사 전과 같은가입니다.</p>
   </div>
 </section>
 <!-- ─────────────────────────────────────────── 페이지 7 -->
 <section class="screen" data-title="열 추가와 채우기">
   <p class="kicker">9장 · 페이지 7</p>
-  <h2>열 추가와 기본값 채우기 — orders.store_id</h2>
+  <h2>열 추가와 채우기</h2>
 
   <p><code>orders</code>에 <code>store_id</code>를 넣는 일은 세 조각입니다. <b>열을 더하고, 기존 200만 행의 값을 채우고(<span class="term" data-term="backfill">backfill</span>), <code>NOT NULL</code>과 외래키로 조입니다.</b> 4장은 "이미 행이 있는 표에 <code>NOT NULL</code> 열을 더하려면 <code>DEFAULT</code>가 있어야 한다"고 했고(4장 페이지 4·6), 5장의 <code>line_no</code> 이전은 "작은 표에서만 가벼운 방법"이라고 했습니다. 그 "큰 표에서는?"에 답합니다. 시간은 페이지 5와 같은 200만 행 서버에서 쟀습니다.</p>
 
@@ -379,11 +379,11 @@ COMMIT;
       <tr><td><code>ADD COLUMN ... NOT NULL DEFAULT 1</code> (<b>상수</b> 기본값)</td><td>2ms</td><td><b>PostgreSQL 11부터</b> 기본값이 비휘발성(상수처럼 모든 행에 같은 값)이면 재작성이 없다. 기본값을 카탈로그에 적어 두고 읽을 때 채워 준다. 파일 그대로</td></tr>
       <tr><td><code>ADD COLUMN ... DEFAULT random()</code> (<b>행마다 다른</b> 값)</td><td>4,601ms</td><td>표를 통째로 다시 씀. 파일이 바뀌고 130→178MB, 그동안 <code>ACCESS EXCLUSIVE</code></td></tr>
       <tr><td><code>UPDATE orders SET store_id = 1</code> 한 번에</td><td>16,331ms</td><td>200만 행이 새 버전으로 복사된다. 표 130→<b>291MB</b>, 인덱스 146→<b>292MB</b>, 죽은 행 200만 개</td></tr>
-      <tr><td>10만 행씩 21번 + 사이마다 <code>VACUUM</code></td><td>합 19,348ms, 한 번 최대 917ms</td><td>한 번에 쥐는 락이 짧고 죽은 행이 재활용되어 표 <b>168MB</b>에서 멈춘다</td></tr>
+      <tr><td>10만 행씩 21번 + 사이마다 <code>VACUUM</code></td><td>합 19,348ms, 한 번 최대 917ms</td><td>한 번에 잡는 락이 짧고 죽은 행이 재활용되어 표 <b>168MB</b>에서 멈춘다</td></tr>
     </table>
   </div>
 
-  <p>모든 행에 같은 값(비휘발성 기본값)이라면 두 번째 줄이 가장 빠르고 간단합니다. 이 교재는 <b>작은 표 셋</b>(<code>pickup_slot</code>, <code>menu_price</code>, <code>daily_sales</code>)에 이 지름길을 썼습니다(페이지 6). <code>orders</code>에는 일부러 NULL 허용 열을 더하고 직접 채우는 <b>일반 경로</b>를 씁니다. 이유는 둘입니다. 하나, 상수 하나로 채울 수 있는 것은 이번이 1호점뿐이라서이고 값이 행마다 다른 경우(5·6장의 스냅샷 이전처럼 다른 표에서 가져올 때)에는 어차피 이 경로입니다. 둘, <code>DEFAULT 1</code>이 붙은 채로 새 앱이 배포되면 앱이 <code>store_id</code>를 <b>빠뜨려도 오류 없이 전부 1호점 주문</b>이 됩니다. 빠뜨림이 조용히 매출을 틀리게 하는 열은 기본값 없이 두어 빠뜨리면 소리가 나게 하는 편이 안전합니다.</p>
+  <p>모든 행에 같은 값(비휘발성 기본값)이라면 두 번째 줄이 가장 빠르고 간단합니다. 이 교재는 <b>작은 표 셋</b>(<code>pickup_slot</code>, <code>menu_price</code>, <code>daily_sales</code>)에 이 지름길을 썼습니다(페이지 6). <code>orders</code>에는 일부러 NULL 허용 열을 더하고 직접 채우는 <b>일반 경로</b>를 씁니다. 이유는 둘입니다. 하나, 이번에는 기존 행이 모두 1호점이라 상수로 채울 수 있지만, 값이 행마다 다르면(5·6장의 스냅샷 이전처럼 다른 표에서 가져올 때) 어차피 이 경로를 써야 합니다. 그래서 여기서 익혀 둡니다. 둘, <code>DEFAULT 1</code>이 붙은 채로 새 앱이 배포되면 앱이 <code>store_id</code>를 <b>빠뜨려도 오류 없이 전부 1호점 주문</b>이 됩니다. 빠뜨림이 조용히 매출을 틀리게 하는 열은 기본값 없이 두어 빠뜨리면 오류로 드러나게 하는 편이 안전합니다.</p>
 
 <pre><span class="cap">-- 2단계 이전: 새 앱을 배포한 뒤 옛 행을 채운다 (이 줄을 범위를 옮겨 가며 반복)</span><code>-- (새 앱을 배포한다: 이제부터 주문에 store_id 를 적는다)
 -- 큰 표는 번호 범위로 나눠서 반복한다. 범위마다 별도 트랜잭션, 사이에 VACUUM
@@ -392,9 +392,9 @@ WHERE  store_id IS NULL AND order_id &gt;= 0 AND order_id &lt; 100000;
 -- ... 범위를 옮겨 가며 반복한다. 이 예시 데이터는 한 번이면 끝난다
 </code></pre>
 
-  <p>범위마다 별도 트랜잭션이어야 락이 짧고(<code>VACUUM</code>은 트랜잭션 안에서 못 돌립니다), 조건에 <code>store_id IS NULL</code>을 달아 <b>몇 번을 다시 돌려도 안전</b>하게(멱등, 7장) 합니다. 새 앱이 배포되기 전에 옛 앱이 넣은 행이나 배포와 채우기 사이에 들어온 행도 마지막 한 번의 채우기가 거둡니다.</p>
+  <p>범위마다 별도 트랜잭션이어야 락이 짧고(<code>VACUUM</code>은 트랜잭션 안에서 못 돌립니다), 조건에 <code>store_id IS NULL</code>을 달아 <b>몇 번을 다시 돌려도 안전</b>하게(멱등, 7장) 합니다. 새 앱이 배포되기 전에 옛 앱이 넣은 행이나 배포와 채우기 사이에 들어온 행도 마지막 한 번의 채우기가 처리합니다.</p>
 
-<pre><span class="cap">-- 3단계 조이기: NOT NULL과 외래키 (orders 몫), 이전용 기본값 거두기</span><code>-- NOT NULL: CHECK 를 NOT VALID 로 걸고, 검증하고, SET NOT NULL 뒤 CHECK 를 지운다
+<pre><span class="cap">-- 3단계 조이기: NOT NULL과 외래키 (orders 대상), 이전용 기본값 없애기</span><code>-- NOT NULL: CHECK 를 NOT VALID 로 걸고, 검증하고, SET NOT NULL 뒤 CHECK 를 지운다
 ALTER TABLE orders
     ADD CONSTRAINT orders_store_id_nn CHECK (store_id IS NOT NULL) NOT VALID;
 ALTER TABLE orders VALIDATE CONSTRAINT orders_store_id_nn;
@@ -404,18 +404,24 @@ ALTER TABLE orders DROP CONSTRAINT orders_store_id_nn;
 ALTER TABLE orders ADD CONSTRAINT orders_store_id_fkey
     FOREIGN KEY (store_id) REFERENCES store (store_id) NOT VALID;
 ALTER TABLE orders VALIDATE CONSTRAINT orders_store_id_fkey;
--- 이전용 기본값은 거둔다: 앞으로 store_id 를 빠뜨리면 오류가 나야 한다
+-- 이전용 기본값은 없앤다: 앞으로 store_id 를 빠뜨리면 오류가 나야 한다
 ALTER TABLE pickup_slot ALTER COLUMN store_id DROP DEFAULT;
 ALTER TABLE menu_price ALTER COLUMN store_id DROP DEFAULT;
 ALTER TABLE daily_sales ALTER COLUMN store_id DROP DEFAULT;
 </code></pre>
 
-  <h3>NOT NULL로 조이는 길 — CHECK를 거쳐서</h3>
+  <h3>CHECK를 거친 NOT NULL 적용</h3>
 
-  <p><code>SET NOT NULL</code>을 곧장 치면 DB가 전 행을 훑는 동안(1,547ms) 표 락을 쥐고 있습니다. 대신 <code>CHECK (store_id IS NOT NULL)</code>을 <span class="term" data-term="notvalid">NOT VALID</span>로 겁니다. <b>앞으로 들어오는 행만 검사</b>하고 기존 행은 건너뛰므로 순간에 끝나고(실행 확인: 락 <code>ACCESS EXCLUSIVE</code>, 스캔 없음), 이어서 <code>VALIDATE CONSTRAINT</code>가 기존 행을 훑는데 이때 락은 <code>SHARE UPDATE EXCLUSIVE</code>라 <b>쓰기가 막히지 않습니다</b>(검증에 1,784ms 걸렸고, 그 락을 쥔 트랜잭션이 열려 있는 동안 다른 연결의 <code>INSERT</code>가 바로 통과. 반대로 <code>NOT VALID</code> 없이 <code>CHECK</code>를 걸어 둔 트랜잭션이 열려 있으면 <code>INSERT</code>는 대기). 검증이 끝난 <code>CHECK</code>가 "NULL이 없다"는 증거라서 그 뒤의 <code>SET NOT NULL</code>은 <b>스캔 없이 1ms</b>에 끝납니다. <code>debug1</code> 알림으로 <code>existing constraints on column "orders.store_id" are sufficient to prove that it does not contain nulls</code>가 찍혔고, 증거 <code>CHECK</code>가 없는 열에서는 <code>verifying table "orders"</code>가 찍히며 1,547ms 걸렸습니다. 이 최적화는 <b>PostgreSQL 12부터</b>입니다. 외래키도 같은 모양입니다. <code>NOT VALID</code>로 걸면 <code>SHARE ROW EXCLUSIVE</code>가 두 표에 순간 걸리고, <code>VALIDATE</code>(201ms)는 <code>SHARE UPDATE EXCLUSIVE</code>(자식) + <code>ROW SHARE</code>(부모)라 쓰기를 막지 않았습니다.</p>
+  <p><code>SET NOT NULL</code>을 곧장 치면 DB가 전 행을 훑는 동안(1,547ms) 표 락을 잡고 있습니다. 대신 <code>CHECK (store_id IS NOT NULL)</code>을 <span class="term" data-term="notvalid">NOT VALID</span>로 겁니다. <b>앞으로 들어오는 행만 검사</b>하고 기존 행은 건너뛰므로 순간에 끝나고(실행 확인: 락 <code>ACCESS EXCLUSIVE</code>, 스캔 없음),</p>
+
+  <p>이어서 <code>VALIDATE CONSTRAINT</code>가 기존 행을 훑는데 이때 락은 <code>SHARE UPDATE EXCLUSIVE</code>라 <b>쓰기가 막히지 않습니다</b>(검증에 1,784ms 걸렸고, 그 락을 잡은 트랜잭션이 열려 있는 동안 다른 연결의 <code>INSERT</code>가 바로 통과. 반대로 <code>NOT VALID</code> 없이 <code>CHECK</code>를 걸어 둔 트랜잭션이 열려 있으면 <code>INSERT</code>는 대기).</p>
+
+  <p>검증이 끝난 <code>CHECK</code>가 "NULL이 없다"는 증거라서 그 뒤의 <code>SET NOT NULL</code>은 <b>스캔 없이 1ms</b>에 끝납니다. <code>debug1</code> 알림으로 <code>existing constraints on column "orders.store_id" are sufficient to prove that it does not contain nulls</code>가 찍혔고, 증거 <code>CHECK</code>가 없는 열에서는 <code>verifying table "orders"</code>가 찍히며 1,547ms 걸렸습니다. 이 최적화는 <b>PostgreSQL 12부터</b>입니다.</p>
+
+  <p>외래키도 같은 모양입니다. <code>NOT VALID</code>로 걸면 <code>SHARE ROW EXCLUSIVE</code>가 두 표에 순간 걸리고, <code>VALIDATE</code>(201ms)는 <code>SHARE UPDATE EXCLUSIVE</code>(자식) + <code>ROW SHARE</code>(부모)라 쓰기를 막지 않았습니다.</p>
 
   <div class="box bad">
-    <p class="box-t">함정 — NOT VALID CHECK는 채우기가 끝난 뒤에 건다</p>
+    <p class="box-t">NOT VALID CHECK를 거는 시점</p>
     <p>6장 페이지 8의 "<code>NOT VALID</code>를 걸어도 옛 행을 어느 열이든 <code>UPDATE</code>하면 그 행 전체를 다시 검사한다"는 경고가 여기서 실제가 됩니다. 채우기 전에 <code>CHECK (store_id IS NOT NULL) NOT VALID</code>를 걸고 옛 주문의 상태를 바꾸면(<code>UPDATE orders SET status = '취소' WHERE order_id = 101</code>) <code>ERROR 23514: new row for relation "orders" violates check constraint "orders_store_id_nn"</code>이고, 새 앱이 <code>store_id</code>를 빠뜨린 <code>INSERT</code>도 같은 오류입니다(실행 확인). <b>운영 중이면 바리스타의 상태 변경이 전부 실패합니다.</b> 그래서 순서는 <b>확장 → (새 앱이 store_id를 적는다) → 채우기 → 그다음에 제약</b>입니다. 6장이 "전 행 <code>UPDATE</code>가 막힌다"는 이유로 약한 <code>CHECK</code>를 택한 결정이 이 장의 채우기를 가능하게 했습니다.</p>
   </div>
 
@@ -424,9 +430,9 @@ ALTER TABLE daily_sales ALTER COLUMN store_id DROP DEFAULT;
 <!-- ─────────────────────────────────────────── 페이지 8 -->
 <section class="screen" data-title="운영 중 인덱스 바꾸기">
   <p class="kicker">9장 · 페이지 8</p>
-  <h2>쓰기를 막지 않고 인덱스 만들기 — CONCURRENTLY</h2>
+  <h2>운영 중 인덱스 바꾸기</h2>
 
-  <p>7장 페이지 7은 "운영 중인 큰 표에 <code>CREATE INDEX</code>는 만드는 동안 쓰기를 막는다. <code>CREATE INDEX CONCURRENTLY</code>가 막지 않고 만드는 길이지만 트랜잭션 안에서 못 쓰는 제약이 따른다"를 남겼습니다. 그 갚음입니다. 먼저 어떤 인덱스가 바뀌어야 하는지부터 정합니다.</p>
+  <p>7장 페이지 7은 "운영 중인 큰 표에 <code>CREATE INDEX</code>는 만드는 동안 쓰기를 막는다. <code>CREATE INDEX CONCURRENTLY</code>가 막지 않고 만드는 길이지만 트랜잭션 안에서 못 쓰는 제약이 따른다"를 남겼습니다. 이 페이지에서 그 약속을 지킵니다. 먼저 어떤 인덱스가 바뀌어야 하는지부터 정합니다.</p>
 
   <div class="table-wrap">
     <table>
@@ -439,7 +445,7 @@ ALTER TABLE daily_sales ALTER COLUMN store_id DROP DEFAULT;
     </table>
   </div>
 
-  <h3>보통 인덱스와 CONCURRENTLY의 차이를 직접</h3>
+  <h3>보통 인덱스와 CONCURRENTLY의 비교</h3>
 
   <p>200만 행 <code>orders</code>에 같은 인덱스를 두 방식으로 만들며, 만드는 중에 다른 연결이 <code>INSERT</code>를 보냈습니다.</p>
 
@@ -451,10 +457,10 @@ ALTER TABLE daily_sales ALTER COLUMN store_id DROP DEFAULT;
     </table>
   </div>
 
-  <p>CONCURRENTLY는 표를 두 번 읽고 그사이 들어온 변경을 따라잡는 방식이라 더 오래 걸리는 대신 쓰기를 막지 않습니다. 여기서는 그 차이가 0.1초지만 몇 시간 걸리는 인덱스라면 보통 방식은 그동안 주문이 못 들어옵니다. 또 CONCURRENTLY는 단계마다 <b>먼저 열려 있던 트랜잭션이 끝나기를 기다립니다.</b> 기다리는 동안에도 쓰기는 막지 않지만, 페이지 5의 잊힌 세션 하나가 있으면 인덱스 만들기가 끝나지 않고 서 있습니다. 대가가 둘 있습니다.</p>
+  <p>CONCURRENTLY는 표를 두 번 읽고 그사이 들어온 변경을 따라잡는 방식이라 더 오래 걸리는 대신 쓰기를 막지 않습니다. 여기서는 그 차이가 0.1초지만 몇 시간 걸리는 인덱스라면 보통 방식은 그동안 주문이 못 들어옵니다. 또 CONCURRENTLY는 단계마다 <b>먼저 열려 있던 트랜잭션이 끝나기를 기다립니다.</b> 기다리는 동안에도 쓰기는 막지 않지만, 페이지 5의 잊힌 세션 하나가 있으면 인덱스 만들기가 끝나지 않고 서 있습니다. 제약이 둘 있습니다.</p>
 
   <div class="box warn">
-    <p class="box-t">제약 둘 — 트랜잭션 안에서 못 쓴다, 실패하면 찌꺼기가 남는다</p>
+    <p class="box-t">CONCURRENTLY의 제약 둘</p>
     <p><b>① 트랜잭션 블록 안에서 못 씁니다.</b> <code>BEGIN</code> 뒤에 쓰면 <code>ERROR 25001: CREATE INDEX CONCURRENTLY cannot run inside a transaction block</code>입니다(실행 확인). 그래서 이 장의 이전 스크립트는 <b>한 파일을 통째로 <code>BEGIN ... COMMIT</code>으로 감쌀 수 없고</b> 단계마다 따로 실행합니다. 마이그레이션 도구가 파일 하나를 자동으로 트랜잭션에 넣는다면 이 문장은 그 밖에 두어야 합니다(페이지 11).</p>
     <p><b>② 실패하면 무효(INVALID) 인덱스가 남습니다.</b> 값이 겹치는 열에 <code>CREATE UNIQUE INDEX CONCURRENTLY</code>를 걸자 <code>ERROR 23505: could not create unique index "orders_dup_idx"</code>로 실패했고, <code>pg_index.indisvalid = false</code>인 인덱스가 남았습니다. 이 인덱스는 <b>쓰기 때마다 갱신 비용만 내고 조회에는 쓰이지 않으므로</b> <code>DROP INDEX</code>로 치우고 다시 시도합니다.</p>
   </div>
@@ -474,7 +480,7 @@ CREATE INDEX CONCURRENTLY orders_open_idx_new
     ON orders (store_id, ordered_at) WHERE status IN ('접수', '제조중');
 </code></pre>
 
-  <p>위 스크립트는 새 인덱스 다섯 개를 <b>옛 것과 나란히</b> 만듭니다(앞 셋은 페이지 9의 기본키 교체용 유일 인덱스). 그리고 옛 조회 인덱스은 <b>아무도 안 쓰는 것을 확인한 뒤</b>, 축소 단계에서 치웁니다.</p>
+  <p>위 스크립트는 새 인덱스 다섯 개를 <b>옛 것과 나란히</b> 만듭니다(앞 셋은 페이지 9의 기본키 교체용 유일 인덱스). 그리고 옛 조회 인덱스는 <b>아무도 안 쓰는 것을 확인한 뒤</b>, 축소 단계에서 치웁니다.</p>
 
 <pre><span class="cap">-- 4단계 축소: 옛 조회 인덱스를 치우고 이름을 되돌린다</span><code>-- 옛 조회 인덱스를 치우고 새 이름을 원래 이름으로 돌려놓는다
 DROP INDEX CONCURRENTLY orders_ordered_at_idx;
@@ -485,14 +491,14 @@ ALTER INDEX orders_open_idx_new RENAME TO orders_open_idx;
   <p>같은 이름 <code>orders_open_idx</code>를 쓰려면 <b>새 이름으로 먼저 만들고, 옛 것을 지우고, 이름을 바꾸는</b> 세 걸음이 필요합니다(<code>DROP INDEX CONCURRENTLY</code>도 트랜잭션 밖). 이름을 바꿔 두는 이유는 처음부터 만든 v7과 같은 이름으로 맞춰야 이후 장과 점검 도구가 헷갈리지 않기 때문입니다.</p>
 
   <div class="box note">
-    <p class="box-t">덤 — PostgreSQL 18에서는 옛 인덱스가 없어도 새 인덱스가 쓰인다</p>
+    <p class="box-t">PostgreSQL 18의 skip scan</p>
     <p><code>orders_ordered_at_idx</code>를 지운 뒤 <code>WHERE ordered_at &gt;= ... AND ordered_at &lt; ...</code>(<code>store_id</code> 조건 없음)을 <code>EXPLAIN (ANALYZE)</code>로 실행하자 <code>Index Only Scan using orders_store_ordered_idx</code>에 <code>Index Searches: 4</code>가 찍혔습니다. 선두 열의 값 종류가 적으면 PostgreSQL 18의 <b>skip scan</b>이 선두 열 값마다 한 번씩 찾아 이 인덱스를 씁니다(매장이 수천 곳이면 이득이 사라집니다). 이 덕분에 매장을 가로지르는 본사 집계도 당장은 별도 인덱스 없이 지나갑니다. skip scan이 없는 17 이하에서는 이 집계에 <code>(ordered_at)</code> 인덱스를 남길지 따로 재어 보아야 합니다(이 교재는 18.4에서만 재었습니다).</p>
   </div>
 </section>
 <!-- ─────────────────────────────────────────── 페이지 9 -->
 <section class="screen" data-title="기본키 바꾸기">
   <p class="kicker">9장 · 페이지 9</p>
-  <h2>PK 바꾸기 — 키에 store_id를 넣고, 외래키를 이어 붙이기</h2>
+  <h2>기본키 바꾸기</h2>
 
   <p>기본키를 <b>바꾸는</b> 표는 셋입니다. <code>menu_price</code> <code>(menu_id, valid_from)</code> → <code>(store_id, menu_id, valid_from)</code>, <code>pickup_slot</code> <code>(slot_start)</code> → <code>(store_id, slot_start)</code>, <code>daily_sales</code> <code>(sales_date)</code> → <code>(store_id, sales_date)</code>. 새로 만드는 <code>store_stock</code>은 처음부터 복합 키입니다. 기본키를 바꾸는 것은 "열 추가"와 달리 <b>그 키를 가리키는 모든 외래키</b>와 <b>그 키의 인덱스</b>를 건드립니다. 순서를 틀리면 다음 오류를 만납니다(실제 서버).</p>
 
@@ -545,15 +551,15 @@ ALTER TABLE daily_sales DROP CONSTRAINT daily_sales_pkey,
 COMMIT;
 </code></pre>
 
-  <p>이 트랜잭션은 네 표(<code>orders</code>, <code>pickup_slot</code>, <code>menu_price</code>, <code>daily_sales</code>)에 <code>ACCESS EXCLUSIVE</code>를 차례로 잡아 <code>COMMIT</code>까지 쥡니다. 한 표에서 열린 트랜잭션에 막히면 앞에서 잡은 표들까지 쥔 채 기다리므로, 페이지 5대로 짧은 <code>lock_timeout</code> 아래에서 실행하고 실패하면 한가한 때 다시 시도합니다.</p>
+  <p>이 트랜잭션은 네 표(<code>orders</code>, <code>pickup_slot</code>, <code>menu_price</code>, <code>daily_sales</code>)에 <code>ACCESS EXCLUSIVE</code>를 차례로 잡아 <code>COMMIT</code>까지 잡습니다. 한 표에서 열린 트랜잭션에 막히면 앞에서 잡은 표들까지 잡은 채 기다리므로, 페이지 5대로 짧은 <code>lock_timeout</code> 아래에서 실행하고 실패하면 한가한 때 다시 시도합니다.</p>
 
-  <h3>외래키 연쇄 — 복합 외래키와 NULL</h3>
+  <h3>복합 외래키와 NULL</h3>
 
   <p><code>orders</code>의 새 외래키 <code>(store_id, pickup_start) → pickup_slot (store_id, slot_start)</code>은 "주문의 슬롯은 <b>같은 매장</b>의 슬롯이어야 한다"를 DB가 강제합니다. 실제 서버에서 2호점 주문이 1호점에만 있는 슬롯을 가리키자 <code>violates foreign key constraint "orders_store_id_pickup_start_fkey"</code>(<code>Key (store_id, pickup_start)=(2, 2026-10-02 09:00:00+09) is not present in table "pickup_slot"</code>)로 거부되었습니다. 단 복합 외래키는 열 하나라도 NULL이면 검사하지 않으므로(현장 주문은 <code>pickup_start</code>가 NULL) 매장 자체의 존재는 <b>별도 외래키</b> <code>orders_store_id_fkey</code>가 지킵니다. 없는 매장 99번은 <code>orders_store_id_fkey</code> 위반으로 거부되었습니다.</p>
 
-  <p><code>EXCLUDE</code>는 이 순서에 안 맞는 예외입니다. <code>NOT VALID</code>도 <code>CONCURRENTLY</code>도 없고(<code>ERROR 0A000: EXCLUDE constraints cannot be marked NOT VALID</code>), 거는 동안 표 락을 쥐고 인덱스를 만듭니다. <code>menu_price</code>는 수십 행짜리라 그냥 겁니다. 만약 수백만 행이었다면 점검 창이 필요합니다.</p>
+  <p><code>EXCLUDE</code>는 이 순서에 안 맞는 예외입니다. <code>NOT VALID</code>도 <code>CONCURRENTLY</code>도 없고(<code>ERROR 0A000: EXCLUDE constraints cannot be marked NOT VALID</code>), 거는 동안 표 락을 잡고 인덱스를 만듭니다. <code>menu_price</code>는 수십 행짜리라 그냥 겁니다. 만약 수백만 행이었다면 점검 창이 필요합니다.</p>
 
-  <h3>주문·라인의 기본키는 왜 안 바꾸나</h3>
+  <h3>주문·라인 기본키를 바꾸지 않는 이유</h3>
 
   <div class="table-wrap">
     <table>
@@ -567,20 +573,20 @@ COMMIT;
   <p><code>order_id</code>는 이미 전체에서 유일한 대리키라 매장을 키에 넣을 이유가 없습니다. "매장마다 영수증 번호가 1부터"가 필요하면 <code>store_no</code> 같은 <b>표시용 열</b>을 <code>orders</code>에 더하고 <code>UNIQUE (store_id, store_no)</code>로 지키는 것이 B의 연쇄보다 쌉니다.</p>
 
   <div class="box note">
-    <p class="box-t">7장의 파티셔닝 빚 — 같은 종류의 변경이고, 이 교재는 하지 않기로 합니다</p>
+    <p class="box-t">7장에서 미뤄 둔 파티셔닝</p>
     <p>7장 페이지 11이 남긴 것은 "분할 열이 기본키에 들어가야 하고(<code>unique constraint on partitioned table must include all partitioning columns</code>), 그러면 자식의 외래키가 <code>orders (order_id)</code>를 가리킬 수 없다(<code>there is no unique constraint matching given keys for referenced table</code>)"였습니다. 서버에서 다시 확인했습니다(두 오류 그대로). 이것은 위 B와 <b>같은 종류</b>의 변경이라 <code>orders</code>의 기본키를 <code>(order_id, ordered_at)</code>으로 바꾸면 자식 5개 표에 <code>ordered_at</code>을 들고 다니게 해야 합니다. v7의 판단은 <b>파티셔닝을 하지 않는다</b>입니다. 이유: 주문 수백만~수천만 행은 7장의 인덱스와 요약 테이블로 이미 감당되고, 보관 기간 정책이 아직 없으며, 비용이 위 B와 같습니다. 정책이 생기면 위 5걸음을 자식 표마다 반복하되, 파티션 표로의 이전은 <b>새 파티션 표를 만들고 옮기는</b> 별도 작업입니다. <span class="later">10장에서 다시 본다</span></p>
   </div>
 </section>
 <!-- ─────────────────────────────────────────── 페이지 10 -->
 <section class="screen" data-title="표 분리 실습: 재고">
   <p class="kicker">9장 · 페이지 10</p>
-  <h2>테이블 분리 실습 — stock_item에서 store_stock을 떼어 내기</h2>
+  <h2>표 분리 실습: 재고</h2>
 
   <p>페이지 3에서 C15의 "<code>menu</code> 쪼개기"는 <code>menu_price</code>에 <code>store_id</code>를 넣는 일로 바뀌었습니다. 이 교재에서 <b>진짜로 표를 쪼개는</b> 실습은 재고입니다. v6의 <code>stock_item(item_id, name, kind, unit, qty)</code>는 3장의 눈으로 보면 <b>한 표에 두 종류의 사실</b>이 섞여 있습니다. <code>item_id → name, kind, unit</code>(품목이 무엇인가)과 <code>(store_id, item_id) → qty</code>(그 매장에 얼마 남았나)입니다. 키에 <code>store_id</code>가 들어오면 <code>qty</code>만 키 전체에 종속하고 나머지는 키의 일부(<code>item_id</code>)에만 종속합니다. 부분 종속, 곧 2NF 위반의 모양입니다.</p>
 
   <p>대안은 <code>stock_item</code>의 기본키를 <code>(store_id, item_id)</code>로 바꾸는 것이었습니다. 그러면 이름·단위가 매장마다 복사되고, <code>menu_recipe</code>·<code>option_recipe</code>가 가리킬 <b>유일한 키가 없어집니다</b>("원두"가 매장 수만큼 행이 있으니). 그래서 쪼갭니다. 품목 정의는 <code>stock_item</code>(브랜드 공통)에 남고, 수량은 <code>store_stock</code>(매장 소유)으로 갑니다. 쪼개는 것도 <b>확장 → 이전 → 축소</b>입니다. 확장은 페이지 6의 <code>store_stock</code> 생성, 이전은 수량 복사, 축소는 옛 열 삭제입니다.</p>
 
-<pre><span class="cap">-- 2단계 이전 ②: 수량 복사 (점검 시간)</span><code>-- 점검 시간: 주문 접수를 멈춘 상태에서 재고 수량을 1호점 몫으로 복사한다
+<pre><span class="cap">-- 2단계 이전 ②: 수량 복사 (점검 시간)</span><code>-- 점검 시간: 주문 접수를 멈춘 상태에서 재고 수량을 1호점 재고로 복사한다
 -- (LOCK 은 복사하는 동안의 쓰기만 막는다. 복사 뒤 재고 경로를 store_stock 으로
 --  전환하고 주문을 다시 받는다)
 BEGIN;
@@ -596,9 +602,17 @@ ALTER TABLE stock_item DROP COLUMN qty;
 COMMIT;
 </code></pre>
 
-  <p>수량은 <b>계속 변하는 값</b>이라 열 추가처럼 "채우고 끝"이 안 됩니다. 복사한 뒤 재고 경로가 넘어가기 전에 <code>stock_item.qty</code>가 줄면 그 차감이 새 표에 없고, 넘어간 뒤에 옛 곳을 읽으면 반대로 어긋납니다. 2단계에 배포한 새 앱은 이 전환 전까지 재고를 <code>stock_item.qty</code>로 다룹니다(<code>store_stock</code>은 비어 있어 거기서 읽으면 모든 메뉴가 품절로 보입니다). 옮기는 길은 둘입니다. ① 짧은 <b>점검 시간</b>: ⓐ 앱이 주문 접수를 멈춥니다 ⓑ 위 스크립트로 복사합니다 ⓒ 앱이 재고를 <code>store_stock</code>으로 다루도록 전환합니다 ⓓ 주문을 다시 받습니다. <code>LOCK TABLE ... SHARE ROW EXCLUSIVE</code>는 복사하는 동안만 쓰기를 막고 읽기는 허용합니다(다른 연결의 <code>UPDATE</code>는 대기, <code>SELECT</code>는 통과, 서버에서 확인). 쓰기를 막는 것만 보면 <code>SHARE</code> 모드도 되지만 <code>SHARE</code>는 자기끼리 충돌하지 않아 복사 스크립트가 실수로 두 번 동시에 돌 수 있고, <code>SHARE ROW EXCLUSIVE</code>는 자기끼리도 충돌해 한 세션만 잡습니다. ⓑ와 ⓒ 사이의 틈은 ⓐ의 주문 중지가 덮습니다. ② <b>이중 쓰기</b>: 새 앱이 두 곳에 같이 쓰는 기간을 두거나 트리거로 동기화(구현이 더 복잡하고 그 자체가 새 버그의 원천). 이 교재는 ①을 택합니다. 매장이 하나뿐인 지금은 몇 분의 점검이 더 안전하다는 판단이며, 이것이 페이지 5에서 말한 "무중단이 항상 정답은 아니다"의 구체적인 자리입니다. 마지막 <code>DROP COLUMN qty</code>는 <code>stock_item_qty_check</code>도 함께 지우며 <b>되돌릴 수 없습니다.</b> 새 앱이 <code>store_stock</code>만 읽고 쓴다는 것을 확인한 뒤에만 합니다.</p>
+  <p>수량은 <b>계속 변하는 값</b>이라 열 추가처럼 "채우고 끝"이 안 됩니다. 복사한 뒤 재고 경로가 넘어가기 전에 <code>stock_item.qty</code>가 줄면 그 차감이 새 표에 없고, 넘어간 뒤에 옛 곳을 읽으면 반대로 어긋납니다. 2단계에 배포한 새 앱은 이 전환 전까지 재고를 <code>stock_item.qty</code>로 다룹니다(<code>store_stock</code>은 비어 있어 거기서 읽으면 모든 메뉴가 품절로 보입니다).</p>
 
-  <h3>8장의 주문 생성 트랜잭션은 v7에서도 성립하나</h3>
+  <p>옮기는 길은 둘입니다. ① 짧은 <b>점검 시간</b>: ⓐ 앱이 주문 접수를 멈춥니다 ⓑ 위 스크립트로 복사합니다 ⓒ 앱이 재고를 <code>store_stock</code>으로 다루도록 전환합니다 ⓓ 주문을 다시 받습니다.</p>
+
+  <p><code>LOCK TABLE ... SHARE ROW EXCLUSIVE</code>는 복사하는 동안만 쓰기를 막고 읽기는 허용합니다(다른 연결의 <code>UPDATE</code>는 대기, <code>SELECT</code>는 통과, 서버에서 확인). 쓰기를 막는 것만 보면 <code>SHARE</code> 모드도 되지만 <code>SHARE</code>는 자기끼리 충돌하지 않아 복사 스크립트가 실수로 두 번 동시에 돌 수 있고, <code>SHARE ROW EXCLUSIVE</code>는 자기끼리도 충돌해 한 세션만 잡습니다. ⓑ와 ⓒ 사이의 틈은 ⓐ의 주문 중지가 덮습니다.</p>
+
+  <p>② <b>이중 쓰기</b>: 새 앱이 두 곳에 같이 쓰는 기간을 두거나 트리거로 동기화(구현이 더 복잡하고 그 자체가 새 버그의 원천). 이 교재는 ①을 택합니다. 매장이 하나뿐인 지금은 몇 분의 점검이 더 안전하다는 판단이며, 이것이 페이지 5에서 말한 "무중단이 항상 정답은 아니다"의 구체적인 자리입니다.</p>
+
+  <p>마지막 <code>DROP COLUMN qty</code>는 <code>stock_item_qty_check</code>도 함께 지우며 <b>되돌릴 수 없습니다.</b> 새 앱이 <code>store_stock</code>만 읽고 쓴다는 것을 확인한 뒤에만 합니다.</p>
+
+  <h3>v7에서의 주문 생성 트랜잭션</h3>
 
   <p>성립합니다. 회원 잠금 → 주문·라인 → 라인 수 확인(C1) → 재고 차감 → 슬롯 → 할인 → 포인트라는 <b>골격과 락 순서(회원 → 주문 행 → 재고 품목 번호 순 → 슬롯 → 쿠폰·포인트)는 그대로</b>이고, 한 주문 안에서 <code>store_id</code>는 상수이므로 재고 행을 정렬하는 키는 여전히 <code>item_id</code>면 충분합니다. 바뀌는 곳은 <b>매장을 가리키는 세 군데</b>입니다.</p>
   <p>(8장 페이지 12의 주문 501: 소라(회원 2, 실버)가 카페라떼 1잔(샷 추가·우유 추가)과 치즈케이크 1개를 주문하고 쿠폰 발급 2번과 포인트 1000을 쓰며 10월 2일 9시에 픽업합니다. 재고는 품목 1·3·4·5를 번호 순으로 줄이는데, 아래에는 치즈케이크(품목 1) 한 문장만 보였습니다.)</p>
@@ -635,8 +649,8 @@ WHERE  store_id = 1 AND slot_start = '2026-10-02 09:00+09' AND reserved &lt; cap
   <p>실제 서버에서 동시 실행으로 확인했습니다. <b>같은 매장</b>의 마지막 케이크(1호점 재고 1)를 두 주문이 동시에 줄이면 둘째는 <code>pg_stat_activity</code>에서 락 대기 후 <b>영향 행 0</b>이 되어 품절 처리됩니다(C13, 8장과 같음). <b>다른 매장</b>(1호점과 2호점)의 같은 품목은 서로 기다리지 않았고(<code>store_stock</code>의 행이 다르다), 같은 회원이 두 매장에서 동시에 주문하면 회원 락에서만 줄을 섭니다. <code>CHECK (qty &gt;= 0)</code>(<code>store_stock_qty_check</code>)와 <code>pickup_slot_check</code>는 마지막 방어선으로 그대로입니다. 취소 트랜잭션도 같은 세 군데에 <code>store_id</code>를 더하면 됩니다.</p>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
-    <p>"<code>store_id</code> 조건을 빠뜨린 쿼리 하나"가 이제 모든 쿼리의 위험입니다. 점검 조회와 리포트 쿼리까지 훑어 <code>store_id</code>가 필요한 곳을 찾아야 하고(페이지 12의 목록), 이 위험은 공유 스키마 방식의 값입니다(페이지 4).</p>
+    <p class="box-t">남은 문제</p>
+    <p>"<code>store_id</code> 조건을 빠뜨린 쿼리 하나"가 이제 모든 쿼리의 위험입니다. 점검 조회와 리포트 쿼리까지 훑어 <code>store_id</code>가 필요한 곳을 찾아야 하고(페이지 12의 목록), 이 위험은 공유 스키마 방식의 비용입니다(페이지 4).</p>
   </div>
 </section>
 <!-- ─────────────────────────────────────────── 페이지 11 -->
@@ -668,9 +682,9 @@ DROP TABLE store;
 COMMIT;
 </code></pre>
 
-  <p>④를 늦추는 방법이 있습니다. 옛 열을 곧장 지우지 않고 <code>ALTER TABLE stock_item RENAME COLUMN qty TO qty_old</code>로 <b>이름만 바꿔 한동안 둡니다.</b> 옛 앱이 남아 있으면 즉시 오류로 드러나고(소리 나는 실패), 문제가 없으면 몇 주 뒤에 지웁니다. 이름을 바꾸는 일은 순간이고 되돌리기도 순간입니다. 대신 한동안 쓰이지 않는 열이 표에 남습니다.</p>
+  <p>④를 늦추는 방법이 있습니다. 옛 열을 곧장 지우지 않고 <code>ALTER TABLE stock_item RENAME COLUMN qty TO qty_old</code>로 <b>이름만 바꿔 한동안 둡니다.</b> 옛 앱이 남아 있으면 즉시 오류로 드러나고(오류로 드러나는 실패), 문제가 없으면 몇 주 뒤에 지웁니다. 이름을 바꾸는 일은 순간이고 되돌리기도 순간입니다. 대신 한동안 쓰이지 않는 열이 표에 남습니다.</p>
 
-  <h3>파일로 관리하기</h3>
+  <h3>마이그레이션 파일 관리</h3>
 
   <p>이 장의 스크립트는 코드 상자 제목의 단계대로 아홉 덩어리(1단계 확장 하나, 2단계 이전 둘, 3단계 조이기 셋, 4단계 축소 셋)로 나뉘어 있습니다. 실제 저장소에서는 <b>번호 붙은 파일</b>로 두고(<code>0007_1_expand.sql</code>, <code>0007_2_backfill.sql</code>, ... 그리고 짝이 되는 <code>down</code>) <b>어디까지 적용됐는지를 DB 안에 기록</b>합니다.</p>
 
@@ -685,7 +699,7 @@ INSERT INTO schema_migration (version) VALUES ('0007_1_expand');
   <p>같은 버전을 두 번 적용하려 하면 <code>ERROR 23505: duplicate key value violates unique constraint "schema_migration_pkey"</code>로 막힙니다(실행 확인). 기본키가 중복 적용을 막는 것입니다.</p>
 
   <details class="fold">
-    <summary>반대 의견 — 마이그레이션 도구를 쓸까, 손으로 SQL을 칠까</summary>
+    <summary>반대 의견: 마이그레이션 도구와 직접 작성한 SQL</summary>
     <div class="fold-body">
       <p><b>도구(Flyway, Liquibase, Alembic 등)</b>는 파일 순서, 적용 기록, 중복 방지, 여러 환경(개발·검증·운영)에서 같은 순서 보장을 줍니다. 대가는 두 가지입니다. 도구는 보통 <b>파일 하나를 한 트랜잭션으로 감싸므로</b> <code>CREATE INDEX CONCURRENTLY</code>(페이지 8)는 따로 빼거나 "트랜잭션 없이 실행" 설정을 해야 하고, 도구가 만든 기록표와 도구의 학습 비용이 생깁니다. <b>손 SQL</b>은 단발이거나 담당자가 한두 명일 때 단순하고 위처럼 기록표만 직접 만들어도 되지만, "어느 환경에 어디까지 적용됐는가"가 사람의 기억에 의존하는 순간 사고가 납니다. 이 교재는 도구를 고르지 않습니다. <b>어느 쪽이든 지켜야 하는 것</b>은 번호 순서, 적용 기록, 되돌리기 가능 여부의 표시, 그리고 트랜잭션 밖에서 돌려야 하는 문장의 표시입니다. 4장 페이지 1의 "규칙 바꾸기는 스키마를 바꾼다(운영 중이면 조심할 일, 9장)"의 답이 이것입니다.</p>
     </div>
@@ -694,7 +708,7 @@ INSERT INTO schema_migration (version) VALUES ('0007_1_expand');
 <!-- ─────────────────────────────────────────── 페이지 12 -->
 <section class="screen" data-title="스키마 v7 정리와 ER">
   <p class="kicker">9장 · 페이지 12</p>
-  <h2>스키마 v7 — 표 25개, 전체 ER과 규칙</h2>
+  <h2>스키마 v7 정리와 ER</h2>
 
   <p>v6의 표 22개에 <b>새 표 3개</b>(<code>store</code>, <code>store_menu</code>, <code>store_stock</code>)가 더해져 25개입니다. 바뀐 기존 표는 다섯입니다. <code>orders</code>·<code>menu_price</code>·<code>pickup_slot</code>·<code>daily_sales</code>에 <code>store_id</code>가 붙고 <code>stock_item</code>에서 <code>qty</code>가 빠졌습니다. 나머지 17개 표는 <b>글자까지 같습니다.</b> 바뀐 표와 새 표의 DDL은 아래 접힌 상자에 모았고(페이지 3·6에서 먼저 본 것 포함), 이 장의 DDL은 이 교재의 v7 기준 DDL 그대로입니다. 아래는 큰 그림 하나와 영역별 설명입니다. 실제 서버에서 <b>v6 DB를 이 장의 단계대로 이전한 것과 처음부터 만든 v7</b>을 비교했더니 표 25개, 열 104개(순서 포함), 제약 216개(이름 포함), 인덱스 43개가 모두 같았고, 이전 뒤 기존 행은 모든 표에서 값이 그대로(주문 9건 전부 <code>store_id</code> 1)였습니다.</p>
 
@@ -713,7 +727,7 @@ INSERT INTO schema_migration (version) VALUES ('0007_1_expand');
   </div>
 
   <details class="fold">
-    <summary>v7 변경 DDL 한눈에 보기 — 새 표 3개, 바뀐 표 5개, 바뀐 인덱스 2개 (처음부터 만들 때)</summary>
+    <summary>v7 변경 DDL: 새 표 3개, 바뀐 표 5개, 바뀐 인덱스 2개</summary>
     <div class="fold-body">
       <p>이 교재의 v7 기준 DDL 그대로입니다. <code>store</code>·<code>store_menu</code>·<code>menu_price</code>는 페이지 3, <code>store_stock</code>은 페이지 6의 DDL과 같습니다. 새 열 <code>store_id</code>가 각 표의 <b>끝</b>에 놓인 것은 이전본과 열 순서를 맞추기 위해서입니다. 나머지 17개 표는 v6 DDL 그대로입니다.</p>
 <pre><span class="cap">-- 재고 품목 (qty가 빠졌다. 남은 양은 store_stock)</span><code>-- 재고 품목 한 가지의 정의 (완제품: 케이크·쿠키, 원재료: 원두·우유·시럽). 남은 양은 store_stock
@@ -823,11 +837,11 @@ CREATE INDEX orders_open_idx ON orders (store_id, ordered_at)
     </table>
   </div>
 
-  <h3>앞 장들이 남긴 "9장에서 다시 본다"의 상환</h3>
+  <h3>앞 장에서 미뤄 둔 문제의 해결 위치</h3>
 
   <div class="table-wrap">
     <table>
-      <tr><th style="width:5.5rem">앞 장</th><th>남긴 빚</th><th style="width:6rem">갚은 곳</th></tr>
+      <tr><th style="width:5.5rem">앞 장</th><th>미뤄 둔 문제</th><th style="width:6rem">다룬 곳</th></tr>
       <tr><td>2장 12 (D2)</td><td>모든 표가 매장 1개를 가정한다</td><td>페이지 1~4·9·10</td></tr>
       <tr><td>4장 4</td><td>이미 행이 있는 표에 <code>NOT NULL</code> 열을 안전하게 더하는 법</td><td>페이지 7</td></tr>
       <tr><td>4장 7</td><td>이미 행이 있는 표에 <code>CHECK</code>를 더하면 전 행이 검사된다 (9장의 마이그레이션)</td><td>페이지 7</td></tr>
@@ -845,7 +859,7 @@ CREATE INDEX orders_open_idx ON orders (store_id, ordered_at)
 
   <div class="box warn">
     <p class="box-t">v7이 남긴 한계</p>
-    <p>이 모델에 <b>없는 것</b>: 매장별 옵션 가격과 레시피, 매장 한정 쿠폰, 매장 간 포인트 정산, 매장별 시간대(<code>daily_sales</code>의 날짜는 여전히 서울 시각), 영수증의 매장별 번호(<code>store_no</code>), 가맹점 운영자별 접근 제한(권한·행 단위 보안). 그리고 <code>store_id</code> 조건을 빠뜨린 쿼리가 다른 매장 데이터를 보여 줄 위험이 모든 조회에 생겼습니다. 키오스크 품절 조회, 메뉴판 조회, 일 매출 배치, 슬롯 점검 조회는 <b>모두 <code>store_id</code> 조건을 더해야 합니다</b>(이 교재는 쿼리를 다시 싣지 않았습니다). 7장의 일 매출 쿼리가 예입니다. 배치의 <code>DELETE ... WHERE sales_date = ...</code>는 두 매장의 그날 행을 <b>모두</b> 지우고(서버에서 영향 행 2), 증분의 <code>ON CONFLICT (sales_date)</code>는 기본키가 바뀐 뒤 <code>ERROR 42P10: there is no unique or exclusion constraint matching the ON CONFLICT specification</code>으로 실패합니다(<code>ON CONFLICT (store_id, sales_date)</code>로 고칩니다. 고친 문장도 그 열에 유일 인덱스가 생긴 3단계 조이기 ②(페이지 8) 뒤부터 동작하므로, 배치는 그 뒤에서 기본키 교체 전 사이에 바꿉니다). <span class="later">10장에서 다시 본다</span> v1에서 v7까지 어느 결정이 값을 치렀는지는 10장의 회고에서 되짚습니다.</p>
+    <p>이 모델에 <b>없는 것</b>: 매장별 옵션 가격과 레시피, 매장 한정 쿠폰, 매장 간 포인트 정산, 매장별 시간대(<code>daily_sales</code>의 날짜는 여전히 서울 시각), 영수증의 매장별 번호(<code>store_no</code>), 가맹점 운영자별 접근 제한(권한·행 단위 보안). 그리고 <code>store_id</code> 조건을 빠뜨린 쿼리가 다른 매장 데이터를 보여 줄 위험이 모든 조회에 생겼습니다. 키오스크 품절 조회, 메뉴판 조회, 일 매출 배치, 슬롯 점검 조회는 <b>모두 <code>store_id</code> 조건을 더해야 합니다</b>(이 교재는 쿼리를 다시 싣지 않았습니다). 7장의 일 매출 쿼리가 예입니다. 배치의 <code>DELETE ... WHERE sales_date = ...</code>는 두 매장의 그날 행을 <b>모두</b> 지우고(서버에서 영향 행 2), 증분의 <code>ON CONFLICT (sales_date)</code>는 기본키가 바뀐 뒤 <code>ERROR 42P10: there is no unique or exclusion constraint matching the ON CONFLICT specification</code>으로 실패합니다(<code>ON CONFLICT (store_id, sales_date)</code>로 고칩니다. 고친 문장도 그 열에 유일 인덱스가 생긴 3단계 조이기 ②(페이지 8) 뒤부터 동작하므로, 배치는 3단계 조이기 ②가 끝난 뒤, 기본키를 교체하기 전에 바꿉니다). <span class="later">10장에서 다시 본다</span> v1에서 v7까지 어느 결정이 비용을 남겼는지는 10장의 회고에서 되짚습니다.</p>
 <pre><span class="cap">-- 다시 보기: 7장 페이지 9의 (A) 배치, (B) 증분 (발췌)</span><code>DELETE FROM daily_sales WHERE sales_date = DATE '2026-09-30';          -- (A)
 INSERT INTO daily_sales (sales_date, order_count, subtotal, discount)  -- (B)
 VALUES (DATE '2026-04-03', 1, 5000, 500)
@@ -861,11 +875,11 @@ ON CONFLICT (sales_date) DO UPDATE SET ...;
   <div class="summary">
     <h3>핵심 요약</h3>
     <ol>
-      <li><b>매장 범위는 표마다 세 질문으로 가릅니다.</b> 값이 매장마다 다르거나 한 매장의 사건이면 <code>store_id</code>가 들어가고(<code>orders</code>, <code>menu_price</code>, <code>pickup_slot</code>, <code>daily_sales</code>, 재고 수량), 부모를 따라 매장을 알면 열을 더하지 않으며(라인 표 넷, 3장의 부분 종속), 나머지는 브랜드 공통입니다. 회원은 브랜드 공통으로 정했고 그 대가는 회원 락이 매장을 가로질러 직렬화되는 것입니다.</li>
-      <li><b>C15는 "<code>menu_price</code>에 <code>store_id</code>"로 풀렸습니다.</b> 6장이 가격을 이력 표로 옮겼으므로 가격의 집을 한 곳에 두고, <code>store_menu</code>는 "이 매장 메뉴판에 있고 지금 파는가"를 담습니다. 키는 <code>(store_id, ...)</code>로, <code>EXCLUDE</code>도 매장 단위로 넓어집니다.</li>
+      <li><b>매장 범위는 표마다 세 질문으로 구분합니다.</b> 값이 매장마다 다르거나 한 매장의 사건이면 <code>store_id</code>가 들어가고(<code>orders</code>, <code>menu_price</code>, <code>pickup_slot</code>, <code>daily_sales</code>, 재고 수량), 부모를 따라 매장을 알면 열을 더하지 않으며(라인 표 넷, 3장의 부분 종속), 나머지는 브랜드 공통입니다. 회원은 브랜드 공통으로 정했고 그 대가는 회원 락이 매장을 가로질러 직렬화되는 것입니다.</li>
+      <li><b>C15는 "<code>menu_price</code>에 <code>store_id</code>"로 풀렸습니다.</b> 6장이 가격을 이력 표로 옮겼으므로 가격을 한 표에 두고, <code>store_menu</code>는 "이 매장 메뉴판에 있고 지금 파는가"를 담습니다. 키는 <code>(store_id, ...)</code>로, <code>EXCLUDE</code>도 매장 단위로 넓어집니다.</li>
       <li><b>운영 중 변경의 위험은 락 줄 서기와 오래 걸리는 문장입니다.</b> 가장 짧은 <code>ALTER</code>도 열린 트랜잭션 하나 때문에 모든 조회를 세웁니다(<code>lock_timeout</code>으로 방어). 상수 <code>DEFAULT</code>는 재작성이 없고(PostgreSQL 11), 전 행 <code>UPDATE</code>는 표를 두 배로 부풀립니다(범위를 나눠 반복). 무중단이 늘 정답은 아닙니다.</li>
       <li><b>확장 → 이전 → 축소(C16)</b>: 새 구조를 옛 구조 옆에 놓고, 새 앱을 배포하고, 값을 채우고, 조이고, 마지막에 옛 것을 지웁니다. <code>NOT NULL</code>은 <code>CHECK ... NOT VALID</code> → <code>VALIDATE</code> → <code>SET NOT NULL</code>(PostgreSQL 12), 인덱스는 <code>CONCURRENTLY</code>(트랜잭션 밖), 기본키는 새 유일 인덱스 + 새 외래키를 옆에 놓고 <code>USING INDEX</code>로 한 문장 교체합니다. 되돌릴 수 없는 단계는 맨 끝 하나로 몰고 점검 조회로 데이터 보존을 확인합니다.</li>
-      <li>결과가 <b>스키마 v7</b>(표 25개)이고 D2는 갚았습니다. 8장의 주문 트랜잭션은 골격과 락 순서를 유지한 채 <code>store_id</code>를 세 군데(가격 조회, 재고, 슬롯)에 더해 성립합니다.</li>
+      <li>결과가 <b>스키마 v7</b>(표 25개)이고 D2는 이 장에서 해결했습니다. 8장의 주문 트랜잭션은 골격과 락 순서를 유지한 채 <code>store_id</code>를 세 군데(가격 조회, 재고, 슬롯)에 더해 성립합니다.</li>
     </ol>
   </div>
 
@@ -874,11 +888,11 @@ ON CONFLICT (sales_date) DO UPDATE SET ...;
     <p class="q"><code>order_line</code>에 <code>store_id</code> 열을 더하지 않은 가장 근본적인 이유는 무엇일까요?</p>
     <ol class="options">
       <li data-why="틀렸습니다. 열 하나의 공간은 이유가 되지 않습니다. 이 교재가 보는 것은 같은 사실이 두 곳에 적혀 서로 어긋날 위험입니다.">열 하나만큼 늘어나는 저장 공간을 아끼려고</li>
-      <li data-why="틀렸습니다. 라인 표에 store_id를 두는 것 자체는 가능하고, 대각선 외래키(order_id, store_id)로 DB가 일치를 강제하는 설계도 서버에서 동작했습니다. 이유는 가능 여부가 아니라 중복을 들이느냐입니다.">라인 표에는 <code>store_id</code> 외래키를 걸 수 없어서</li>
+      <li data-why="틀렸습니다. 라인 표에 store_id를 두는 것 자체는 가능하고, 복합 외래키 (order_id, store_id)로 DB가 일치를 강제하는 설계도 서버에서 동작했습니다. 이유는 가능 여부가 아니라 중복을 들이느냐입니다.">라인 표에는 <code>store_id</code> 외래키를 걸 수 없어서</li>
       <li data-why="맞습니다. 라인의 매장은 order_id 만으로 정해지므로(order_id → store_id) 기본키 (order_id, line_no)의 일부에만 종속하는 열이 됩니다. 3장의 부분 종속이고, 주문과 라인의 매장이 어긋나면 어느 쪽이 맞는지 DB가 모릅니다. 매장 일치를 DB가 지키게 하려면 복합 외래키로 감시하는 대안이 있지만 이 교재는 앱(주문 트랜잭션)이 지키게 했습니다.">라인의 매장은 <code>order_id</code>로 정해지는 부분 종속이라 두 곳에 적으면 어긋날 수 있어서</li>
     </ol>
     <div class="explain">
-      <p>"자식에 부모의 키를 복사해 두면 조인이 줄어든다"는 직관이 맞는 때도 있습니다. 7장의 의도적 비정규화가 그 예입니다. 차이는 <b>복사한 값이 어긋나지 않게 누가 지키느냐</b>입니다. 요약 표는 배치와 점검 조회가, 대각선 외래키는 DB가 지킵니다. 지키는 장치 없이 복사만 하는 것이 부분 종속의 위험입니다.</p>
+      <p>"자식에 부모의 키를 복사해 두면 조인이 줄어든다"는 직관이 맞는 때도 있습니다. 7장의 의도적 비정규화가 그 예입니다. 차이는 <b>복사한 값이 어긋나지 않게 누가 지키느냐</b>입니다. 요약 표는 배치와 점검 조회가, 복합 외래키는 DB가 지킵니다. 지키는 장치 없이 복사만 하는 것이 부분 종속의 위험입니다.</p>
     </div>
   </div>
 
@@ -886,12 +900,12 @@ ON CONFLICT (sales_date) DO UPDATE SET ...;
   <div class="quiz" data-answer="1">
     <p class="q">200만 행 <code>orders</code>에 열을 더할 때 표를 <b>통째로 다시 쓰는</b> 문장은 무엇일까요(PostgreSQL 11 이상)?</p>
     <ol class="options">
-      <li data-why="맞습니다. random()처럼 행마다 값이 달라지는(휘발성) 기본값은 모든 행을 새로 써야 합니다. 실험에서 4.6초, 표 파일이 바뀌고 크기가 늘었고 그동안 ACCESS EXCLUSIVE를 쥐었습니다."><code>ADD COLUMN r DOUBLE PRECISION DEFAULT random()</code></li>
+      <li data-why="맞습니다. random()처럼 행마다 값이 달라지는(휘발성) 기본값은 모든 행을 새로 써야 합니다. 실험에서 4.6초, 표 파일이 바뀌고 크기가 늘었고 그동안 ACCESS EXCLUSIVE를 잡았습니다."><code>ADD COLUMN r DOUBLE PRECISION DEFAULT random()</code></li>
       <li data-why="틀렸습니다. NULL을 허용하고 기본값이 없는 열은 카탈로그만 바꾸고 표 파일을 건드리지 않습니다. 실험에서 1ms 였고 파일 번호가 그대로였습니다."><code>ADD COLUMN store_id INTEGER</code></li>
       <li data-why="틀렸습니다. PostgreSQL 11부터 상수 기본값은 카탈로그에 적어 두고 읽을 때 채워 주므로 재작성이 없습니다. 실험에서 2ms 였습니다."><code>ADD COLUMN store_id INTEGER NOT NULL DEFAULT 1</code></li>
     </ol>
     <div class="explain">
-      <p>"기본값이 있으면 느리다"는 PostgreSQL 10 이하의 상식이 지금도 돌아다닙니다. 반대로 "상수 기본값은 항상 공짜"도 반쪽입니다. 기본값이 붙은 채로 새 앱이 배포되면 열을 빠뜨린 쓰기가 오류 없이 기본값으로 저장되어 <b>조용히 틀립니다.</b> 이전용 기본값은 이전이 끝나면 <code>DROP DEFAULT</code>로 거둡니다.</p>
+      <p>"기본값이 있으면 느리다"는 PostgreSQL 10 이하의 상식이 지금도 돌아다닙니다. 반대로 "상수 기본값은 항상 공짜"도 반쪽입니다. 기본값이 붙은 채로 새 앱이 배포되면 열을 빠뜨린 쓰기가 오류 없이 기본값으로 저장되어 <b>조용히 틀립니다.</b> 이전용 기본값은 이전이 끝나면 <code>DROP DEFAULT</code>로 없앱니다.</p>
     </div>
   </div>
 
@@ -904,7 +918,7 @@ ON CONFLICT (sales_date) DO UPDATE SET ...;
       <li data-why="틀렸습니다. NOT VALID는 기존 행을 훑지 않으므로 거는 일 자체는 순간입니다. 기존 행 검사는 VALIDATE CONSTRAINT가 합니다.">기존 200만 행을 전부 검사하느라 표가 오래 잠긴다</li>
     </ol>
     <div class="explain">
-      <p>이 퀴즈의 답은 6장 페이지 8에서 "이 제약이 있으면 옛 주문에 <code>store_id</code> 같은 열을 채우는 전체 행 갱신이 막힌다"고 한 예고입니다. 6장이 약한 <code>CHECK</code>를 택한 덕에 이 장의 채우기가 가능했습니다. <b>앞 장의 제약 선택이 뒷장의 이전 가능성을 정한다</b>는 것이 이 교재의 뼈대 중 하나입니다.</p>
+      <p>이 퀴즈의 답은 6장 페이지 8에서 "이 제약이 있으면 옛 주문에 <code>store_id</code> 같은 열을 채우는 전체 행 갱신이 막힌다"고 한 예고입니다. 6장이 약한 <code>CHECK</code>를 택한 덕에 이 장의 채우기가 가능했습니다. <b>앞 장의 제약 선택이 뒷장의 이전 가능성을 정한다</b>는 것이 이 교재가 반복해 보이는 원칙 중 하나입니다.</p>
     </div>
   </div>
 
@@ -930,7 +944,7 @@ ON CONFLICT (sales_date) DO UPDATE SET ...;
       <li>"과거 주문의 채널은 <b>모른다</b>"가 사실이라면 위 설계는 어떻게 바뀝니까?</li>
     </ol>
     <details class="fold">
-      <summary>이 문제에 쓰는 표 — 페이지 7의 상수 기본값 행과 NOT VALID 세 걸음</summary>
+      <summary>이 문제에 쓰는 표: 페이지 7의 상수 기본값 행과 NOT VALID 세 걸음</summary>
       <div class="fold-body">
         <p><b>페이지 7의 측정표</b>에서 상수 기본값 행만 가져왔습니다(200만 행 <code>orders</code>).</p>
         <div class="table-wrap">
@@ -952,7 +966,7 @@ ALTER TABLE orders DROP CONSTRAINT orders_store_id_nn;
   </div>
 
   <details class="fold answer">
-    <summary>모범답안 — 그리고 흔한 오답이 왜 부족한지</summary>
+    <summary>모범답안과 흔한 오답</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 모범답안 (서버에서 실행 확인)</span><code>ALTER TABLE orders ADD COLUMN channel TEXT NOT NULL DEFAULT '키오스크';
 ALTER TABLE orders ADD CONSTRAINT orders_channel_check
@@ -961,12 +975,12 @@ ALTER TABLE orders VALIDATE CONSTRAINT orders_channel_check;
 -- 새 앱이 channel 을 적는 것을 확인한 뒤
 ALTER TABLE orders ALTER COLUMN channel DROP DEFAULT;
 </code></pre>
-      <p><b>1.</b> 상수 <code>DEFAULT</code>라 재작성 없이 순간에 끝납니다(PostgreSQL 11). 기존 행은 읽을 때 '키오스크'로 보입니다. 값 목록은 <code>CHECK</code>를 <code>NOT VALID</code>로 걸고 <code>VALIDATE</code>합니다(쓰기를 막지 않는다). 새로 만들 때 한 줄로 쓰는 <code>CHECK</code>는 이미 행이 있는 표에서는 전 행 검사 동안 락을 쥡니다. 역시 <code>lock_timeout</code> 아래에서 실행합니다.</p>
-      <p><b>2.</b> <code>DROP DEFAULT</code>입니다. 안 거두면 앱이 <code>channel</code>을 빠뜨려도 오류 없이 전부 '키오스크'가 되어 앱 주문이 키오스크 주문으로 <b>조용히 집계</b>됩니다. 거두면 빠뜨린 쓰기가 <code>NOT NULL</code> 위반으로 즉시 드러납니다(서버에서 확인: <code>null value in column "channel" ... violates not-null constraint</code>).</p>
+      <p><b>1.</b> 상수 <code>DEFAULT</code>라 재작성 없이 순간에 끝납니다(PostgreSQL 11). 기존 행은 읽을 때 '키오스크'로 보입니다. 값 목록은 <code>CHECK</code>를 <code>NOT VALID</code>로 걸고 <code>VALIDATE</code>합니다(쓰기를 막지 않는다). 새로 만들 때 한 줄로 쓰는 <code>CHECK</code>는 이미 행이 있는 표에서는 전 행 검사 동안 락을 잡습니다. 역시 <code>lock_timeout</code> 아래에서 실행합니다.</p>
+      <p><b>2.</b> <code>DROP DEFAULT</code>입니다. 안 없애면 앱이 <code>channel</code>을 빠뜨려도 오류 없이 전부 '키오스크'가 되어 앱 주문이 키오스크 주문으로 <b>조용히 집계</b>됩니다. 없애면 빠뜨린 쓰기가 <code>NOT NULL</code> 위반으로 즉시 드러납니다(서버에서 확인: <code>null value in column "channel" ... violates not-null constraint</code>).</p>
       <p><b>3.</b> '키오스크'로 채우면 <b>지어낸 값</b>이 됩니다. 5·6장의 NULL 두 의미처럼 "해당 없음"과 "기록 없음"을 구분해야 하면 <code>channel</code>은 NULL을 허용하고 기본값 없이 더하며, 과거 행은 NULL로 둡니다. 대신 앞으로 들어오는 행은 반드시 적게 하고 싶다면 이전일을 박은 <code>CHECK (channel IS NOT NULL OR ordered_at &lt; TIMESTAMPTZ '2026-11-01 00:00+09')</code>를 <code>NOT VALID</code>로 걸고 <code>VALIDATE</code>합니다. 옛 행은 날짜 조건으로 통과해 옛 행 갱신이 막히지 않고, 이전일 이후에 <code>channel</code>을 빠뜨린 행은 <code>23514</code>로 거부됩니다(서버에서 확인).</p>
       <p><b>흔한 오답 1</b> — 열을 더하고 <code>UPDATE orders SET channel = '키오스크'</code> 한 번. 200만 행이 두 벌이 되고 표·인덱스가 두 배로 부풀며 16초 가까이 행 락이 쌓입니다.</p>
       <p><b>흔한 오답 2</b> — <code>ADD COLUMN ... NOT NULL</code>을 기본값 없이 시도. 행이 있는 표에서는 <code>column "channel" of relation "orders" contains null values</code> 오류가 납니다.</p>
-      <p><b>흔한 오답 3</b> — 값 목록 <code>CHECK</code>를 <code>ADD COLUMN</code> 문장 안에 함께 쓰거나 <code>NOT VALID</code> 없이 겁니다. 이미 200만 행이 있는 표라 전 행을 검사하는 동안 <code>ACCESS EXCLUSIVE</code>를 쥐어 주문 조회까지 멈춥니다(페이지 5·7).</p>
+      <p><b>흔한 오답 3</b> — 값 목록 <code>CHECK</code>를 <code>ADD COLUMN</code> 문장 안에 함께 쓰거나 <code>NOT VALID</code> 없이 겁니다. 이미 200만 행이 있는 표라 전 행을 검사하는 동안 <code>ACCESS EXCLUSIVE</code>를 잡아 주문 조회까지 멈춥니다(페이지 5·7).</p>
     </div>
   </details>
 
