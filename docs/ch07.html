@@ -26,7 +26,7 @@
       <p>…스키마도 조회도 안 바뀌었으니 고칠 곳이 코드가 아니라는 뜻이네요. 먼저 <b>무엇을 몇 개나 읽는지</b> 재 보겠습니다.</p></div></div>
   </div>
 
-  <p>고치기 전에 잽니다. 3장은 "측정해서 문제가 나오면 그 부분만 되돌린다"고 했습니다. 이 장의 실험은 SQL 함수 <code>generate_series</code>로 만든 가상의 주문 100만 건을 PostgreSQL 18.3(PostgreSQL을 그대로 옮긴 호환 실행 환경)에서 돌려 했고, 하윤의 운영 DB와는 다릅니다. 시간은 컴퓨터마다 달라서 <b>읽은 행 수와 페이지 수</b>를 기준으로 말하고, 시간은 이 실험 머신에서 잰 참고값으로만 적습니다. <span class="term" data-term="pagebuf">페이지</span>(줄여서 "쪽")는 DB가 디스크에서 한 번에 읽는 8KB 덩어리입니다(페이지 2).</p>
+  <p>고치기 전에 잽니다. 3장은 "측정해서 문제가 나오면 그 부분만 되돌린다"고 했습니다. 이 장의 실험은 <code>generate_series</code>로 만든 가상의 주문 100만 건을 PostgreSQL 18.3(PostgreSQL을 그대로 옮긴 호환 실행 환경)에서 돌린 것이며, 하윤의 운영 DB와는 다릅니다. 시간은 컴퓨터마다 달라서 <b>읽은 행 수와 페이지 수</b>를 기준으로 말하고, 시간은 이 실험 머신에서 잰 참고값으로만 적습니다. <span class="term" data-term="pagebuf">페이지</span>(줄여서 "쪽")는 DB가 디스크에서 한 번에 읽는 8KB 덩어리입니다(페이지 2).</p>
 
   <div class="table-wrap">
     <table>
@@ -39,7 +39,7 @@
   </div>
 
   <div class="box note">
-    <p class="box-t">이 리포트가 하는 일 — 뼈대만 (실제 SQL은 페이지 8)</p>
+    <p class="box-t">리포트 조회의 뼈대</p>
     <p>위 표와 페이지 8이 재는 "일별 매출" 숫자는 모두 아래 조회 기준입니다. v5 그대로라 금액은 6장의 스냅샷 열(<code>unit_price</code>)과 할인 내역에서 계산합니다.</p>
 <pre><span class="cap">-- "최근 1년 일별 매출"의 뼈대 (의사코드)</span><code>o = orders 중 최근 1년 · 취소 아닌 주문 (주문 번호, 서울 날짜)
 주문별 라인 금액 = SUM(quantity × unit_price)                 ← order_line
@@ -51,39 +51,39 @@
     <p>옵션 금액에 라인의 수량을 곱하려고 <code>order_line</code>을 한 번 더 붙이므로 위 표에서 라인 표를 <b>두 번</b> 읽었습니다. 라인·옵션·할인을 <b>각자 주문별로 먼저 합한 뒤</b> 붙이는 이유는 페이지 8에서 봅니다.</p>
   </div>
 
-  <p>이 조회는 <b>표 네 장을 사실상 처음부터 끝까지</b> 읽었습니다. 실험 머신에서 13초, 하윤의 운영 DB에서 20초라는 것이 이 양의 그림자입니다. 이 장의 문제는 "어떻게 덜 읽게 만들까"이고, 고치는 순서는 <b>싼 것부터</b>입니다.</p>
+  <p>이 조회는 <b>표 네 장을 사실상 처음부터 끝까지</b> 읽었습니다. 실험 머신에서 13초, 하윤의 운영 DB에서 20초라는 것이 이 읽는 양 때문입니다. 이 장의 문제는 "어떻게 덜 읽게 만들까"이고, 고치는 순서는 <b>싼 것부터</b>입니다.</p>
 
   <div class="box note">
     <p class="box-t">이 장의 진행</p>
     <ol>
-      <li><b>페이지 2~4</b> — 인덱스(인덱스)가 무엇이고 어떻게 찾는가. 페이지 3은 <b>직접 눌러 보는 위젯</b>입니다. 복합 인덱스의 열 순서.</li>
+      <li><b>페이지 2~4</b> — 인덱스가 무엇이고 어떻게 찾는가. 페이지 3은 <b>직접 눌러 보는 위젯</b>입니다. 복합 인덱스의 열 순서.</li>
       <li><b>페이지 5~7</b> — 어떤 조회에 어떤 인덱스를 걸까(외래키 포함), 안 듣는 경우와 비용. 페이지 6은 <b>선택</b>(실행 계획 읽기)입니다.</li>
-      <li><b>페이지 8~9</b> — 인덱스로도 부족할 때: 미리 합계를 계산해 둔 표(요약 테이블, D4 상환)와 그것을 어긋나지 않게 두는 법.</li>
+      <li><b>페이지 8~9</b> — 인덱스로도 부족할 때: 미리 합계를 계산해 둔 표(요약 테이블, D4에서 미뤄 둔 문제의 해결)와 그것을 어긋나지 않게 두는 법.</li>
       <li><b>페이지 10~11</b> — 목록 조회(페이지네이션)와 대용량 보관. 결과는 <b>스키마 v5.1</b>입니다.</li>
     </ol>
   </div>
 
   <div class="box warn">
-    <p class="box-t">이 장이 갚는 빚</p>
-    <p>앞 장들이 "7장에서 다시 본다"고 남긴 것이 열 가지가 넘습니다. 외래키 열의 인덱스(2·4·5장), 라인 금액의 여러 표 조인(5장), 이력 조인 비용과 오래된 판매중지 행(6장), 포인트 잔액 캐시(6장), 그리고 D4(총액을 저장하지 않은 결정)입니다. 각 빚은 해당 페이지에서 갚고 페이지 11에서 표로 정리합니다.</p>
+    <p class="box-t">이 장에서 다루는 미뤄 둔 문제</p>
+    <p>앞 장들이 "7장에서 다시 본다"고 남긴 것이 열 가지가 넘습니다. 외래키 열의 인덱스(2·4·5장), 라인 금액의 여러 표 조인(5장), 이력 조인 비용과 오래된 판매중지 행(6장), 포인트 잔액 캐시(6장), 그리고 D4(총액을 저장하지 않은 결정)입니다. 각 문제는 해당 페이지에서 해결하고 페이지 11에서 표로 정리합니다.</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 2 -->
-<section class="screen" data-title="DB는 어떻게 찾나">
+<section class="screen" data-title="풀스캔과 인덱스">
   <p class="kicker">7장 · 페이지 2</p>
-  <h2>DB는 행을 어떻게 찾나 — 풀스캔과 인덱스</h2>
+  <h2>풀스캔과 인덱스</h2>
 
   <p>주문 100만 건 중 "2025-10-01 06:59:37.928에 들어온 주문" 하나를 찾는 일을 생각해 봅시다. C++이라면 주문 구조체를 <code>std::vector</code>에 담아 두고 <code>std::find_if</code>로 <b>처음부터 끝까지 비교</b>할 것입니다. 100만 개를 모두 비교할 수도 있는 선형 탐색입니다.</p>
 
   <p><code>orders</code>에 이 시각으로 찾는 인덱스가 없으면 DB가 하는 일이 정확히 이것입니다. 표의 모든 행을 처음부터 읽으며 조건을 검사하는 것을 <span class="term" data-term="fullscan">풀스캔</span>(full scan, PostgreSQL 이름은 <code>Seq Scan</code>)이라고 합니다. 실험에서 이 조회는 행 999,999개를 읽고 버렸습니다.</p>
 
   <div class="box note">
-    <p class="box-t">"행을 읽는다"는 사실은 "페이지를 읽는다"입니다 — 벡터 비유가 깨지는 곳</p>
-    <p><code>std::vector</code>는 메모리에 있지만 DB의 표는 디스크에 있고, DB는 디스크를 <span class="term" data-term="pagebuf">페이지</span>(PostgreSQL은 8KB)라는 덩어리로만 읽습니다. 행 하나가 필요해도 그 행이 든 페이지 전체를 읽습니다. 그래서 비용의 기본 단위는 "행 수"보다 <b>"읽은 페이지 수"</b>입니다. <code>orders</code> 100만 행은 <b>9,141쪽</b>이고, 풀스캔은 그 전부를 읽습니다. 이 교재가 "버퍼 수"라고 적는 것이 이 페이지 수입니다.</p>
+    <p class="box-t">행 읽기와 페이지 읽기: 벡터 비유의 한계</p>
+    <p><code>std::vector</code>는 메모리에 있지만 DB의 표는 디스크에 있고, DB는 디스크를 <span class="term" data-term="pagebuf">페이지</span>(PostgreSQL은 8KB)라는 덩어리로만 읽습니다. 행 하나가 필요해도 그 행이 든 페이지 전체를 읽습니다. 그래서 비용의 기본 단위는 "행 수"보다 <b>"읽은 페이지 수"</b>입니다. <code>orders</code> 100만 행은 <b>9,141쪽</b>이고, 풀스캔은 그 전부를 읽습니다.</p>
   </div>
 
-  <h3>책의 색인처럼</h3>
+  <h3>책의 색인과 인덱스</h3>
 
   <p>책 한 권에서 "샷 추가"가 나오는 곳을 찾을 때 본문을 처음부터 읽지 않고 <b>뒤의 색인</b>을 봅니다. 색인은 "낱말 → 쪽 번호"를 <b>가나다 순으로 정렬해 따로 모아 둔 것</b>이고, 본문은 그대로입니다. DB도 같습니다. 열의 값을 <b>정렬해서</b> 그 값이 든 행의 위치와 함께 따로 저장해 두는 구조가 <span class="term" data-term="index">인덱스</span>(색인)입니다. 표 본문은 그대로이고 인덱스는 <b>별도로 저장되는 추가 구조</b>입니다.</p>
 
@@ -105,7 +105,7 @@
     </ol>
   </div>
 
-  <h3>우리는 이미 28개를 갖고 있습니다</h3>
+  <h3>PK·UNIQUE가 만든 인덱스 28개</h3>
 
   <p>0장의 개념 지도가 "인덱스는 7장"이라고 미뤘지만, v5에는 이미 <b>인덱스가 28개</b> 있습니다. 한 번도 <code>CREATE INDEX</code>를 쓰지 않았는데도 그렇습니다. <code>PRIMARY KEY</code> 17개, <code>UNIQUE</code> 8개, 6장의 부분 <code>UNIQUE</code> 인덱스 2개(<code>order_discount_grade_once</code>, <code>point_ledger_once</code>), <code>EXCLUDE</code> 1개(<code>menu_price</code>의 겹침 방지)입니다. "같은 값이 둘 있을 수 없다"를 검사하려면 기존 값을 빨리 찾아야 하니 DB가 인덱스를 <b>자동으로 만들어서</b> 제약을 지키는 것입니다. 2장과 4장의 "제약과 인덱스는 <code>UNIQUE</code>가 겸한다"는 말이 이것입니다. 그래서 <code>WHERE order_id = 501000</code>은 실험에서 4쪽만 읽었습니다.</p>
 
@@ -122,14 +122,14 @@ SELECT * FROM orders WHERE ordered_at = '2025-10-01 06:59:37.928+09';
 <!-- ─────────────────────────────────────────── 페이지 3 (위젯) -->
 <section class="screen" data-title="B-tree 탐색 스텝퍼">
   <p class="kicker">7장 · 페이지 3</p>
-  <h2>B-tree 탐색 스텝퍼 — 찾는 길을 눌러서 따라가기</h2>
+  <h2>B-tree 탐색 스텝퍼</h2>
 
   <p>인덱스가 어떻게 약 2,000분의 1만 읽고도 찾는지를 <b>글로 먼저</b> 적습니다. 위젯은 이것이 정말 그렇게 되는지 눌러서 확인하는 도구입니다.</p>
 
   <ol>
     <li>PostgreSQL 인덱스의 기본 구조는 <span class="term" data-term="btree">B-tree</span>입니다. 값을 <b>정렬해서 페이지에 담고</b>, 그 페이지들을 나무로 쌓습니다. 맨 아래 <b>잎</b>에는 "값 → 표의 행 위치"가 정렬되어 들어 있습니다.</li>
     <li>위 층의 <b>중간</b>과 <b>루트</b> 페이지에는 행이 아니라 <b>구분값</b>이 있습니다. "17 미만은 왼쪽, 17 이상 33 미만은 가운데, 33 이상은 오른쪽 자식"처럼 어느 자식으로 내려갈지만 알려 줍니다. 모든 잎은 루트에서 같은 깊이에 있습니다.</li>
-    <li>찾는 길은 <b>루트 → 중간 → 잎 → 표의 행</b>입니다. 깊이가 3이면 인덱스 페이지 3쪽에 표 페이지 1쪽, 모두 4쪽입니다. 표가 커져도 이 모양은 같고 깊이만 아주 천천히 늘어납니다(이 교재 페이지의 끝부분).</li>
+    <li>찾는 길은 <b>루트 → 중간 → 잎 → 표의 행</b>입니다. 깊이가 3이면 인덱스에서 3쪽, 표에서 1쪽, 모두 4쪽을 읽습니다. 표가 커져도 이 모양은 같고 깊이만 아주 천천히 늘어납니다(이 페이지 끝의 "실제 크기에서는").</li>
   </ol>
 
   <figure class="fig">
@@ -143,7 +143,7 @@ SELECT * FROM orders WHERE ordered_at = '2025-10-01 06:59:37.928+09';
       </g>
       <text class="svg-muted" x="350" y="262" font-size="10.5" text-anchor="middle">표(행 48개) — 저장된 순서 그대로여서 값이 흩어져 있습니다</text>
     </svg>
-    <figcaption>인덱스(위)은 값이 정렬된 나무이고, 아래 표는 정렬되지 않았습니다. 진한 테두리는 지금 읽는 곳, 옅은 색은 이미 읽은 곳입니다. 실제 DB는 행이 아니라 페이지 단위로 읽지만 비교의 모양은 같습니다.</figcaption>
+    <figcaption>위쪽의 인덱스는 값이 정렬된 나무이고, 아래 표는 정렬되지 않았습니다. 진한 테두리는 지금 읽는 곳, 옅은 색은 이미 읽은 곳입니다. 실제 DB는 행이 아니라 페이지 단위로 읽지만 비교의 모양은 같습니다.</figcaption>
   </figure>
 
   <div style="display:flex;gap:.5rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:.86rem;margin:.4rem 0">
@@ -274,9 +274,9 @@ SELECT * FROM orders WHERE ordered_at = '2025-10-01 06:59:37.928+09';
 
   <h3>눌러 보고 확인할 것</h3>
   <ul>
-    <li><b>37</b>을 풀스캔과 B-tree로 각각 끝까지 실행해 읽은 곳을 비교하세요. 37은 표의 <b>31번째</b> 행에 있어 풀스캔이 31곳, 인덱스가 4곳입니다. <b>15</b>는 47번째 행이라 풀스캔이 <b>47</b>곳입니다. 인덱스는 어느 값이든 4곳으로 같습니다. 그런데 <b>2</b>는 표의 3번째 행이라 풀스캔이 3곳으로 <b>인덱스(4곳)보다 싸게</b> 끝납니다. 풀스캔의 비용은 값이 표의 어디에 있느냐에 달렸고, 작은 표에서는 풀스캔이 이길 수 있다는 것이 페이지 7의 단서입니다.</li>
+    <li><b>37</b>을 풀스캔과 B-tree로 각각 끝까지 실행해 읽은 곳을 비교하세요. 37은 표의 <b>31번째</b> 행에 있어 풀스캔이 31곳, 인덱스가 4곳입니다. <b>15</b>는 47번째 행이라 풀스캔이 <b>47</b>곳입니다. 인덱스는 어느 값이든 4곳으로 같습니다. 그런데 <b>2</b>는 표의 3번째 행이라 풀스캔이 3곳으로 <b>인덱스(4곳)보다 싸게</b> 끝납니다. 풀스캔의 비용은 값이 표의 어디에 있느냐에 달렸고, 작은 표에서는 풀스캔이 이길 수 있다는 점은 페이지 7에서 이어집니다.</li>
     <li><b>50</b>(표에 없는 값)을 풀스캔으로 해 보세요. 48행을 전부 읽어야 "없다"고 말할 수 있습니다. B-tree는 잎까지 3곳만 읽고 끝납니다.</li>
-    <li>표의 행은 흩어져 있지만 인덱스는 정렬되어 있습니다. <b>정렬된 것을 따로 하나 더 들고 있다</b>는 것이 전부이고, 이것이 4장·7장의 비용 이야기의 뿌리입니다.</li>
+    <li>표의 행은 흩어져 있지만 인덱스는 정렬되어 있습니다. <b>정렬된 것을 따로 하나 더 들고 있다</b>는 것이 전부이고, 이것이 4장·7장의 비용 이야기의 바탕입니다.</li>
   </ul>
 
   <h3>실제 크기에서는</h3>
@@ -291,18 +291,18 @@ SELECT * FROM orders WHERE ordered_at = '2025-10-01 06:59:37.928+09';
     </table>
   </div>
 
-  <p>실제 잎 페이지 하나에는 위젯의 4개가 아니라 <b>수백 개</b>(이 실험에서는 약 365개)의 값이 들어갑니다. 한 층에 수백 개의 갈래가 있으니 깊이 3으로 대략 5천만 개, 깊이 4면 백억 단위의 값까지 담을 수 있습니다. 행이 100만 배 늘어도 읽는 페이지는 한두 쪽 늘 뿐입니다. <b>이것이 "로그 시간"의 실감입니다.</b> C++의 <code>std::map</code>도 <code>O(log N)</code>이지만, 이쪽은 갈래가 수백 개라 <b>깊이가 훨씬 얕습니다.</b> 디스크를 한 번 읽는 값이 비싸서 나무를 넓고 낮게 만든 것입니다.</p>
+  <p>실제 잎 페이지 하나에는 위젯의 4개가 아니라 <b>수백 개</b>(이 실험에서는 약 365개)의 값이 들어갑니다. 한 층에 수백 개의 갈래가 있으니 깊이 3으로 대략 5천만 개, 깊이 4면 백억 단위의 값까지 담을 수 있습니다. 행이 100만 배 늘어도 읽는 페이지는 한두 쪽 늘 뿐입니다. <b>이것이 "로그 시간"이 실제로 뜻하는 크기입니다.</b> C++의 <code>std::map</code>도 <code>O(log N)</code>이지만, 이쪽은 갈래가 수백 개라 <b>깊이가 훨씬 얕습니다.</b> 디스크를 한 번 읽는 값이 비싸서 나무를 넓고 낮게 만든 것입니다.</p>
 
   <div class="box note">
-    <p class="box-t">범위 조건도 돕습니다</p>
+    <p class="box-t">범위 조건과 인덱스</p>
     <p>잎은 값 순서대로 이웃 잎과 이어져 있습니다. "3월 5일 하루"처럼 <b>범위</b>는 시작점을 나무로 찾은 뒤 잎을 옆으로 훑으면 됩니다. 그래서 같은 인덱스가 <code>=</code>뿐 아니라 <code>&gt;=</code>, <code>&lt;</code>, <code>BETWEEN</code>, 그리고 <code>ORDER BY</code>(이미 정렬되어 있으니 정렬을 생략)에도 쓰입니다. 안 돕는 경우는 페이지 4와 7에서 봅니다.</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 4 -->
-<section class="screen" data-title="인덱스 종류와 복합 인덱스">
+<section class="screen" data-title="인덱스의 종류와 복합 인덱스의 열 순서">
   <p class="kicker">7장 · 페이지 4</p>
-  <h2>인덱스의 종류, 그리고 열이 둘일 때의 순서</h2>
+  <h2>인덱스의 종류와 복합 인덱스의 열 순서</h2>
 
   <p>페이지 3의 나무는 PostgreSQL이 <code>CREATE INDEX</code>에 종류를 안 적으면 만드는 <b>B-tree</b>입니다. 이 교재의 인덱스는 거의 전부 B-tree이고, 다른 종류는 "이런 것이 있다"만 알아 두면 됩니다.</p>
 
@@ -313,13 +313,13 @@ SELECT * FROM orders WHERE ordered_at = '2025-10-01 06:59:37.928+09';
       <tr><td>Hash</td><td><code>=</code>만</td><td>B-tree도 <code>=</code>를 잘해서 쓸 일이 드물다</td></tr>
       <tr><td>GiST</td><td>범위의 겹침, 좌표 같은 "크기 비교가 안 되는" 값</td><td>6장 <code>menu_price</code>의 <code>EXCLUDE</code>가 이것이다</td></tr>
       <tr><td>GIN</td><td>한 칸에 여러 값이 든 것(배열, JSON, 전문 검색)</td><td>쓰지 않는다. 1NF를 지키는 설계라 칸에 목록이 없다</td></tr>
-      <tr><td>BRIN</td><td>시간순으로 쌓이는 <b>아주 큰</b> 표를 아주 작은 인덱스로</td><td>존재만. 페이지 11의 대용량에서 다시 떠오른다</td></tr>
+      <tr><td>BRIN</td><td>시간순으로 쌓이는 <b>아주 큰</b> 표를 아주 작은 인덱스로</td><td>존재만. 페이지 11의 대용량에서 다시 나온다</td></tr>
     </table>
   </div>
 
   <p>6장의 부분 <code>UNIQUE</code> 인덱스(<code>WHERE</code>가 붙은 것)도 B-tree입니다. <b>일부 행만 담는 인덱스</b>라는 생각은 페이지 7에서 성능 쪽으로 다시 씁니다.</p>
 
-  <h3>열이 둘일 때 — 복합 인덱스</h3>
+  <h3>복합 인덱스</h3>
 
   <p>하윤이 "민준의 주문을 최근 것부터 10건"을 보려 한다고 합시다. 조건은 <code>member_id = 77</code>, 정렬은 <code>ordered_at</code> 최신순입니다. 열 둘을 한 인덱스에 담는 <span class="term" data-term="compidx">복합 인덱스</span>는 <b>앞 열로 먼저 정렬하고, 같은 값 안에서 뒤 열로 정렬</b>합니다. 전화번호부가 "성 → 이름" 순으로 정렬된 것과 같습니다. C++로는 <code>std::map&lt;std::pair&lt;회원, 시각&gt;, 행&gt;</code>이 그 모양이고, <code>pair</code>는 첫 원소부터 비교합니다.</p>
 
@@ -345,7 +345,7 @@ LIMIT  10;
   </div>
 
   <div class="box note">
-    <p class="box-t">열 순서는 "조회문이 정한다"</p>
+    <p class="box-t">열 순서의 기준</p>
     <ul>
       <li><b>등호(<code>=</code>) 조건인 열을 앞에, 범위나 정렬 열을 뒤에</b> 둡니다. (A)는 "회원 하나로 구간이 정해지고, 그 안은 이미 시각순"이라서 <code>LIMIT 10</code>이 10개만 읽고 멈춥니다.</li>
       <li>"값 종류가 많은 열을 앞에"라는 경험칙을 들은 적이 있다면 버리세요. 위 실험에서 <code>ordered_at</code>은 값 종류가 훨씬 많은데도 앞에 두니 263쪽이 들었습니다. <b>어떤 조건이 있고 어떤 정렬을 하는가</b>가 기준입니다.</li>
@@ -355,7 +355,7 @@ LIMIT  10;
   </div>
 
   <details class="fold">
-    <summary>더 깊이 — 표를 아예 읽지 않는 인덱스(<code>INCLUDE</code>와 index-only scan)</summary>
+    <summary>더 깊이: <code>INCLUDE</code>와 index-only scan</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 포인트 잔액 조회 (페이지 5): 인덱스에 delta까지 같이 싣는다</span><code>CREATE INDEX point_ledger_member_idx
     ON point_ledger (member_id) INCLUDE (delta);
@@ -368,9 +368,9 @@ SELECT SUM(delta) FROM point_ledger WHERE member_id = 77;
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 5 -->
-<section class="screen" data-title="조회 패턴에서 고르기 · FK 인덱스">
+<section class="screen" data-title="조회 패턴에 따른 인덱스 선택">
   <p class="kicker">7장 · 페이지 5</p>
-  <h2>조회 패턴에서 인덱스를 고른다 — 외래키 열 포함</h2>
+  <h2>조회 패턴에 따른 인덱스 선택</h2>
 
   <p>3장은 "정규화하면 느리다는 말은 반만 맞다"고 했습니다. 조인할 열에 인덱스가 있으면 조인은 쌉니다. 예를 들어 주문 한 건의 라인은 <code>order_line</code>의 PK 인덱스(앞 열이 <code>order_id</code>)로 바로 찾습니다(페이지 4의 선두 열 규칙). 그러면 어떤 열에 거는가가 문제입니다.</p>
 
@@ -380,7 +380,7 @@ SELECT SUM(delta) FROM point_ledger WHERE member_id = 77;
     <table>
       <tr><th style="width:12rem">조회</th><th>조건·정렬</th><th>결정 (읽은 페이지, 실측)</th></tr>
       <tr><td>주문 한 건</td><td><code>order_id = ?</code></td><td>PK가 덮는다 (4쪽)</td></tr>
-      <tr><td>그날·그달의 주문(리포트 입력)</td><td><code>ordered_at</code> 범위</td><td><b>새로</b> <code>orders_ordered_at_idx</code> (9,141쪽 → 22쪽)</td></tr>
+      <tr><td>그날의 주문(리포트 입력)</td><td><code>ordered_at</code> 범위</td><td><b>새로</b> <code>orders_ordered_at_idx</code> (9,141쪽 → 22쪽)</td></tr>
       <tr><td>회원의 최근 주문</td><td><code>member_id = ?</code>, 최신순</td><td><b>새로</b> <code>orders_member_ordered_idx</code> (페이지 4, 13쪽)</td></tr>
       <tr><td>포인트 잔액</td><td><code>point_ledger.member_id = ?</code></td><td><b>새로</b> <code>point_ledger_member_idx</code> (6,142쪽 → 180쪽)</td></tr>
       <tr><td>전화번호로 회원 찾기</td><td><code>phone = ?</code></td><td><code>member_phone_key</code>(UNIQUE)가 덮는다</td></tr>
@@ -390,7 +390,7 @@ SELECT SUM(delta) FROM point_ledger WHERE member_id = 77;
   </div>
 
   <div class="box warn">
-    <p class="box-t">인덱스가 있어도 조건을 잘못 쓰면 못 씁니다</p>
+    <p class="box-t">인덱스를 못 쓰는 조건식</p>
     <p>리포트의 "3월 5일" 조건을 <b>열에 함수를 씌워</b> 쓰면 인덱스는 <code>ordered_at</code> 값 자체를 정렬해 둔 것이라 쓸 수 없습니다. 같은 뜻을 <b>범위로 풀어 쓰면</b> 씁니다.</p>
 <pre><span class="cap">-- 같은 하루, 다른 쓰임 (orders_ordered_at_idx가 있는 상태)</span><code>-- (나쁨) 열에 함수: 9,141쪽, 풀스캔
 WHERE (ordered_at AT TIME ZONE 'Asia/Seoul')::date = DATE '2026-03-05'
@@ -401,11 +401,11 @@ WHERE ordered_at &gt;= '2026-03-05 00:00+09' AND ordered_at &lt; '2026-03-06 00:
   </div>
 
   <div class="box good">
-    <p class="box-t">6장의 "이력 조인" 빚은 설계가 이미 갚았습니다</p>
-    <p>금액을 볼 때마다 주문과 가격 이력을 시각으로 맞춰야 해서 무거워질 것이라고 했습니다. 스냅샷(C8) 덕에 <b>금액 계산은 이력 표를 읽지 않습니다.</b> <code>menu_price</code>는 메뉴판(지금 가격)을 볼 때만 읽고, 메뉴 수십 개에 이력 몇 행이라 인덱스가 더 필요 없습니다.</p>
+    <p class="box-t">6장에서 미룬 이력 조인 비용의 결론</p>
+    <p>금액을 볼 때마다 주문과 가격 이력을 시각으로 맞춰야 해서 무거워질 것이라고 했습니다. 스냅샷(C8) 덕에 이 문제는 이미 해결되어 있습니다. <b>금액 계산은 이력 표를 읽지 않습니다.</b> <code>menu_price</code>는 메뉴판(지금 가격)을 볼 때만 읽고, 메뉴 수십 개에 이력 몇 행이라 인덱스가 더 필요 없습니다.</p>
   </div>
 
-  <h3>외래키 열 — 22개를 세 질문으로 가른다</h3>
+  <h3>외래키 열 22개의 판정 기준</h3>
 
   <p>"외래키를 걸면 인덱스도 생긴다"는 PostgreSQL에서는 오해입니다(MySQL의 InnoDB는 자동으로 만듭니다). 부모 쪽 열은 PK·<code>UNIQUE</code>라 인덱스가 있지만 자식 쪽 열은 <b>자동으로 안 생깁니다.</b> v5에는 외래키가 22개이고, 질문은 셋입니다. ① PK·<code>UNIQUE</code>(복합이면 <b>앞 열</b>)가 이미 덮고 있나? ② 자식을 그 열로 찾는 조회가 있고 값 하나가 표의 <b>작은 비율</b>인가? ③ 부모 행을 지우나(지우면 DB가 자식 표를 뒤져 참조가 없는지 검사한다)?</p>
 
@@ -424,7 +424,7 @@ WHERE ordered_at &gt;= '2026-03-05 00:00+09' AND ordered_at &lt; '2026-03-06 00:
         <code>set_slot.set_menu_id</code> — <code>UNIQUE (set_menu_id, name)</code><br>
         <code>set_slot_menu.slot_id</code> — PK <code>(slot_id, menu_id)</code></td><td>PK 또는 <code>UNIQUE</code>(복합이면 앞 열)가 이미 덮는다(페이지 4의 선두 열 규칙)</td></tr>
       <tr><td><b>만듦 (3)</b></td><td><code>orders.member_id</code>, <code>point_ledger.member_id</code>, <code>coupon_issue.member_id</code></td><td>회원 기준 조회(주문 내역, 잔액, 쿠폰함)가 있고 회원 한 명의 행은 표의 아주 작은 비율이다</td></tr>
-      <tr><td>안 만듦: 큰 표 (2)</td><td><code>order_line.menu_id</code>, <code>order_line_option.option_id</code></td><td>메뉴 하나는 라인의 20%라 인덱스를 써도 17,006쪽으로 풀스캔(16,667쪽)과 같다. 드문 옵션(12.5%)은 921쪽으로 6,177쪽의 약 1/7이지만 옵션별 집계는 가끔 돌리는 분석이다. 지우지 않으므로(C6) 삭제 검사는 참조하는 라인이 없어 표를 끝까지 훑을 때 <b>한 번에 183ms</b>(인덱스가 있으면 0.05ms)이고, 가격 행이 있는 메뉴는 애초에 <code>menu_price</code> 외래키가 삭제를 막는다</td></tr>
+      <tr><td>안 만듦: 큰 표 (2)</td><td><code>order_line.menu_id</code>, <code>order_line_option.option_id</code></td><td>메뉴 하나는 라인의 20%라 인덱스를 써도 17,006쪽으로 풀스캔(16,667쪽)과 같다. 드문 옵션(12.5%)은 921쪽으로 6,177쪽의 약 1/7이지만(이득이 나는 경계는 행의 물리 배치에 따라 달라집니다) 옵션별 집계는 가끔 돌리는 분석이다. 지우지 않으므로(C6) 삭제 검사는 참조하는 라인이 없어 표를 끝까지 훑을 때 <b>한 번에 183ms</b>(인덱스가 있으면 0.05ms)이고, 가격 행이 있는 메뉴는 애초에 <code>menu_price</code> 외래키가 삭제를 막는다</td></tr>
       <tr><td>안 만듦: 값 3종 (2)</td><td><code>member.grade</code>, <code>orders.member_grade</code></td><td>등급은 3종뿐이라 페이지 7의 이유로 안 듣는다. 등급 행은 지우지 않는다</td></tr>
       <tr><td>안 만듦: 부모가 작고 안 지움 (3)</td><td><code>menu_option_group.group_id</code>, <code>set_slot_menu.menu_id</code>, <code>order_line_pick (slot_id, menu_id)</code></td><td>부모(옵션 그룹, 구성 후보)가 수십 행이고 지우는 일이 드물다</td></tr>
       <tr><td>안 만듦: 함정 (1)</td><td><code>point_ledger.order_id</code></td><td><code>point_ledger_once (order_id, reason)</code>은 조건이 붙은 <b>부분</b> 인덱스라 <code>WHERE order_id = ? AND reason = '사용'</code>은 4쪽이지만 <code>order_id</code>만으로 찾으면 6,142쪽 풀스캔이다. 청구액 계산은 <code>reason</code> 조건을 붙인다</td></tr>
@@ -435,16 +435,16 @@ WHERE ordered_at &gt;= '2026-03-05 00:00+09' AND ordered_at &lt; '2026-03-06 00:
 
   <div class="box note">
     <p class="box-t">앞 장의 예고와 결론이 다른 점</p>
-    <p>4장은 "주문이 수백만 건이 되면 메뉴 삭제 검사가 느려집니다", 5장은 "옵션을 지울 때의 참조 검사가 느려집니다"라고 예고했습니다. <b>느려지는 것은 맞습니다</b>(183ms 대 0.05ms). 다만 그 검사는 <b>부모 행을 지울 때만</b> 돌고, 이 설계는 메뉴와 옵션을 지우지 않고 <code>is_active</code>로 판매중지만 합니다(C6). 일어나지 않는 삭제를 위해 큰 표에 쓰기 비용과 공간을 치르지 않기로 한 것이 결론입니다. 메뉴를 실제로 지우는 정책으로 바뀌면 이 두 개를 만드세요.</p>
+    <p>4장은 "주문이 수백만 건이 되면 메뉴 삭제 검사가 느려집니다", 5장은 "옵션을 지울 때의 참조 검사가 느려집니다"라고 예고했습니다. <b>느려지는 것은 맞습니다</b>(183ms 대 0.05ms). 다만 그 검사는 <b>부모 행을 지울 때만</b> 돌고, 이 설계는 메뉴와 옵션을 지우지 않고 <code>is_active</code>로 판매중지만 합니다(C6). 일어나지 않는 삭제를 위해 큰 표에 쓰기 비용과 공간을 들이지 않기로 한 것이 결론입니다. 메뉴를 실제로 지우는 정책으로 바뀌면 이 두 개를 만드세요.</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 6 (선택) -->
-<section class="screen" data-title="(선택) 실행 계획 읽기">
+<section class="screen" data-title="(선택) 실행 계획(EXPLAIN) 읽기">
   <p class="kicker">7장 · 페이지 6 · 선택</p>
-  <h2>(선택) 실행 계획 읽기 — EXPLAIN</h2>
+  <h2>(선택) 실행 계획(EXPLAIN) 읽기</h2>
 
-  <p>이 페이지는 읽지 않고 넘어가도 12페이지의 흐름이 이어집니다. 앞 페이지의 "9,141쪽", "4쪽" 같은 숫자를 <b>직접 재는 방법</b>이므로 PostgreSQL을 직접 만져 볼 때 돌아와서 읽으세요. DB는 조회 하나를 받으면 "어떤 순서로 어떻게 읽을지" <b>계획</b>을 세우고 실행하고, <span class="term" data-term="explain"><code>EXPLAIN</code></span>은 그 계획을 보여 줍니다. 계획을 세우는 것도 DB라서 "인덱스를 만들었는데 쓰였는가"는 <b>이걸로 확인</b>하는 수밖에 없습니다.</p>
+  <p>이 페이지는 읽지 않고 넘어가도 이 장의 나머지 흐름은 이어집니다. 앞 페이지의 "9,141쪽", "4쪽" 같은 숫자를 <b>직접 재는 방법</b>이므로 PostgreSQL을 직접 만져 볼 때 돌아와서 읽으세요. DB는 조회 하나를 받으면 "어떤 순서로 어떻게 읽을지" <b>계획</b>을 세우고 실행하고, <span class="term" data-term="explain"><code>EXPLAIN</code></span>은 그 계획을 보여 줍니다. 계획을 세우는 것도 DB라서 "인덱스를 만들었는데 쓰였는가"는 <b>이걸로 확인</b>하는 수밖에 없습니다.</p>
 
   <p><code>EXPLAIN (ANALYZE, BUFFERS)</code>는 계획을 <b>실제로 실행해</b> 실제 행 수와 읽은 쪽 수까지 붙여 줍니다. 아래는 페이지 2의 "시각으로 한 건 찾기"의 실제 출력입니다(지면 폭 때문에 한 줄을 둘로 나눴습니다).</p>
 
@@ -485,29 +485,29 @@ Execution Time: 0.065 ms
   </div>
 
   <div class="box note">
-    <p class="box-t">조회가 여러 겹이면</p>
+    <p class="box-t">여러 겹의 조회</p>
     <p>계획은 들여쓰기가 <b>나무</b>입니다. 가장 안쪽(오른쪽)의 줄이 표나 인덱스에서 행을 읽어 바깥 줄로 올려 보냅니다. 페이지 1의 리포트라면 가장 많이 읽힌 <code>order_line</code>(페이지 1의 표: 200만 행을 두 번)을 읽는 <b>안쪽의 읽기 줄</b>부터 보게 됩니다. 행 수가 큰 줄을 먼저 찾고 바깥으로 올라가면 됩니다. 페이지 5의 "삭제 검사 183ms"는 <code>DELETE</code>의 출력 끝에 붙는 <code>Trigger for constraint order_line_menu_id_fkey: time=183.432 calls=1</code> 줄이 알려 준 것입니다. 외래키 검사는 계획의 나무가 아니라 이런 줄로 나옵니다.</p>
   </div>
 
   <div class="box warn">
-    <p class="box-t">ANALYZE는 진짜 실행합니다</p>
+    <p class="box-t">ANALYZE의 실제 실행</p>
     <p><code>EXPLAIN ANALYZE DELETE ...</code>는 행을 <b>정말 지웁니다.</b> 쓰기 문장은 <code>BEGIN; EXPLAIN ANALYZE ...; ROLLBACK;</code>으로 감싸서 되돌립니다. <code>ANALYZE</code> 없이 <code>EXPLAIN</code>만 쓰면 실행하지 않고 짐작만 보여 줍니다. 또 <b>작은 표에서는 풀스캔이 정상 답</b>입니다. 행이 수십 개뿐인 <code>menu</code>에 인덱스가 안 쓰인다고 놀랄 일이 아닙니다(페이지 7).</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 7 -->
-<section class="screen" data-title="선택도와 인덱스의 비용">
+<section class="screen" data-title="인덱스가 소용없는 경우와 인덱스의 비용">
   <p class="kicker">7장 · 페이지 7</p>
-  <h2>인덱스가 안 듣는 경우, 그리고 인덱스의 비용</h2>
+  <h2>인덱스가 소용없는 경우와 인덱스의 비용</h2>
 
   <p>"그럼 자주 쓰는 열에 전부 걸면 되나요?" 안 됩니다. 이유가 둘입니다. 걸어도 <b>안 듣는 경우</b>가 있고, 들어도 <b>공짜가 아닙니다.</b></p>
 
   <div class="box note">
-    <p class="box-t">카디널리티 — 이 장에서는 두 번째 뜻입니다</p>
-    <p>2장에서 <span class="term" data-term="cardinality">카디널리티</span>는 <b>관계의 대응 수</b>(1:N)였습니다. 인덱스 문맥에서는 같은 낱말이 <b>열이 가진 서로 다른 값의 수</b>입니다. <code>orders.status</code>의 카디널리티는 5(접수·제조중·완료·픽업·취소), <code>order_id</code>는 100만입니다. 이름은 같지만 다른 개념이니 문맥으로 구별하세요. 여기에 <span class="term" data-term="selectivity">선택도</span>가 붙습니다. <b>조건 하나가 행을 얼마나 잘 걸러 내는가</b>이고, 고르는 행의 비율이 작을수록 선택도가 높다고 말합니다(PostgreSQL 문서는 그 비율 자체를 선택도라 부르니 숫자로는 작을수록 "높은" 것입니다). 인덱스는 선택도가 높은 조건에서 듣습니다.</p>
+    <p class="box-t">카디널리티의 두 번째 뜻</p>
+    <p>2장에서 <span class="term" data-term="cardinality">카디널리티</span>는 <b>관계의 대응 수</b>(1:N)였습니다. 인덱스 문맥에서는 같은 낱말이 <b>열이 가진 서로 다른 값의 수</b>입니다. <code>orders.status</code>의 카디널리티는 5(접수·제조중·완료·픽업·취소), <code>order_id</code>는 100만입니다. 이름은 같지만 다른 개념이니 문맥으로 구별하세요. 여기에 <span class="term" data-term="selectivity">선택도</span>가 붙습니다. <b>조건 하나가 행을 얼마나 잘 걸러 내는가</b>이고, 고르는 행의 비율이 작을수록 선택도가 높다고 말합니다(비율 자체를 선택도라 부르는 문서도 있어 숫자는 거꾸로입니다). 인덱스는 선택도가 높은 조건에서 듣습니다.</p>
   </div>
 
-  <h3>값 종류가 적은 열 — 그래도 드문 값이면 듣는다</h3>
+  <h3>값 종류가 적은 열과 드문 값</h3>
 
   <p><code>orders.status</code>에 인덱스를 걸고(849쪽) 값마다 찾아 봤습니다. 읽은 페이지로 비교합니다. 풀스캔은 표 전체인 9,141쪽입니다.</p>
 
@@ -539,7 +539,7 @@ ORDER BY idx_scan;
 
   <p>부분 인덱스는 <b>조회의 <code>WHERE</code>가 인덱스의 <code>WHERE</code> 조건을 만족한다고 DB가 알 수 있을 때만</b> 쓰입니다(페이지 5의 <code>point_ledger_once</code>와 같은 이치). 5% 같은 경계에서는 "몇 % 아래면 듣는다"를 외우지 말고 <b>측정</b>하세요. 행의 물리 배치와 행 폭에 따라 경계가 달라집니다.</p>
 
-  <h3>인덱스의 비용 — 쓰기와 공간</h3>
+  <h3>인덱스의 비용: 쓰기와 공간</h3>
 
   <p>인덱스는 정렬된 사본이라 행을 넣고 고칠 때마다 <b>모든 인덱스를 함께 고칩니다.</b> <code>orders</code>와 같은 열의 표 셋(외래키·<code>CHECK</code>는 뺐습니다)에 인덱스만 다르게 걸고, 같은 주문 10만 건을 번갈아 여섯 번 넣어 <b>중앙값</b>을 비교했습니다.</p>
 
@@ -557,15 +557,15 @@ ORDER BY idx_scan;
   <ul>
     <li>읽기가 99%인 표는 이 비용이 문제가 안 되지만, <code>orders</code>처럼 <b>모든 주문이 곧 쓰기</b>인 표에서는 인덱스 하나하나가 주문 처리 경로에 붙습니다.</li>
     <li>인덱스가 <b>표보다 커지는</b> 일도 있습니다. 디스크와 메모리(캐시)를 나눠 쓰므로 자주 쓰는 인덱스를 쫓아낼 수 있습니다.</li>
-    <li>원칙은 세 줄입니다. <b>조회 목록에 이름이 나온 것만 만들고, 쓰기가 많은 표일수록 적게, 위의 <code>idx_scan</code> 조회로 안 쓰이는 것은 지웁니다.</b> 단 통계를 모은 기간이 충분할 때만 믿고, <code>PRIMARY KEY</code>·<code>UNIQUE</code>의 인덱스는 <code>idx_scan</code>이 0이어도 규칙을 지키는 일을 하므로 지우지 않습니다. 이 장이 만드는 인덱스는 5개뿐입니다(페이지 11).</li>
+    <li>원칙은 세 가지입니다. <b>조회 목록에 이름이 나온 것만 만들고, 쓰기가 많은 표일수록 적게, 위의 <code>idx_scan</code> 조회로 안 쓰이는 것은 지웁니다.</b> 단 통계를 모은 기간이 충분할 때만 믿고, <code>PRIMARY KEY</code>·<code>UNIQUE</code>의 인덱스는 <code>idx_scan</code>이 0이어도 규칙을 지키는 일을 하므로 지우지 않습니다. 이 장이 만드는 인덱스는 5개뿐입니다(페이지 11).</li>
     <li>운영 중인 큰 표에 <code>CREATE INDEX</code>는 만드는 동안 <b>쓰기를 막습니다.</b> <code>CREATE INDEX CONCURRENTLY</code>가 막지 않고 만드는 길이지만 트랜잭션 안에서 못 쓰는 제약이 따릅니다. <span class="later">9장에서 다시 본다</span></li>
   </ul>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 8 -->
-<section class="screen" data-title="요약 테이블: 의도적 비정규화 (D4)">
+<section class="screen" data-title="요약 테이블과 의도적 비정규화">
   <p class="kicker">7장 · 페이지 8</p>
-  <h2>그래도 느릴 때 — 요약 테이블, 일부러 되돌리기 (D4 상환)</h2>
+  <h2>요약 테이블과 의도적 비정규화</h2>
 
   <p>페이지 5의 인덱스로 리포트가 빨라졌는지 <b>같은 조회</b>를 기간만 바꿔 재 봅니다.</p>
 
@@ -577,14 +577,14 @@ ORDER BY idx_scan;
     </table>
   </div>
 
-  <p>하루치는 더 빨라졌고 1년치는 <b>거의 그대로</b>입니다(1년치는 이 밖에 정렬·집계용 임시 파일 입출력이 약 7만 쪽 더 있었습니다). 인덱스는 "행을 <b>찾는</b> 일"을 줄일 뿐 "읽어서 <b>더해야 하는</b> 양"은 못 줄이기 때문입니다. 1년치는 주문 47만 건에 딸린 라인·옵션·할인을 어차피 모두 읽어 더해야 합니다(이 실험의 계획은 라인 표를 통째로 두 번 훑었습니다). 그 양은 인덱스가 있어도 그대로입니다. 기간이 길어질수록 커지는 이 비용을 줄이려면 <b>더하는 일 자체를 미리 해 두는 수밖에</b> 없습니다. 5장이 걱정한 "라인 금액의 네 표 조인"은 6장의 스냅샷 덕에 <code>menu</code>·<code>option_item</code>을 읽지 않는 두 표(라인·옵션)로 줄었지만, 1년치는 그래도 더하는 양이 문제라서 요약이 갚습니다.</p>
+  <p>하루치는 더 빨라졌고 1년치는 <b>거의 그대로</b>입니다(1년치는 이 밖에 정렬·집계용 임시 파일 입출력이 약 7만 쪽 더 있었습니다). 인덱스는 "행을 <b>찾는</b> 일"을 줄일 뿐 "읽어서 <b>더해야 하는</b> 양"은 못 줄이기 때문입니다. 1년치는 주문 47만 건에 딸린 라인·옵션·할인을 어차피 모두 읽어 더해야 합니다(이 실험의 계획은 라인 표를 통째로 두 번 훑었습니다). 그 양은 인덱스가 있어도 그대로입니다. 기간이 길어질수록 커지는 이 비용을 줄이려면 <b>더하는 일 자체를 미리 해 두는 수밖에</b> 없습니다. 5장이 걱정한 "라인 금액의 네 표 조인"은 6장의 스냅샷 덕에 <code>menu</code>·<code>option_item</code>을 읽지 않는 두 표(라인·옵션)로 줄었습니다. 그래도 1년치는 그래도 더하는 양이 문제입니다. 이 문제는 요약 테이블로 해결합니다.</p>
 
-  <h3>하윤은 "하루"가 아니라 "하루치의 합"을 읽는다</h3>
+  <h3>하루 단위 합계의 저장</h3>
 
   <p>리포트가 원하는 것은 날마다 한 줄(주문 수, 소계, 할인)입니다. 그 값은 <b>끝난 날에는 바뀌지 않으니</b> 매번 주문 47만 건에서 다시 만들 이유가 없습니다. 날짜마다 한 행을 가진 <span class="term" data-term="summarytbl">요약 테이블</span>에 미리 계산해 저장합니다. 한 행이 무엇을 뜻하는지(2장의 질문)는 <b>"그 날(서울 시각)에 들어온 취소 아닌 주문 전체의 합"</b>이고 2년이면 730행입니다.</p>
 
   <div class="box note">
-    <p class="box-t">D4와 3장의 "되돌린 것" — 모순이 아닙니다</p>
+    <p class="box-t">D4와 3장의 "되돌린 것"</p>
     <p>3장은 총액을 <b>파생값이라 저장하지 않는다</b>고 했습니다(D4). 이 표는 그 결정을 뒤집는 것이 아니라 <b>측정한 뒤에 일부러 되돌린 것</b>입니다. "<span class="term" data-term="denorm">비정규화</span>는 정규화를 안 한 것이 아니라 <b>한 뒤에 되돌린 것</b>"입니다. 원본(주문·라인·옵션·할인)은 그대로 정규형이고, 그 위에 <b>버려도 다시 만들 수 있는 파생 표</b>를 얹었습니다. <code>orders</code>에 <code>total</code> 열을 넣지 않은 것도 그대로입니다. 그 열이 있어도 1년치는 주문 47만 행을 더해야 하지만, 요약은 <b>읽는 단위(하루)에 맞춰</b> 365행이 되기 때문입니다.</p>
   </div>
 
@@ -684,15 +684,15 @@ GROUP BY o.sales_date;
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 9 -->
-<section class="screen" data-title="비정규화 원칙: 갱신과 어긋남">
+<section class="screen" data-title="비정규화의 원칙">
   <p class="kicker">7장 · 페이지 9</p>
-  <h2>비정규화의 원칙 — 원본을 지키고, 갱신 경로를 하나로, 어긋남을 찾는다</h2>
+  <h2>비정규화의 원칙</h2>
 
   <p>같은 사실을 둘 이상의 자리에 두면 <b>어긋날 수 있다</b>는 것이 1장부터의 교훈이었습니다. 요약 테이블은 그 위험을 알고 얻은 속도라서 세 가지를 약속으로 둡니다.</p>
 
   <ol>
     <li><b>원본이 진실입니다.</b> 요약은 버리고 원본에서 언제든 다시 만들 수 있어야 합니다(페이지 11에서 이 약속이 깨지는 경우를 봅니다).</li>
-    <li><b>요약은 갱신 경로가 하나입니다.</b> 앱 여러 곳이 요약을 제각기 고치지 않게 합니다(4장 페이지 1이 보인 것은 입력 경로가 앱 하나가 아니게 되는 순간입니다. DB로 들어오는 길이 키오스크·스크립트·사람 손 세 갈래라 앱 한 곳의 검사로는 다 막지 못했습니다).</li>
+    <li><b>요약은 갱신 경로가 하나입니다.</b> 앱 여러 곳이 요약을 제각기 고치지 않게 합니다(4장 페이지 1에서 본 것처럼, DB로 들어오는 길은 키오스크·스크립트·사람 손 세 갈래라 앱 한 곳의 검사로는 다 막지 못합니다.).</li>
     <li><b>어긋남을 찾는 조회와 고치는 절차</b>를 처음부터 같이 만듭니다.</li>
   </ol>
 
@@ -729,7 +729,7 @@ SET order_count  = daily_sales.order_count + EXCLUDED.order_count,
   </ul>
 
   <details class="fold">
-    <summary>다시 보기 — (A)와 아래 점검이 "이 자리에" 넣는 페이지 8의 조회</summary>
+    <summary>다시 보기: 페이지 8의 하루치 집계 조회</summary>
     <div class="fold-body">
       <p>페이지 8의 <code>INSERT</code> 아래에 있던 <code>WITH ... GROUP BY</code> 부분을 그대로 옮겼습니다. 기간은 <code>ordered_at</code>의 두 경계만 바꿉니다. 해설은 페이지 8에 있습니다.</p>
 <pre><span class="cap">-- 페이지 8의 하루치 집계 조회 (기간은 9/30 하루)</span><code>WITH o AS (
@@ -778,12 +778,12 @@ WHERE  r.order_count IS DISTINCT FROM s.order_count
 </code></pre>
 
   <div class="box warn">
-    <p class="box-t">반대 의견 — 요약 테이블 대신 머티리얼라이즈드 뷰</p>
+    <p class="box-t">반대 의견: 머티리얼라이즈드 뷰</p>
     <p><code>CREATE MATERIALIZED VIEW</code>는 조회 결과를 표처럼 저장해 두고 <code>REFRESH MATERIALIZED VIEW 이름;</code> 한 줄로 갱신합니다. <b>정의가 SQL 한 곳</b>이라 훨씬 간단합니다. 약점은 갱신이 <b>전체 재계산</b>이라는 것입니다. 이 실험에서 730일 전체는 7.7초이고 하루치는 0.16초라서, "어제 하루만 다시"가 안 되는 쪽은 비쌉니다. 또 읽는 사람을 막지 않는 <code>REFRESH ... CONCURRENTLY</code>는 <code>UNIQUE</code> 인덱스가 없으면 오류입니다(<code>cannot refresh materialized view ... concurrently</code>). 데이터가 작거나 전체 재계산이 부담이 안 되면 뷰가 더 낫고, 하루 단위 재계산·행 단위 점검이 필요하면 표입니다.</p>
   </div>
 
   <div class="box note">
-    <p class="box-t">포인트 잔액 캐시 — 만들지 않기로 한 판단</p>
+    <p class="box-t">포인트 잔액 캐시를 만들지 않기로 한 판단</p>
     <p>6장은 잔액 열을 원장의 복사본으로 두는 길을 7장으로 미뤘습니다. 측정하면 <b>속도 때문에는 필요 없습니다.</b> 잔액 합계는 인덱스 하나로 6,142쪽에서 180쪽이 되었습니다. 그렇다면 잔액 열을 두는 이유는 속도가 아니라 <code>CHECK (point_balance &gt;= 0)</code>로 <b>음수 금지(C12)를 되살리는 것</b>인데, 그것은 원장과 잔액을 <b>같은 트랜잭션에서</b> 고쳐야 하는 원자성의 문제입니다. 7장은 만들지 않고, 만들 이유가 생기는 자리를 8장에 넘깁니다. <span class="later">8장에서 다시 본다</span></p>
   </div>
 </section>
@@ -791,53 +791,53 @@ WHERE  r.order_count IS DISTINCT FROM s.order_count
 <!-- ─────────────────────────────────────────── 페이지 10 -->
 <section class="screen" data-title="목록 조회와 페이지네이션">
   <p class="kicker">7장 · 페이지 10</p>
-  <h2>목록 조회와 페이지네이션 — OFFSET, keyset, COUNT(*)</h2>
+  <h2>목록 조회와 페이지네이션</h2>
 
-  <p>관리 화면은 주문 목록을 20건씩 보여 줍니다. "다음 쪽"을 누를 때마다 <b>같은 화면이 점점 느려지는</b> 일이 흔합니다. 인덱스가 있는데도 그렇습니다.</p>
+  <p>관리 화면은 주문 목록을 20건씩 묶어(이하 "묶음") 보여 줍니다. "다음" 버튼을 누를 때마다 <b>같은 화면이 점점 느려지는</b> 일이 흔합니다. 인덱스가 있는데도 그렇습니다.</p>
 
-  <h3>OFFSET — 건너뛴 만큼 읽는다</h3>
+  <h3>OFFSET의 비용</h3>
 
   <p>가장 흔한 쓰임은 <code>LIMIT 20 OFFSET 건너뛸 개수</code>입니다. 60만 건을 건너뛰고 20건을 달라는 조회를 <code>order_id</code> 역순(최신순)으로 실행했습니다.</p>
 
-<pre><span class="cap">-- (A) OFFSET: 뒤쪽 페이지   (B) keyset: 같은 20건</span><code>SELECT order_id, ordered_at, status FROM orders
+<pre><span class="cap">-- (A) OFFSET: 뒤쪽 묶음   (B) keyset: 같은 20건</span><code>SELECT order_id, ordered_at, status FROM orders
 ORDER BY order_id DESC
 LIMIT 20 OFFSET 600000;
 
 SELECT order_id, ordered_at, status FROM orders
-WHERE  order_id &lt; 401001      -- 앞 페이지의 맨 아래 주문 번호
+WHERE  order_id &lt; 401001      -- 앞 묶음의 맨 아래 주문 번호
 ORDER BY order_id DESC
 LIMIT 20;
 </code></pre>
 
   <div class="table-wrap">
     <table>
-      <tr><th style="width:11rem">조회</th><th>읽은 행</th><th>읽은 페이지</th></tr>
-      <tr><td>첫 페이지 (<code>OFFSET 0</code>)</td><td>20</td><td>4쪽</td></tr>
+      <tr><th style="width:11rem">조회</th><th>읽은 행</th><th>읽은 쪽</th></tr>
+      <tr><td>첫 묶음 (<code>OFFSET 0</code>)</td><td>20</td><td>4쪽</td></tr>
       <tr><td>(A) <code>OFFSET 600000</code></td><td><b>600,020</b></td><td><b>7,610쪽</b> (시간은 수천~1만 배)</td></tr>
       <tr><td>(B) keyset</td><td>20</td><td>4쪽</td></tr>
     </table>
   </div>
 
-  <p><code>OFFSET</code>은 <b>"앞의 N개를 만들고 버린다"</b>입니다. C++로는 이터레이터를 <code>std::advance(it, 600000)</code>로 하나씩 밀어서 가는 것과 같습니다. 인덱스가 정렬해 둔 덕에 정렬은 피했지만 건너뛰는 행은 <b>세어야</b> 하므로 읽은 행이 600,020개입니다. 비용이 <b>페이지 번호에 비례</b>하고, 사용자가 뒤로 갈수록 느려집니다.</p>
+  <p><code>OFFSET</code>은 <b>"앞의 N개를 만들고 버린다"</b>입니다. C++로는 이터레이터를 <code>std::advance(it, 600000)</code>로 하나씩 밀어서 가는 것과 같습니다. 인덱스가 정렬해 둔 덕에 정렬은 피했지만 건너뛰는 행은 <b>세어야</b> 하므로 읽은 행이 600,020개입니다. 비용이 <b>묶음 번호에 비례</b>하고, 사용자가 뒤로 갈수록 느려집니다.</p>
 
-  <h3>keyset — 마지막으로 본 자리에서 시작한다</h3>
+  <h3>keyset 페이지네이션</h3>
 
-  <p>(B)는 "건너뛴 개수" 대신 <b>"마지막으로 본 행의 키"</b>를 기억합니다. 정렬 열에 대한 범위 조건이라 인덱스가 시작점으로 바로 가고, 몇 번째 페이지든 <b>20행만</b> 읽습니다. 이것을 <span class="term" data-term="keyset">keyset 페이지네이션</span>이라 합니다(<code>std::map::lower_bound</code>로 다음 구간을 잡는 것과 같습니다). 조건이 있습니다.</p>
+  <p>(B)는 "건너뛴 개수" 대신 <b>"마지막으로 본 행의 키"</b>를 기억합니다. 정렬 열에 대한 범위 조건이라 인덱스가 시작점으로 바로 가고, 몇 번째 묶음이든 <b>20행만</b> 읽습니다. 이것을 <span class="term" data-term="keyset">keyset 페이지네이션</span>이라 합니다(<code>std::map::lower_bound</code>로 다음 구간을 잡는 것과 같습니다). 조건이 있습니다.</p>
 
   <ul>
     <li><b>정렬 기준이 행마다 다르고 순서가 정해져야 합니다.</b> <code>order_id</code>(PK)는 됩니다. "시각순"으로 보여 주려면 같은 시각이 있을 수 있으므로 <code>(ordered_at, order_id)</code> <b>쌍</b>으로 비교하고(<code>WHERE (ordered_at, order_id) &lt; (…, …)</code>), 같은 순서의 복합 인덱스를 둡니다. 실험 DB에서 이 방식도 몇 쪽만 읽었습니다. <code>ordered_at</code>만으로 비교하면 같은 시각의 행이 건너뛰어지거나 중복됩니다.</li>
-    <li><b>"목록 15페이지로 바로 가기"가 안 됩니다.</b> 이전·다음만 됩니다. 번호 이동이 꼭 필요하면 <code>OFFSET</code>을 쓰되 <b>뒤쪽 페이지는 제한</b>(예: 목록 100페이지까지)합니다.</li>
-    <li>대신 <b>목록을 보는 중에 새 주문이 들어와도 안정적</b>입니다. <code>OFFSET</code>은 새 행이 앞에 끼면 다음 목록 페이지에서 <b>같은 행이 또 보이거나</b> 빠지지만, keyset은 "이 번호 이후"라 흔들리지 않습니다.</li>
+    <li><b>"15번째 묶음으로 바로 가기"가 안 됩니다.</b> 이전·다음만 됩니다. 번호 이동이 꼭 필요하면 <code>OFFSET</code>을 쓰되 <b>뒤쪽 묶음은 제한</b>(예: 100번째 묶음까지)합니다.</li>
+    <li>대신 <b>목록을 보는 중에 새 주문이 들어와도 안정적</b>입니다. <code>OFFSET</code>은 새 행이 앞에 끼면 다음 묶음에서 <b>같은 행이 또 보이거나</b> 빠지지만, keyset은 "이 번호 이후"라 흔들리지 않습니다.</li>
   </ul>
 
-  <h3>COUNT(*) — 세는 것도 읽는 일이다</h3>
+  <h3>COUNT(*)의 비용</h3>
 
-  <p>"총 N건, 목록 5만 페이지" 표시를 위한 <code>SELECT COUNT(*) FROM orders</code>는 행 1,000,000개를 읽는 <b>풀스캔 9,141쪽</b>이었습니다. <code>WHERE status = '픽업'</code>을 붙여도 같았습니다. PostgreSQL은 행마다 "내 트랜잭션에게 보이는 행인가"를 확인해야 해서(8장의 주제) 전체 건수를 어디에 적어 두고 읽지 못합니다. 정리가 잘 된 표에서는 가장 작은 인덱스만 훑는 <i>index-only scan</i>(페이지 4의 접힌 상자)이 쪽 수를 줄여 줄 수도 있지만, 행 수에 비례해 읽는 것은 같습니다. 대안은 필요에 따라 고릅니다.</p>
+  <p>"총 N건, 5만 묶음" 표시를 위한 <code>SELECT COUNT(*) FROM orders</code>는 행 1,000,000개를 읽는 <b>풀스캔 9,141쪽</b>이었습니다. <code>WHERE status = '픽업'</code>을 붙여도 같았습니다. PostgreSQL은 행마다 "내 트랜잭션에게 보이는 행인가"를 확인해야 해서(8장의 주제) 전체 건수를 어디에 적어 두고 읽지 못합니다. 정리가 잘 된 표에서는 가장 작은 인덱스만 훑는 <i>index-only scan</i>(페이지 4의 접힌 상자)이 쪽 수를 줄여 줄 수도 있지만, 행 수에 비례해 읽는 것은 같습니다. 대안은 필요에 따라 고릅니다.</p>
 
   <div class="table-wrap">
     <table>
       <tr><th style="width:12rem">정말 필요한 것</th><th>싼 방법</th></tr>
-      <tr><td>"다음 페이지가 있나"</td><td>21건을 달라고 해서 21번째가 있는지 본다. 개수는 안 센다</td></tr>
+      <tr><td>"다음 묶음이 있나"</td><td>21건을 달라고 해서 21번째가 있는지 본다. 개수는 안 센다</td></tr>
       <tr><td>대략의 전체 건수</td><td><code>SELECT reltuples::bigint FROM pg_class WHERE relname = 'orders'</code>는 통계가 마지막으로 갱신된 때의 추정치다(이 실험에서는 1,000,000). 조건이 없는 전체에만 쓴다</td></tr>
       <tr><td>기간별 정확한 건수</td><td>페이지 8의 요약 테이블에서 <code>SUM(order_count)</code>(마감된 날은 정확하다)</td></tr>
       <tr><td>조건이 붙은 정확한 건수</td><td>그 조건을 덮는 인덱스가 있어야 하고, 건수가 많으면 어쩔 수 없이 읽는다. 정확한 수가 정말 필요한지 먼저 묻는다</td></tr>
@@ -848,13 +848,13 @@ LIMIT 20;
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 11 -->
-<section class="screen" data-title="대용량과 보관 · 스키마 v5.1">
+<section class="screen" data-title="대용량 보관과 스키마 v5.1">
   <p class="kicker">7장 · 페이지 11</p>
-  <h2>대용량과 보관 — 오래된 주문은 어떻게 하나, 그리고 스키마 v5.1</h2>
+  <h2>대용량 보관과 스키마 v5.1</h2>
 
   <p>인덱스 깊이는 행이 늘어도 거의 그대로(페이지 3)지만 <b>표와 인덱스의 크기는 행 수에 비례</b>해 자랍니다. 실험 DB는 주문 100만 건에 474MB였고, 백업·인덱스 만들기·정리 같은 운영 일은 이 크기에 비례합니다. 이 페이지는 개념만 다룹니다(설명 수준).</p>
 
-  <h3>먼저 보존 기간을 정한다</h3>
+  <h3>보존 기간 정책</h3>
 
   <p>기술 선택보다 앞서는 것은 <b>업무가 정하는 정책</b>입니다. 서연은 영수증 재출력과 환불 가능 기간 동안 주문 원본이 필요하고, 하윤은 분석을 위해 요약이 필요하며, 회계·세무에는 <b>법이 정한 보존 기간</b>이 있습니다(업종과 나라마다 달라서 본사 회계·법무에 확인할 일이고 이 교재는 기간을 단정하지 않습니다). 정책은 "주문 원본은 N년 보관한 뒤 아카이브, 요약은 영구"처럼 글로 먼저 씁니다. 그 N이 크면 아래 도구가 필요 없을 수도 있습니다.</p>
 
@@ -867,7 +867,7 @@ LIMIT 20;
     </table>
   </div>
 
-  <h3>파티셔닝(개념) — 지우는 일을 "표 하나 버리기"로</h3>
+  <h3>파티셔닝(개념)</h3>
 
 <pre><span class="cap">-- 월별 파티션 (실험 DB에서 실행해 확인)</span><code>CREATE TABLE orders_p (
     order_id    INTEGER     NOT NULL,
@@ -884,7 +884,7 @@ DROP TABLE orders_p_2026_08;
 
   <p>이렇게 큰 표를 기간 같은 기준으로 나누어 쓰는 것이 <span class="term" data-term="partition">파티셔닝</span>입니다. <code>PARTITION BY RANGE (ordered_at)</code>은 행을 시각 범위에 따라 서로 다른 물리 표(파티션)에 넣습니다. 이득은 둘입니다. 기간 조건으로 조회하면 <b>해당 파티션만 읽고</b>(실험의 계획에는 조회한 달의 파티션 하나만 나왔습니다), 오래된 달은 수백만 행을 <code>DELETE</code>하는 대신 <b>표 하나를 떼어 버립니다</b>(<code>DETACH</code>, <code>DROP</code>). 함정은 v5에 그대로 적용됩니다. 첫째, PK를 <code>order_id</code>만으로 만들면 <code>unique constraint on partitioned table must include all partitioning columns</code> 오류로 거부됩니다. 둘째, PK가 <code>(order_id, ordered_at)</code>이 되면 <code>order_line</code> 등이 <code>orders (order_id)</code>를 가리키는 외래키는 <code>there is no unique constraint matching given keys for referenced table</code>로 막힙니다. 자식 표도 <code>ordered_at</code>을 들고 다니도록 바꿔야 하는 <b>스키마 변경</b>이라 지금은 하지 않습니다. <span class="later">9장에서 다시 본다</span></p>
 
-  <h3>아카이브 — 옮기기 전에 알 것 셋</h3>
+  <h3>아카이브 전에 확인할 것</h3>
 
   <p>오래된 행을 보관용 표로 옮기고 원본에서 지우는 것이 <span class="term" data-term="archive">아카이브</span>입니다.</p>
 
@@ -894,27 +894,27 @@ DROP TABLE orders_p_2026_08;
     <li><b>요약이 유일한 기록이 될 수 있습니다.</b> 원본을 지운 날은 페이지 9의 "원본에서 다시 만든다"가 불가능합니다. 아카이브 표를 <b>읽기 전용 사본</b>으로 보존하면 재계산이 됩니다. 이 표에는 외래키를 걸지 않습니다. 스냅샷(C8) 열이 이름과 단가를 들고 있어 <code>menu</code>가 없어도 읽히기 때문입니다.</li>
   </ul>
 
-  <p>6장이 남긴 "오래된 판매중지 행 정리"는 이렇게 갚습니다. <code>menu</code>는 수십 행이라 지울 이유가 없고 행이 쌓이는 곳은 <b>주문 쪽</b>입니다. 판매중지 메뉴 행은 과거 주문이 가리키는 한 지울 수 없고(C6), 지워 봐야 얻는 것이 없으니 <b>정리하지 않습니다.</b> 매장이 하나라는 가정(D2)이 깨지면 분할 기준도 다시 보게 됩니다(9장).</p>
+  <p>6장이 미뤄 둔 "오래된 판매중지 행 정리"는 이렇게 해결합니다. <code>menu</code>는 수십 행이라 지울 이유가 없고 행이 쌓이는 곳은 <b>주문 쪽</b>입니다. 판매중지 메뉴 행은 과거 주문이 가리키는 한 지울 수 없고(C6), 지워 봐야 얻는 것이 없으니 <b>정리하지 않습니다.</b> 매장이 하나라는 가정(D2)이 깨지면 분할 기준도 다시 보게 됩니다(9장).</p>
 
-  <h3>앞 장들이 남긴 빚 — 어디서 갚았나</h3>
+  <h3>앞 장에서 미룬 문제와 해결한 페이지</h3>
 
   <div class="table-wrap">
     <table>
-      <tr><th style="width:9rem">앞 장 위치</th><th>빚</th><th>갚은 페이지</th></tr>
-      <tr><td>ch00·ch01·ch02·ch04</td><td>PK·UNIQUE가 만드는 인덱스, 잇는 열의 인덱스</td><td>2, 5</td></tr>
-      <tr><td>ch02 페이지 6</td><td>카디널리티의 두 번째 뜻</td><td>7</td></tr>
-      <tr><td>ch02 페이지 9, ch04 페이지 6, ch05 페이지 6</td><td>외래키 열의 인덱스, 삭제 검사 비용</td><td>5</td></tr>
-      <tr><td>ch03 페이지 14</td><td>"정규화하면 느리다"는 반만 맞다, 되돌리는 방법</td><td>5, 8</td></tr>
-      <tr><td>ch01 페이지 11, ch03 페이지 9·16, ch04 페이지 10, ch05 페이지 12, ch06 페이지 11</td><td>D4(총액 미저장), 보고용 요약</td><td>8, 9</td></tr>
-      <tr><td>ch05 페이지 6</td><td>라인 금액 네 표 조인</td><td>8</td></tr>
-      <tr><td>ch06 페이지 3</td><td>이력 조인 비용</td><td>5</td></tr>
-      <tr><td>ch06 페이지 5</td><td>오래된 판매중지 행 정리</td><td>11</td></tr>
-      <tr><td>ch06 페이지 9</td><td>요약을 얹어도 어긋날 위험이 작다</td><td>9</td></tr>
-      <tr><td>ch06 페이지 10·13</td><td>포인트 잔액 캐시(만들지 않기로 판단, 원자성은 8장)</td><td>9</td></tr>
+      <tr><th style="width:9rem">앞 장 위치</th><th>미뤄 둔 문제</th><th>해결한 페이지</th></tr>
+      <tr><td>0장·1장·2장·4장</td><td>PK·UNIQUE가 만드는 인덱스, 잇는 열의 인덱스</td><td>2, 5</td></tr>
+      <tr><td>2장 페이지 6</td><td>카디널리티의 두 번째 뜻</td><td>7</td></tr>
+      <tr><td>2장 페이지 9; 4장 페이지 6; 5장 페이지 6</td><td>외래키 열의 인덱스, 삭제 검사 비용</td><td>5</td></tr>
+      <tr><td>3장 페이지 14</td><td>"정규화하면 느리다"는 반만 맞다, 되돌리는 방법</td><td>5, 8</td></tr>
+      <tr><td>1장 페이지 11; 3장 페이지 9·16; 4장 페이지 10; 5장 페이지 12; 6장 페이지 11</td><td>D4(총액 미저장), 보고용 요약</td><td>8, 9</td></tr>
+      <tr><td>5장 페이지 6</td><td>라인 금액 네 표 조인</td><td>8</td></tr>
+      <tr><td>6장 페이지 3</td><td>이력 조인 비용</td><td>5</td></tr>
+      <tr><td>6장 페이지 5</td><td>오래된 판매중지 행 정리</td><td>11</td></tr>
+      <tr><td>6장 페이지 9</td><td>요약을 얹어도 어긋날 위험이 작다</td><td>9</td></tr>
+      <tr><td>6장 페이지 10·13</td><td>포인트 잔액 캐시(만들지 않기로 판단, 원자성은 8장)</td><td>9</td></tr>
     </table>
   </div>
 
-  <h3>스키마 v5.1 — 이 장의 결과</h3>
+  <h3>스키마 v5.1</h3>
 
 <pre><span class="cap">-- 스키마 v5.1 ②: 인덱스 5개 (기존 17개 표는 바뀌지 않는다)</span><code>-- 기간으로 주문을 고른다 (일 매출 집계, 기간 조회)
 CREATE INDEX orders_ordered_at_idx ON orders (ordered_at);
@@ -946,8 +946,8 @@ CREATE INDEX coupon_issue_member_idx ON coupon_issue (member_id);
     <ol>
       <li><b>인덱스는 값을 정렬해 따로 저장한 구조(B-tree)</b>라서 100만 행에서도 4쪽(인덱스 3 + 표 1)으로 찾습니다. 풀스캔은 표 전체 9,141쪽이었습니다. PK·<code>UNIQUE</code>가 이미 28개를 만들어 줬지만 <b>외래키 열에는 자동으로 안 생기고</b>, 조회 패턴과 삭제 빈도를 보고 골라서 만듭니다(v5.1은 5개).</li>
       <li><b>복합 인덱스는 선두 열 규칙</b>이 전부입니다. 등호 조건 열을 앞에, 범위·정렬 열을 뒤에 두고, 열에 함수를 씌우지 말고 범위로 씁니다.</li>
-      <li><b>선택도가 높은(드문 값을 고르는) 조건에서만 듣습니다.</b> 95%를 고르는 값에서는 인덱스가 있어도 풀스캔이고, 5%에서도 이득이 없었습니다. 드문 값은 부분 인덱스로 담습니다. 인덱스는 쓰기와 공간으로 값을 치르므로 조회 목록에 이름이 있는 것만 만듭니다.</li>
-      <li><b>인덱스는 "찾기"를 줄일 뿐 "더하기"는 못 줄입니다.</b> 그래서 요약 테이블(D4 상환)을 얹었고, 이것은 <b>정규화를 한 뒤에 일부러 되돌린 것</b>입니다. 원본이 진실이고, 갱신 경로는 하나(멱등한 배치)로 두고, 어긋남을 찾는 점검을 같이 둡니다.</li>
+      <li><b>선택도가 높은(드문 값을 고르는) 조건에서만 듣습니다.</b> 95%를 고르는 값에서는 인덱스가 있어도 풀스캔이고, 5%에서도 이득이 없었습니다. 드문 값은 부분 인덱스로 담습니다. 인덱스는 쓰기와 공간의 비용이 들므로 조회 목록에 이름이 있는 것만 만듭니다.</li>
+      <li><b>인덱스는 "찾기"를 줄일 뿐 "더하기"는 못 줄입니다.</b> 그래서 요약 테이블(D4)을 얹었고, 이것은 <b>정규화를 한 뒤에 일부러 되돌린 것</b>입니다. 원본이 진실이고, 갱신 경로는 하나(멱등한 배치)로 두고, 어긋남을 찾는 점검을 같이 둡니다.</li>
       <li>목록은 <b>OFFSET 대신 keyset</b>으로, 개수는 필요한 만큼만 셉니다. 오래된 데이터는 보존 정책을 먼저 정하고 파티셔닝·아카이브를 고릅니다. 결과가 <b>스키마 v5.1</b>(표 18개, 인덱스 5개 추가)이고, D2는 9장, D5와 동시성(요약 갱신, 잔액, 쿠폰)은 8장이 이어받습니다.</li>
     </ol>
   </div>
@@ -957,7 +957,7 @@ CREATE INDEX coupon_issue_member_idx ON coupon_issue (member_id);
     <p><b>퀴즈 3</b> — 페이지 9의 두 갱신 문장이 하는 일</p>
     <ul>
       <li><b>(A) 배치</b>: 한 트랜잭션 안에서 그날 행을 <code>DELETE</code>한 뒤, 원본(주문·라인·옵션·할인)에서 그날 전체를 다시 집계해 <code>INSERT</code>합니다.</li>
-      <li><b>(B) 증분</b>: 주문 하나의 값으로 <code>INSERT ... ON CONFLICT (sales_date) DO UPDATE SET order_count = daily_sales.order_count + EXCLUDED.order_count, ...</code>를 실행한다(그날 행이 있으면 거기에 더한다).</li>
+      <li><b>(B) 증분</b>: 주문 하나의 값으로 <code>INSERT ... ON CONFLICT (sales_date) DO UPDATE SET order_count = daily_sales.order_count + EXCLUDED.order_count, ...</code>를 실행합니다(그날 행이 있으면 거기에 더합니다).</li>
     </ul>
   </div>
 
@@ -980,7 +980,7 @@ CREATE INDEX coupon_issue_member_idx ON coupon_issue (member_id);
     <ol class="options">
       <li data-why="맞습니다. 계획을 세우는 것은 DB이고, 거의 모든 행을 고르는 조건에서는 인덱스를 거치는 것보다 표를 순서대로 읽는 쪽이 싸다고 판단해 풀스캔을 고릅니다. 같은 인덱스라도 '접수'(14행)에서는 4쪽만 읽어 이득이었습니다.">DB가 인덱스를 두고도 풀스캔을 고를 수 있다</li>
       <li data-why="틀렸습니다. 인덱스는 선택도가 높은(작은 비율을 고르는) 조건에서 이득입니다. 95%를 고르려면 표의 거의 모든 페이지를 읽어야 해서 인덱스를 거치는 길이 더 비쌉니다. 실험에서 DB는 인덱스가 있는데도 풀스캔(9,141쪽)을 골랐습니다.">인덱스를 써서 풀스캔보다 빨라진다</li>
-      <li data-why="틀렸습니다. 인덱스는 선택 사항인 구조이고 조회의 결과를 바꾸지 않습니다. 쓰이지 않는 인덱스는 에러가 아니라 쓰기 비용과 공간만 먹는 짐이 됩니다.">값 종류가 적은 열의 인덱스는 에러가 난다</li>
+      <li data-why="틀렸습니다. 인덱스는 선택 사항인 구조이고 조회의 결과를 바꾸지 않습니다. 쓰이지 않는 인덱스는 에러가 아니라 쓰기 비용과 공간만 차지합니다.">값 종류가 적은 열의 인덱스는 에러가 난다</li>
     </ol>
     <div class="explain">
       <p>값 종류가 적다고 해서 늘 쓸모없는 것은 아닙니다. <b>분포가 한쪽으로 쏠려 있고 드문 값을 찾는다면</b> 부분 인덱스로 큰 이득을 봅니다(주방 화면은 16KB로 2쪽). 반대로 <code>payment</code>(카드 70%, 현금 30%)처럼 두 값이 비슷하게 흔하면 어느 쪽을 찾아도 선택도가 낮아서 인덱스가 듣지 않기 쉽습니다. 값 종류보다 <b>"내가 찾는 값이 얼마나 흔한가"</b>입니다.</p>
@@ -1039,7 +1039,7 @@ CREATE INDEX coupon_issue_member_idx ON coupon_issue (member_id);
   </div>
 
   <details class="fold answer">
-    <summary>모범답안 — 그리고 흔한 오답이 왜 부족한지</summary>
+    <summary>모범답안과 흔한 오답</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 모범답안: 한 행 = 그 날(서울 시각)·그 메뉴의 판매 수량</span><code>CREATE TABLE daily_menu_sales (
     sales_date  DATE    NOT NULL,
