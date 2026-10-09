@@ -469,7 +469,7 @@ CREATE TABLE order_line_option (
 
   <ol class="notes">
     <li><span class="ln">4행</span> 새 열 <code>line_no</code>(라인 번호, 1부터). 3행의 <code>order_id</code> 외래키와 5행의 <code>ON DELETE RESTRICT</code>, 6행의 <code>quantity &gt;= 1</code>은 <b>v3과 글자까지 같습니다</b>(C2, C5, C6 유지).</li>
-    <li><span class="ln">7행</span> 기본키가 <code>(order_id, menu_id)</code>에서 <b><code>(order_id, line_no)</code></b>로 바뀐 것이 D3의 상환입니다. <code>menu_id</code>는 이제 키가 아니라 일반 열이라 같은 메뉴가 여러 라인에 나올 수 있습니다.</li>
+    <li><span class="ln">7행</span> 기본키가 <code>(order_id, menu_id)</code>에서 <b><code>(order_id, line_no)</code></b>로 바뀐 것이 D3의 해결입니다. <code>menu_id</code>는 이제 키가 아니라 일반 열이라 같은 메뉴가 여러 라인에 나올 수 있습니다.</li>
     <li><span class="ln">11~18행</span> <code>order_line_option</code> — 한 행은 "이 라인에 이 옵션을 이만큼". 옵션이 여럿이면 행이 여럿입니다.</li>
     <li><span class="ln">12~13행</span> 라인을 가리키는 <code>order_id</code>, <code>line_no</code>는 열 옆에 <code>REFERENCES</code>를 쓰지 않습니다. 열 <b>둘을 한 덩어리</b>로 가리켜야 해서 17행에서 따로 선언합니다.</li>
     <li><span class="ln">14행</span> 옵션 외래키도 5행의 메뉴 외래키처럼 <code>ON DELETE RESTRICT</code>를 명시합니다. 주문이 가리키는 옵션을 지울 수 없게 하는 C6의 확장입니다(지우고 싶으면 <code>is_active</code>로 내립니다).</li>
@@ -655,7 +655,7 @@ INSERT INTO order_line_option VALUES (201, 1, 6, 0);
     </table>
   </div>
 
-  <p>DB가 할 수 있는 일은 <b>규칙 자체를 데이터로 저장하고 그 모순을 막는 것</b>까지입니다. 저장된 규칙에 맞는 주문인지 <b>검사하는 일</b>은 앱이 합니다. 그리고 4장의 C1처럼 <b>점검 조회</b>로 구멍을 찾을 수 있습니다.</p>
+  <p>DB가 할 수 있는 일은 <b>규칙 자체를 데이터로 저장하고 그 모순을 막는 것</b>까지입니다. 저장된 규칙에 맞는 주문인지 <b>검사하는 일</b>은 앱이 합니다. 그리고 4장의 C1처럼 <b>점검 조회</b>로 누락을 찾을 수 있습니다.</p>
 
 <pre><span class="cap">-- 점검 ①: 그룹별 합계가 최대를 넘은 라인  ② 허용되지 않은 옵션이 붙은 라인</span><code>SELECT o.order_id, o.line_no, i.group_id,
        SUM(o.option_qty) AS picked, g.max_select
@@ -1286,7 +1286,7 @@ COMMIT;
     <li><span class="ln">2행</span> 새 열을 일단 <b><code>NOT NULL</code> 없이</b> 더합니다. 기존 여섯 행에 넣을 값이 아직 없기 때문입니다(4장 페이지 4: 행이 있는 표에 <code>NOT NULL</code> 열을 더하려면 값이 필요).</li>
     <li><span class="ln">3~8행</span> 기존 행에 라인 번호를 채웁니다. <code>UPDATE ... FROM</code>은 다른 조회 결과를 붙여 그 값으로 갱신하는 문법입니다. 안쪽 조회(5~7행)의 <code>ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY menu_id)</code>는 <b>주문(<code>order_id</code>)별로 나누어 <code>menu_id</code> 순서로 1, 2, 3…을 매기는</b> 윈도 함수입니다. 주문 101이면 아메리카노(1번)가 1, 치즈케이크(3번)가 2가 됩니다.</li>
     <li><span class="ln">9~10행</span> 값이 다 채워졌으니 9행에서 <code>NOT NULL</code>을 겁니다. 10행은 <code>line_no &gt;= 1</code> 검사를 더합니다.</li>
-    <li><span class="ln">11~12행</span> 옛 기본키를 지우고 새 기본키를 만듭니다. <code>order_line_pkey</code>는 PostgreSQL이 기본키에 자동으로 붙인 이름(<code>표이름_pkey</code>)입니다. 이 라인이 D3의 상환이 기존 데이터 위에서 일어나는 지점입니다.</li>
+    <li><span class="ln">11~12행</span> 옛 기본키를 지우고 새 기본키를 만듭니다. <code>order_line_pkey</code>는 PostgreSQL이 기본키에 자동으로 붙인 이름(<code>표이름_pkey</code>)입니다. 이 라인이 D3의 해결이 기존 데이터 위에서 일어나는 지점입니다.</li>
   </ol>
 
   <p>이 방식으로 바꾼 표는 <code>line_no</code> 열이 <b>맨 끝</b>에 놓여, 처음부터 v4로 만든 표와 열 순서만 다릅니다. 의미와 제약은 같습니다.
@@ -1360,7 +1360,7 @@ COMMIT;
     <ol class="options">
       <li data-why="틀렸습니다. 기본키는 (order_id, line_no)이므로 라인 번호가 다르면 통과합니다. v3의 (order_id, menu_id)였다면 막혔겠지만 D3을 해결하려고 기본키를 바꾸면서 그 성질을 포기한 것입니다.">기본키 (order_id, line_no)가 같은 메뉴의 중복 라인을 막는다</li>
       <li data-why="틀렸습니다. CHECK는 그 행의 열만 볼 수 있어서 다른 라인이나 다른 표(옵션)를 비교하는 조건을 쓸 수 없습니다. 같은 조합인지 아는 것은 여러 행을 비교해야 하는 일입니다.">order_line에 같은 조합을 거부하는 CHECK를 걸면 된다</li>
-      <li data-why="맞습니다. 기본키가 (order_id, line_no)로 바뀌었으므로 라인 번호가 다르면 같은 메뉴·같은 옵션 조합이어도 DB가 받아들입니다. 같은 조합을 합치는 일은 주문을 만드는 앱이 하고, 점검 조회가 구멍을 찾습니다.">DB가 막지 못한다. 주문을 만드는 앱이 같은 조합을 합쳐서 저장해야 한다</li>
+      <li data-why="맞습니다. 기본키가 (order_id, line_no)로 바뀌었으므로 라인 번호가 다르면 같은 메뉴·같은 옵션 조합이어도 DB가 받아들입니다. 같은 조합을 합치는 일은 주문을 만드는 앱이 하고, 점검 조회가 누락을 찾습니다.">DB가 막지 못한다. 주문을 만드는 앱이 같은 조합을 합쳐서 저장해야 한다</li>
     </ol>
     <div class="explain">
       <p>이것이 <b>규칙이 DB에서 앱으로 옮겨 가는</b> 전형적인 장면입니다. 설계를 바꾸면 <b>DB가 지켜 주던 규칙이 조용히 사라질 수 있습니다.</b> 그래서 스키마를 바꿀 때는 "이 변경으로 어떤 제약이 약해지는가"를 지금까지 정리한 규칙 번호 표(C1~C10)와 대조해야 합니다.
@@ -1411,7 +1411,7 @@ COMMIT;
     <ol class="options">
       <li data-why="틀렸습니다. order_line_pick의 (slot_id, menu_id)가 복합 외래키로 set_slot_menu의 후보 조합과 대조되므로, 후보가 아닌 메뉴는 저장 전에 거부됩니다.">디저트 슬롯에 카페라떼를 고르기</li>
       <li data-why="틀렸습니다. order_line_pick의 기본키가 (order_id, line_no, slot_id)라서 한 라인의 한 슬롯에는 한 행만 들어갑니다. 같은 슬롯을 두 번 고르는 입력은 기본키 위반으로 거부됩니다.">같은 라인의 음료 슬롯에 메뉴를 두 개 고르기</li>
-      <li data-why="맞습니다. '모든 슬롯을 채웠는가'는 슬롯 수와 선택 행 수를 비교해야 하는 여러 행의 규칙이라 선언으로 표현할 수 없습니다. 주문을 저장하는 트랜잭션 안에서 앱이 확인하고, 빈 슬롯 점검 조회(LEFT JOIN ... IS NULL)로 구멍을 찾습니다.">음료 슬롯도 디저트 슬롯도 고르지 않은 세트 라인</li>
+      <li data-why="맞습니다. '모든 슬롯을 채웠는가'는 슬롯 수와 선택 행 수를 비교해야 하는 여러 행의 규칙이라 선언으로 표현할 수 없습니다. 주문을 저장하는 트랜잭션 안에서 앱이 확인하고, 빈 슬롯 점검 조회(LEFT JOIN ... IS NULL)로 누락을 찾습니다.">음료 슬롯도 디저트 슬롯도 고르지 않은 세트 라인</li>
     </ol>
     <div class="explain">
       <p>C10도 C1·C9와 같은 문장으로 정리됩니다. <b>"채워졌는가"는 선언이 못 하고, "채워진 것이 올바른가"는 키와 외래키가 합니다.</b>
@@ -1459,7 +1459,7 @@ VALUES (1, 6), (2, 6);
 </code></pre>
       <p><b>1.</b> 그룹 행 하나, 옵션 행 둘, 연결 행 둘이 전부입니다. <b>새 열도 새 표도 필요 없습니다.</b> 이것이 옵션을 행으로 둔 이유입니다. HOT, ICED는 가격이 <b>0</b>입니다(NULL이 아닙니다).</p>
       <p><b>2.</b> "꼭 하나"는 <code>min_select = 1, max_select = 1</code>입니다. 이 교재가 만든 모델에서 <code>min_select</code>가 처음으로 0이 아닌 값을 갖는 그룹입니다.
-      DB는 <b>범위 값이 말이 되는지</b>(최소 ≤ 최대)만 지킵니다. 온도를 안 고른 라인을 막는 것은 <b>앱</b>이고, "행이 없음"을 찾는 점검 조회(그룹 쪽에서 시작하는 <code>LEFT JOIN</code>)가 구멍을 찾습니다. C1과 같은 모양의 규칙입니다.
+      DB는 <b>범위 값이 말이 되는지</b>(최소 ≤ 최대)만 지킵니다. 온도를 안 고른 라인을 막는 것은 <b>앱</b>이고, "행이 없음"을 찾는 점검 조회(그룹 쪽에서 시작하는 <code>LEFT JOIN</code>)가 누락을 찾습니다. C1과 같은 모양의 규칙입니다.
       세트 안의 음료는 v4에서 옵션을 붙일 자리가 없으므로(페이지 8) 이 규칙은 단품 음료 라인에만 적용됩니다.</p>
       <p><b>3.</b> 과거 주문에는 온도 행이 없으므로 <b>새 규칙을 만족하지 않습니다.</b> 그래서 이 규칙은 <b>새로 저장하는 주문부터 앱이 검사</b>하고, 점검 조회에는 "규칙 시행일 이후 주문만"이라는 조건을 겁니다. 과거 기록을 고쳐 쓰지 않는 것이 원칙입니다.
       과거 주문의 온도를 알아야 한다면 과거를 채워 넣는 작업(이전)을 따로 해야 하고, 모르는 값을 지어내지 말고 "기록 없음"으로 둬야 합니다.</p>
