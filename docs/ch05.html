@@ -16,7 +16,7 @@
   <h1>옵션과 세트: 변형이 폭발하는 메뉴</h1>
 
   <p class="lead">4장까지 만든 v3은 "주문 한 건에 메뉴가 몇 개"를 잘 담았습니다. 그런데 동백커피는 <b>손님이 메뉴에 덧붙이는 주문</b>과 <b>묶음 상품</b>을 팔기 시작합니다.
-  이 장은 교재에서 <b>처음으로 새 요구사항이 들어와 기존 설계를 깨는</b> 장입니다. 4장이 "곧 깨질 것"이라고 예고한 C3이 실제로 깨지고, 2장이 '가정 3'으로 표시하고 4장이 D3로 적어 둔 빚을 갚습니다.
+  이 장은 교재에서 <b>처음으로 새 요구사항이 들어와 기존 설계를 깨는</b> 장입니다. 4장이 "곧 깨질 것"이라고 예고한 C3이 실제로 깨지고, 2장이 '가정 3'으로 표시하고 4장이 D3로 적어 둔 문제를 이 장에서 해결합니다.
   끝에서 스키마는 <b>v4</b>가 됩니다.</p>
 
   <div class="dialog">
@@ -54,7 +54,7 @@
   그 라인의 수량이 2가 되어도 샷이 두 잔에 다 들어가는지 한 잔에만 들어가는지 알 수 없습니다. 2장 페이지 12가 "같은 메뉴는 어차피 같은 물건이다"라는 가정을 깔아 두었다고 경고한 바로 그 가정입니다.</p>
 
   <div class="box note">
-    <p class="box-t">이번 요구를 문장으로 고치면</p>
+    <p class="box-t">요구사항 정리</p>
     <ol>
       <li>메뉴에는 손님이 덧붙이거나 바꾸는 선택지가 붙는다(샷 추가, 시럽 빼기, 얼음 적게·많이, 휘핑크림, 우유 추가).</li>
       <li>선택지마다 가격이 있고, <b>0원인 것도 있다.</b></li>
@@ -78,9 +78,9 @@
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 2 -->
-<section class="screen" data-title="옵션이란 무엇인가">
+<section class="screen" data-title="옵션과 세트의 용어">
   <p class="kicker">5장 · 페이지 2</p>
-  <h2>옵션이란 — 샷, 시럽, 세트 구성</h2>
+  <h2>옵션과 세트 구성의 업무 용어</h2>
 
   <p>코드를 쓰기 전에 카페의 낱말부터 맞춥니다. 모델링은 업무 용어를 정확히 아는 데서 시작합니다.</p>
 
@@ -136,7 +136,7 @@
 <!-- ─────────────────────────────────────────── 페이지 3 -->
 <section class="screen" data-title="첫 시도: 열 늘리기">
   <p class="kicker">5장 · 페이지 3</p>
-  <h2>첫 시도 — 옵션마다 열을 하나씩</h2>
+  <h2>첫 시도: 옵션별 열 추가</h2>
 
   <p>옵션이 여섯 가지이니 주문 라인에 열을 6개 더하는 것이 가장 먼저 떠오릅니다. 아래는 <b>실패하는 시도</b>이며 이 교재의 v4 스키마에는 넣지 않습니다.</p>
 
@@ -170,7 +170,7 @@ ALTER TABLE order_line ADD COLUMN extra_milk  BOOLEAN;
     </table>
   </div>
 
-  <h3>첫 시도의 변형 — 옵션 조합마다 메뉴 행을 만들기</h3>
+  <h3>첫 시도의 변형: 조합별 메뉴 행</h3>
 
   <p>열 대신 <b>메뉴를 늘리는</b> 길도 있습니다. <code>menu</code>에 '아메리카노 샷추가', '아메리카노 샷추가2 얼음적게', …를 각각 한 행으로 넣는 것입니다. 옵션 추가가 <code>INSERT</code> 한 라인이라 쉬워 보입니다.
   그러나 <b>조합 수</b>(각 선택지의 경우의 수를 곱한 값)를 세어 보면 곧 문제가 드러납니다.</p>
@@ -201,7 +201,7 @@ ALTER TABLE order_line ADD COLUMN extra_milk  BOOLEAN;
 <!-- ─────────────────────────────────────────── 페이지 4 -->
 <section class="screen" data-title="두 번째 시도: 옵션 문자열">
   <p class="kicker">5장 · 페이지 4</p>
-  <h2>두 번째 시도 — 옵션을 글자 한 칸에</h2>
+  <h2>두 번째 시도: 옵션 문자열 열</h2>
 
   <p>열을 늘리기 싫으면 옵션을 <b>글자 한 칸</b>에 모아 적으면 됩니다. <code>order_line</code>에 <code>options</code> 열 하나만 더합니다. 표는 이렇게 보입니다(201은 옵션이 붙은 첫 라인만 보이고, 201 이외의 번호는 설명을 위해 지어낸 주문입니다).</p>
 
@@ -236,14 +236,14 @@ SELECT COUNT(*) FROM order_line WHERE options LIKE '%샷%';         -- 4
       <tr><td>1NF 위반</td><td>한 칸에 값이 여럿입니다. 3장 <b>1NF</b>에서 본 "아메리카노 2, 치즈케이크 1"을 한 칸에 적은 메뉴 목록과 같은 모양이고, 같은 병이 납니다.</td></tr>
       <tr><td>집계가 부정확하다</td><td>위의 <code>LIKE</code> 결과처럼 <b>DB가 "샷 추가"를 값으로 모르고 글자로만 봅니다.</b> 조인도 <code>GROUP BY</code>도 못 씁니다.</td></tr>
       <tr><td>표기 흔들림을 못 막는다</td><td>'샷추가', '샷 추가', 'x2', '×2'가 다 들어갑니다. 글자 열의 표기 문제는 1장과 4장에서 본 그대로인데, <code>CHECK</code>로도 "이 목록의 이름만"을 표현할 수 없습니다.</td></tr>
-      <tr><td>가격을 못 계산한다</td><td>옵션의 가격이 어디에도 없습니다. 글자를 쪼개 이름으로 가격표를 찾는 일이 앱의 몫이 됩니다. 옵션 이름을 바꾸면 모든 라인의 글자를 고쳐야 합니다(갱신 이상).</td></tr>
+      <tr><td>가격을 못 계산한다</td><td>옵션의 가격이 어디에도 없습니다. 글자를 쪼개 이름으로 가격표를 찾는 일을 앱이 해야 합니다. 옵션 이름을 바꾸면 모든 라인의 글자를 고쳐야 합니다(갱신 이상).</td></tr>
       <tr><td>외래키를 걸 수 없다</td><td>"없는 옵션은 못 고른다"(C5와 같은 규칙)를 선언할 수단이 없습니다. <code>'샷 삼추가'</code>도 저장됩니다.</td></tr>
       <tr><td>C3이 더 애매해진다</td><td>'샷 추가, 얼음 적게'와 '얼음 적게, 샷 추가'는 같은 조합인데 글자로는 다른 값입니다. 같은 조합 두 라인을 막지 못합니다.</td></tr>
     </table>
   </div>
 
   <details class="fold">
-    <summary>더 깊이 — PostgreSQL 배열이나 JSONB에 넣으면 되지 않나</summary>
+    <summary>더 깊이: PostgreSQL 배열과 JSONB</summary>
     <div class="fold-body">
       <p>PostgreSQL에는 배열 타입(<code>TEXT[]</code>)과 JSON 타입(<code>JSONB</code>)이 있어서 "목록을 한 칸에" 담는 것이 타입으로는 가능해집니다. 글자 조각을 <code>LIKE</code>로 긁는 것보다 낫고 인덱스도 걸 수 있습니다.
       그러나 <b>배열의 각 원소에는 외래키를 걸 수 없고</b>, 옵션 가격 같은 <b>속성을 원소에 붙일 자리가 없으며</b>, 옵션별 집계는 여전히 풀어헤쳐야(<code>UNNEST</code> 등) 합니다.
@@ -253,7 +253,7 @@ SELECT COUNT(*) FROM order_line WHERE options LIKE '%샷%';         -- 4
   </details>
 
   <div class="box note">
-    <p class="box-t">그래서 결론은</p>
+    <p class="box-t">결론</p>
     <p>옵션은 <b>칸(열)에도, 글자에도, 메뉴 이름에도 넣지 않고</b> <b>자기 표의 행</b>으로 둡니다. 그리고 주문 라인에 붙는 옵션 여러 개는 <b>별도 표의 여러 행</b>으로 표현합니다. 다음 페이지부터 그 표를 만듭니다.</p>
   </div>
 </section>
@@ -261,7 +261,7 @@ SELECT COUNT(*) FROM order_line WHERE options LIKE '%샷%';         -- 4
 <!-- ─────────────────────────────────────────── 페이지 5 -->
 <section class="screen" data-title="옵션 그룹·옵션·연결 모델">
   <p class="kicker">5장 · 페이지 5</p>
-  <h2>옵션 그룹 · 옵션 · 메뉴-옵션그룹 — 구조부터</h2>
+  <h2>옵션 모델의 구조</h2>
 
   <p>2장의 방법 그대로 요구사항의 <b>동사</b>에서 관계를 뽑습니다.</p>
   <ul>
@@ -378,9 +378,9 @@ CREATE TABLE menu_option_group (
     <p><b><code>menu_option_group</code>:</b> 아메리카노(메뉴 1)는 그룹 1·3(샷, 얼음), 카페라떼(메뉴 2)는 그룹 1·2·3·4·5. 치즈케이크(메뉴 3)는 연결된 그룹이 없습니다.</p>
   </div>
 
-  <h3>0원 옵션은 0으로 저장합니다 — NULL이 아닙니다</h3>
+  <h3>0원 옵션의 가격 저장</h3>
 
-  <p>4장 페이지 2가 남긴 약속을 갚습니다. 얼음 적게의 가격은 <b>"공짜라는 사실"</b>입니다. 이것을 <code>NULL</code>로 저장하면 "가격을 모른다"와 구별되지 않습니다.</p>
+  <p>4장 페이지 2가 이 장으로 미뤄 둔 질문을 여기서 해결합니다. 얼음 적게의 가격은 <b>"공짜라는 사실"</b>입니다. 이것을 <code>NULL</code>로 저장하면 "가격을 모른다"와 구별되지 않습니다.</p>
 
 <pre><span class="cap">-- 가정: 얼음 적게의 가격을 0 대신 NULL 로 저장했다면 (옵션이 두 개뿐이라고 하자)</span><code>SELECT name, 5000 + price AS latte_price FROM option_item;
 --   샷 추가     5500
@@ -398,8 +398,8 @@ SELECT SUM(price) FROM option_item;
   </ul>
 
   <div class="box good">
-    <p class="box-t">갚은 빚</p>
-    <p>4장 페이지 2가 "5장에서 다시 본다"는 표시와 함께 남긴 "가격이 0원인 옵션은 NULL이 아니라 0으로 저장한다"를 여기서 갚았습니다. 4장 페이지 7이 <code>menu.price</code>를 <code>&gt;= 0</code>으로 써 두고 예고한 경계값도 이 표에서 쓰였습니다.</p>
+    <p class="box-t">해결한 문제</p>
+    <p>4장 페이지 2가 "5장에서 다시 본다"는 표시와 함께 남긴 "가격이 0원인 옵션은 NULL이 아니라 0으로 저장한다"를 여기서 해결했습니다. 4장 페이지 7이 <code>menu.price</code>를 <code>&gt;= 0</code>으로 써 두고 예고한 경계값도 이 표에서 쓰였습니다.</p>
   </div>
 
   <div class="box warn">
@@ -413,11 +413,11 @@ SELECT SUM(price) FROM option_item;
 <!-- ─────────────────────────────────────────── 페이지 6 -->
 <section class="screen" data-title="라인 PK 개편 (D3, C3)">
   <p class="kicker">5장 · 페이지 6</p>
-  <h2>주문 라인의 옵션 저장과 라인 기본키 개편 — D3을 갚는다</h2>
+  <h2>주문 라인의 옵션 저장과 기본키 개편</h2>
 
   <div class="box good">
-    <p class="box-t">갚는 빚</p>
-    <p>2장 페이지 12가 "가정 3 — 한 주문에서 같은 메뉴는 한 라인이다"에 "5장에서 다시 본다"는 표시를 남겼고, 4장 페이지 10이 그 가정을 빚 D3로, C3을 "DB(5장에서 깨짐)"로 적었습니다. 이 페이지가 그 <b>D3을 갚고 C3을 다시 정의</b>합니다.</p>
+    <p class="box-t">이 페이지가 해결하는 문제</p>
+    <p>2장 페이지 12가 "가정 3: 같은 메뉴는 한 줄"에 "5장에서 다시 본다"는 표시를 남겼고, 4장 페이지 10이 그 가정을 미뤄 둔 문제 D3로, C3을 "DB(5장에서 깨짐)"로 적었습니다. 이 페이지가 그 <b>D3을 해결하고 C3을 다시 정의</b>합니다.</p>
   </div>
 
   <p>주문 라인은 이제 "카페라떼 한 잔 + 샷 추가 2번 + 얼음 적게"처럼 <b>메뉴 하나에 옵션 여러 개가 붙는</b> 것입니다. 옵션 여러 개는 별도 표의 여러 행이어야 하는데(페이지 4의 결론),
@@ -432,7 +432,7 @@ SELECT SUM(price) FROM option_item;
     </table>
   </div>
 
-  <p>이 교재는 <b>라인 번호</b>를 택합니다. 이유는 업무 의미가 있고, 이미 자식 표들이 <code>order_id</code>를 들고 다니기 때문에 조인 경로가 눈에 잘 보이며, 기존 데이터에 번호만 붙이면 끝나기 때문입니다.
+  <p>이 교재는 <b>라인 번호</b>를 택합니다. 이유는 세 가지입니다. 첫째, 주문서의 라인이라는 업무 의미가 있습니다. 둘째, 자식 표가 이미 <code>order_id</code>를 갖고 있어 조인 경로가 눈에 잘 보입니다. 셋째, 기존 데이터에는 번호만 붙이면 됩니다.
   대리키가 틀린 답은 아닙니다. 2장의 자연키 대 대리키 논쟁이 여기서 한 번 더 일어나는 것이고, 접힌 상자에서 대리키 문법을 봅니다.</p>
 
   <div class="box note">
@@ -498,7 +498,7 @@ CREATE TABLE order_line_option (
     행에는 순서가 없고 번호는 그냥 값입니다. 2번 라인을 지우면 1, 3번 라인이 남고 빈 번호는 그대로 둡니다. 라인 번호는 식별자이지 위치가 아닙니다.</p>
   </div>
 
-  <h3>라인 금액 계산 — 여기서 NULL이 다시 나옵니다</h3>
+  <h3>라인 금액 계산과 NULL</h3>
 
   <p>라인 금액은 <code>quantity × (menu.price + 옵션 금액의 합)</code>이고, 옵션 금액은 <code>option_item.price × option_qty</code>의 합입니다.
   옵션이 없는 라인도 나와야 하므로 <code>LEFT JOIN</code>(4장: 짝이 없는 왼쪽 행도 남기고 오른쪽 열을 NULL로 채우는 조인)을 씁니다.</p>
@@ -528,7 +528,7 @@ ORDER BY ol.line_no;
 
   <div class="box note">
     <p class="box-t">C3 — 새 문장</p>
-    <p><b>"한 주문에서 같은 (메뉴 + 옵션 조합)은 한 라인로 합친다."</b> v1~v3의 C3은 "같은 메뉴는 한 라인"이었고 기본키 <code>(order_id, menu_id)</code>가 지켰습니다.
+    <p><b>"한 주문에서 같은 (메뉴 + 옵션 조합)은 한 라인으로 합친다."</b> v1~v3의 C3은 "같은 메뉴는 한 라인"이었고 기본키 <code>(order_id, menu_id)</code>가 지켰습니다.
     이제 규칙이 <b>메뉴와 옵션 조합</b>에 대한 것으로 바뀌었는데, 옵션 조합은 <b>다른 표의 여러 행</b>이므로 <code>UNIQUE</code>나 기본키 같은 선언으로는 표현할 수 없습니다.
     <b>C3은 DB의 규칙에서 앱의 규칙이 되었습니다.</b> 주문을 만드는 앱이 같은 조합을 미리 합쳐서(수량만 올려서) 저장합니다.</p>
   </div>
@@ -536,7 +536,7 @@ ORDER BY ol.line_no;
   <p>이 규칙이 깨지면(같은 조합 두 라인) 금액 합계는 맞지만 주문서가 지저분해지고 "한 라인이 몇 잔인가"가 흔들립니다. 그래서 4장의 C1처럼 <b>점검 조회</b>를 같이 둡니다(4장 페이지 9: <code>LEFT JOIN ... IS NULL</code>로 라인이 없는 주문을 찾는 조회).</p>
 
   <details class="fold">
-    <summary>더 깊이 — C3 위반을 찾는 점검 조회</summary>
+    <summary>더 깊이: C3 위반을 찾는 점검 조회</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 같은 (메뉴 + 옵션 조합)인 라인이 둘 이상인 경우를 찾는다</span><code>SELECT order_id, menu_id, sig, COUNT(*) AS lines
 FROM  (SELECT ol.order_id, ol.line_no, ol.menu_id,
@@ -557,7 +557,7 @@ HAVING COUNT(*) &gt; 1;
   </details>
 
   <details class="fold">
-    <summary>더 깊이 — 대리키(IDENTITY)로 하면 이렇게 됩니다</summary>
+    <summary>더 깊이: 대리키(IDENTITY) 방식</summary>
     <div class="fold-body">
       <p><code>line_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY</code>처럼 쓰면 DB가 번호를 자동으로 매깁니다. <code>INSERT</code>에서 <code>line_id</code>를 적지 않으면 채워지고, <b>직접 값을 넣으려 하면 거부됩니다</b>(<code>GENERATED ALWAYS</code>는 자동 값만 허용).
       자식 표는 <code>line_id</code> 한 열로 라인을 가리키니 외래키가 단순해집니다. 이 교재가 라인 번호를 택한 것은 <b>주문서의 라인이라는 업무 의미</b>와 <b>기존 데이터에 번호만 붙이면 되는 이전의 쉬움</b> 때문이고, 대리키의 단순함이 더 값지다고 보는 팀도 많습니다.
@@ -566,7 +566,7 @@ HAVING COUNT(*) &gt; 1;
   </details>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
+    <p class="box-t">이후 장에서 다룰 문제</p>
     <ul>
       <li><b>옵션 가격은 <code>option_item.price</code>를 참조만 합니다.</b> 주문 시점의 가격을 복사하지 않으므로, 샷 추가를 600원으로 올리면 <b>이미 끝난 주문 201의 라인 금액도 6000원에서 6200원으로 바뀝니다.</b> D1이 메뉴 가격에서 옵션 가격까지 넓어졌습니다. <span class="later">6장에서 다시 본다</span></li>
       <li>라인 금액 계산이 네 표(<code>order_line</code>, <code>menu</code>, <code>order_line_option</code>, <code>option_item</code>)를 조인하게 되었습니다. 주문이 많아지면 이 계산이 리포트를 느리게 합니다. <span class="later">7장에서 다시 본다</span></li>
@@ -578,7 +578,7 @@ HAVING COUNT(*) &gt; 1;
 <!-- ─────────────────────────────────────────── 페이지 7 -->
 <section class="screen" data-title="선택 개수 규칙 C9">
   <p class="kicker">5장 · 페이지 7</p>
-  <h2>선택 개수 규칙 C9 — DB로는 어디까지 되나</h2>
+  <h2>선택 개수 규칙 C9와 DB가 지키는 범위</h2>
 
   <div class="dialog">
     <div class="line"><div class="who">지호</div><div class="say">
@@ -629,7 +629,7 @@ HAVING COUNT(*) &gt; 1;
     </table>
   </div>
 
-<pre><span class="cap">-- 입력 4, 5 의 실제 오류 (주문 201 의 첫 라인에 이미 샷 추가가 있다. VALUES 순서는 order_id, line_no, option_id, option_qty)</span><code>INSERT INTO order_line_option VALUES (201, 1, 1, 1);
+<pre><span class="cap">-- 입력 4, 5 의 실제 오류 (주문 201 의 첫 라인에 샷 추가가 이미 있다)</span><code>INSERT INTO order_line_option VALUES (201, 1, 1, 1);
 -- ERROR:  duplicate key value violates unique constraint "order_line_option_pkey"
 -- DETAIL:  Key (order_id, line_no, option_id)=(201, 1, 1) already exists.
 
@@ -637,6 +637,8 @@ INSERT INTO order_line_option VALUES (201, 1, 6, 0);
 -- ERROR:  new row for relation "order_line_option" violates check constraint
 --         "order_line_option_option_qty_check"
 </code></pre>
+
+  <p>입력 4, 5 의 <code>VALUES</code> 순서는 <code>order_id</code>, <code>line_no</code>, <code>option_id</code>, <code>option_qty</code>입니다.</p>
 
   <p>1~3번이 저장되는 이유는 4장 페이지 9의 C1과 <b>같은 모양</b>이기 때문입니다. "샷의 합계가 3 이하"는 한 행이 아니라 <b>여러 행을 합한 값</b>에 대한 규칙이고,
   "이 옵션이 이 메뉴에서 허용되는가"는 <b>다른 표의 행과 대조</b>하는 규칙입니다. <code>CHECK</code>는 그 행의 열만 보고, 외래키와 기본키는 합계를 모릅니다.</p>
@@ -680,10 +682,10 @@ WHERE  NOT EXISTS (SELECT 1 FROM menu_option_group AS mg
   </ul>
 
   <p>앱이 지키는 순서는 이렇습니다. 주문을 저장하는 <b>한 트랜잭션 안에서</b> ① 라인마다 옵션을 그룹별로 합산해 범위를 확인하고, ② 옵션의 그룹이 그 메뉴에 허용된 그룹인지, 판매중지 옵션이 아닌지 확인하고, ③ 같은 (메뉴 + 옵션 조합)이 있으면 합쳐서 저장합니다. 그 뒤 위의 점검 조회를 주기적으로 돌립니다.
-  동시에 여러 요청이 들어와도 안전하게 만드는 방법은 8장의 몫입니다. <span class="later">8장에서 다시 본다</span></p>
+  동시에 여러 요청이 들어와도 안전하게 만드는 방법은 8장에서 다룹니다. <span class="later">8장에서 다시 본다</span></p>
 
   <details class="fold">
-    <summary>더 깊이 — 복합 외래키로 "허용된 옵션인가"까지 DB가 막는 방법, 그리고 대가</summary>
+    <summary>더 깊이: 복합 외래키로 허용된 옵션을 막는 방법과 비용</summary>
     <div class="fold-body">
       <p>입력 3(치즈케이크에 휘핑)도 DB가 막게 할 수는 있습니다. <b>옵션 행에 라인의 메뉴와 옵션의 그룹을 함께 적고</b>, 그 조합을 복합 외래키로 각각 대조하는 방법입니다. 아래는 설명용이며 PostgreSQL에서 동작을 확인했지만 <b>v4 스키마에는 넣지 않았습니다.</b></p>
 <pre><span class="cap">-- 설명용(v4 스키마 밖): 옵션 행이 menu_id, group_id 도 들고 있는 변형</span><code>-- option_item 에 UNIQUE (option_id, group_id),
@@ -704,9 +706,9 @@ FOREIGN KEY (option_id, group_id)
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 8 -->
-<section class="screen" data-title="세트는 메뉴인가">
+<section class="screen" data-title="세트의 주문 라인 모델">
   <p class="kicker">5장 · 페이지 8</p>
-  <h2>세트는 메뉴인가 — 주문 라인에서의 모양</h2>
+  <h2>세트의 주문 라인 모델</h2>
 
   <p>서연이 "케이크 세트 주문이요"라고 받은 주문이 주문 라인에서 어떻게 보일지부터 정합니다. 후보는 셋입니다.</p>
 
@@ -715,7 +717,7 @@ FOREIGN KEY (option_id, group_id)
       <tr><th style="width:9rem">모델</th><th>주문 라인의 모양</th><th>장점</th><th>약점</th></tr>
       <tr><td><b>A. 세트도 <code>menu</code>의 한 행</b></td><td>라인의 <code>menu_id</code>가 세트(케이크 세트)를 가리킨다. 구성은 별도 표</td><td>라인 구조, 가격 계산, 이름 유일(C4), 삭제 방지(C6), 판매중지가 <b>그대로 재사용</b>된다</td><td>메뉴판에 세트와 단품이 섞인다. 세트인지 아는 방법이 따로 필요하다</td></tr>
       <tr><td>B. 별도 표 <code>set_product</code></td><td>라인에 <code>set_id</code> 열을 더하고 <code>menu_id</code>와 <b>둘 중 하나</b>만 채운다</td><td>세트와 메뉴가 구조로 분리된다</td><td><code>menu_id</code>가 <code>NOT NULL</code>이 아니게 되고(4장 원칙 훼손: <code>NOT NULL</code>이 기본이고 NULL 허용은 이유를 댈 수 있는 열만), 둘 중 하나만 채우는 것을 <code>CHECK</code>로 따로 지켜야 한다. 가격 계산·이름 유일·삭제 방지가 <b>두 갈래</b></td></tr>
-      <tr><td>C. 구성 메뉴 라인로 풀어 저장</td><td>세트 라인 없이 음료 라인 + 케이크 라인</td><td>기존 구조 그대로</td><td>세트 가격(9500)을 어느 라인에 둘지 정해야 하고, <b>"세트가 몇 개 팔렸나"를 알 수 없다</b></td></tr>
+      <tr><td>C. 구성 메뉴 라인으로 풀어 저장</td><td>세트 라인 없이 음료 라인 + 케이크 라인</td><td>기존 구조 그대로</td><td>세트 가격(9500)을 어느 라인에 둘지 정해야 하고, <b>"세트가 몇 개 팔렸나"를 알 수 없다</b></td></tr>
     </table>
   </div>
 
@@ -743,13 +745,13 @@ FOREIGN KEY (option_id, group_id)
   <ul>
     <li><b>세트인지 어떻게 아나 — 열을 두지 않습니다.</b> <code>is_set</code> 열을 <code>menu</code>에 더할 수도 있지만, "구성 슬롯을 가진 메뉴가 세트"라는 사실은 슬롯 표(다음 페이지)에서 <b>계산할 수 있는 값</b>입니다. 저장하면 슬롯이 없는데 <code>is_set = TRUE</code>인 행이 생길 수 있는 어긋남이 생깁니다. 3장의 <span class="term" data-term="derived">파생값</span> 질문과 같은 결정입니다.</li>
     <li><b>세트 가격은 구성 메뉴 가격의 합과 다른 사실입니다.</b> 아메리카노 4500 + 치즈케이크 6500 = 11000인데 세트는 9500입니다. 두 숫자는 <b>값이 비슷해 보이지만 의미가 다른 사실</b>(세트 가격은 "세트를 사면 얼마를 받기로 했는가")이라 중복이 아닙니다. 이 구분은 6장의 스냅샷에서 다시 중요해집니다.</li>
-    <li><b>세트 안의 구성 메뉴에는 옵션을 붙일 수 없습니다.</b> 옵션은 <b>라인</b>에 붙는데 세트 라인은 하나라서 "세트 음료에 샷 추가"가 어느 음료에 붙는지 표현할 자리가 없습니다. 필요하면 세트를 자식 라인로 풀어 저장하는 더 복잡한 모델이 필요합니다. 이 교재 범위 밖입니다.</li>
+    <li><b>세트 안의 구성 메뉴에는 옵션을 붙일 수 없습니다.</b> 옵션은 <b>라인</b>에 붙는데 세트 라인은 하나라서 "세트 음료에 샷 추가"가 어느 음료에 붙는지 표현할 자리가 없습니다. 필요하면 세트를 자식 라인으로 풀어 저장하는 더 복잡한 모델이 필요합니다. 이 교재 범위 밖입니다.</li>
     <li><b>구성품별 집계는 두 곳을 합쳐야 합니다.</b> "치즈케이크가 몇 개 팔렸나"는 <code>order_line</code>(단품 주문)과 다음 페이지의 <code>order_line_pick</code>(세트 안 선택)을 이어 붙여야 나옵니다.</li>
     <li><b>세트 구성에 따른 추가금은 없습니다.</b> 카페라떼를 고르면 500원을 더 받는 식의 규칙은 이 모델에 없습니다. 필요하면 후보 표에 금액 열을 더합니다.</li>
   </ul>
 
   <div class="box warn">
-    <p class="box-t">반대 의견 — "세트는 상품이고 메뉴는 품목이다"</p>
+    <p class="box-t">반대 의견: 상품과 품목의 구분</p>
     <p>규모가 큰 시스템은 판매 단위인 <b>상품(product)</b>과 만드는 단위인 <b>품목(item)</b>을 구분합니다. 세트는 상품이고 아메리카노는 품목이 되며, 같은 아메리카노도 단품 상품과 세트의 구성 품목으로 따로 나옵니다.
     이 구분이 있으면 위의 "구성품별 집계가 두 곳" 문제가 줄지만 표와 조인이 늘어납니다. 동백커피의 지금 규모에서는 <b>"세트도 메뉴"</b>가 더 작은 설계이고, 구성품별 집계가 자주 필요해지면 그때 나눕니다.</p>
   </div>
@@ -763,7 +765,7 @@ FOREIGN KEY (option_id, group_id)
 <!-- ─────────────────────────────────────────── 페이지 9 -->
 <section class="screen" data-title="세트 구성 슬롯 (C10)">
   <p class="kicker">5장 · 페이지 9</p>
-  <h2>세트 구성 슬롯 — 자리와 후보 (C10)</h2>
+  <h2>세트 구성 슬롯과 후보 (C10)</h2>
 
   <p>C10은 <b>"세트는 구성 슬롯을 모두 채워야 한다(음료 1 + 디저트 1, 디저트는 케이크류 중 택1)"</b>입니다. 구성 요소는 셋입니다.</p>
   <ul>
@@ -916,15 +918,15 @@ WHERE  p.slot_id IS NULL;
   </div>
 
   <div class="box warn">
-    <p class="box-t">그래서 나중에 무슨 문제가 되는가</p>
-    <p>슬롯 충족 검사도 C9처럼 <b>주문을 저장하는 트랜잭션 안에서</b> 해야 안전합니다. <span class="later">8장에서 다시 본다</span> 또 세트 라인의 <code>quantity</code>가 2이면 <b>같은 구성의 두 세트</b>를 뜻합니다. 구성이 다른 두 세트는 다른 라인로 저장합니다(옵션과 같은 C3의 논리).</p>
+    <p class="box-t">이후 장에서 다룰 문제</p>
+    <p>슬롯 충족 검사도 C9처럼 <b>주문을 저장하는 트랜잭션 안에서</b> 해야 안전합니다. <span class="later">8장에서 다시 본다</span> 또 세트 라인의 <code>quantity</code>가 2이면 <b>같은 구성의 두 세트</b>를 뜻합니다. 구성이 다른 두 세트는 다른 라인으로 저장합니다(옵션과 같은 C3의 논리).</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 10 (선택) -->
 <section class="screen" data-title="(선택) 메뉴 분류 트리">
   <p class="kicker">5장 · 페이지 10 · 선택</p>
-  <h2>(선택) 메뉴 분류 트리 — 자기 참조 표</h2>
+  <h2>(선택) 자기 참조 표로 만든 메뉴 분류 트리</h2>
 
   <div class="box note">
     <p class="box-t">선택 페이지입니다</p>
@@ -1047,7 +1049,7 @@ WHERE  attr_name = 'extra_shot' AND attr_value::INTEGER &gt;= 2;
   오류가 나는 원인이 데이터 한 칸이라 찾기도 어렵습니다.</p>
 
   <div class="box good">
-    <p class="box-t">그러면 v4의 <code>option_item</code>도 EAV 인가요 — 아닙니다</p>
+    <p class="box-t">v4의 옵션 모델과 EAV의 차이</p>
     <div class="table-wrap">
       <table>
         <tr><th></th><th>EAV</th><th>v4의 옵션 모델</th></tr>
@@ -1075,7 +1077,7 @@ WHERE  attr_name = 'extra_shot' AND attr_value::INTEGER &gt;= 2;
 <!-- ─────────────────────────────────────────── 페이지 12 -->
 <section class="screen" data-title="스키마 v4 정리">
   <p class="kicker">5장 · 페이지 12</p>
-  <h2>스키마 v4 — 표 11개와 규칙 정리</h2>
+  <h2>스키마 v4와 규칙 정리</h2>
 
   <p>이 장에서 만든 것을 한 장으로 모읍니다. <code>menu</code>, <code>member</code>, <code>orders</code>는 <b>v3과 글자까지 같고</b>, <code>order_line</code>이 바뀌고, <b>새 표 7개</b>가 생겼습니다. DDL은 각 페이지의 블록(페이지 5, 6, 9)이 기준이고, 아래 접힌 상자에 11개를 만드는 순서대로 모았습니다.</p>
 
@@ -1260,7 +1262,7 @@ CREATE TABLE order_line_pick (
     </table>
   </div>
 
-  <h3>v3에서 v4로 — 이미 있는 데이터를 지키며</h3>
+  <h3>v3에서 v4로의 데이터 이전</h3>
 
   <p>새 표 7개는 위의 DDL대로 <code>CREATE TABLE</code>하면 됩니다. 다만 <code>order_line_option</code>과 <code>order_line_pick</code>은 <code>order_line</code>의 <b>새 기본키</b>를 가리키므로 아래 이전이 끝난 <b>뒤에</b> 만듭니다(v3의 기본키 <code>(order_id, menu_id)</code> 위에는 <code>(order_id, line_no)</code>를 가리키는 외래키를 걸 수 없습니다). 문제는 <b>이미 행이 들어 있는 <code>order_line</code></b>입니다. 기존 여섯 라인에 라인 번호를 붙이고 기본키를 바꿔야 합니다.</p>
 
@@ -1288,7 +1290,7 @@ COMMIT;
   </ol>
 
   <p>이 방식으로 바꾼 표는 <code>line_no</code> 열이 <b>맨 끝</b>에 놓여, 처음부터 v4로 만든 표와 열 순서만 다릅니다. 의미와 제약은 같습니다.
-  이 이전은 작은 표에서만 가벼운 방법입니다. <b>수백만 행이 있고 서비스가 켜져 있는</b> 표에서는 <code>UPDATE</code> 한 번이 오래 걸려 그동안 다른 요청을 막을 수 있습니다. 안전한 순서(확장 → 이전 → 축소)는 9장의 몫입니다. <span class="later">9장에서 다시 본다</span></p>
+  이 이전은 작은 표에서만 가벼운 방법입니다. <b>수백만 행이 있고 서비스가 켜져 있는</b> 표에서는 <code>UPDATE</code> 한 번이 오래 걸려 그동안 다른 요청을 막을 수 있습니다. 안전한 순서(확장 → 이전 → 축소)는 9장에서 다룹니다. <span class="later">9장에서 다시 본다</span></p>
 
   <h3>규칙 표</h3>
 
@@ -1307,13 +1309,13 @@ COMMIT;
   </div>
 
   <div class="box warn">
-    <p class="box-t">옵션을 붙였어도 남은 빚</p>
+    <p class="box-t">옵션을 붙인 뒤에도 남은 문제</p>
     <div class="table-wrap">
       <table>
-        <tr><th>빚</th><th>내용</th><th>갚는 장</th></tr>
+        <tr><th>미뤄 둔 문제</th><th>내용</th><th>다루는 장</th></tr>
         <tr><td>D1</td><td>단가를 주문 라인이 갖지 않음. <b>옵션 가격과 세트 가격도</b> 참조만 한다</td><td>6장</td></tr>
         <tr><td>D2</td><td>매장 1개를 가정</td><td>9장</td></tr>
-        <tr><td><s>D3</s></td><td>라인 기본키가 <code>(order_id, menu_id)</code></td><td><b>5장에서 갚음</b></td></tr>
+        <tr><td><s>D3</s></td><td>라인 기본키가 <code>(order_id, menu_id)</code></td><td><b>5장에서 해결</b></td></tr>
         <tr><td>D4</td><td>총액을 저장하지 않고 계산. 라인 금액 계산이 네 표 조인으로 무거워짐</td><td>7장</td></tr>
         <tr><td>D5와 같은 모양</td><td>C1(라인 1개 이상), C9(합계 범위), C10(슬롯 충족)은 앱과 트랜잭션이 지킴</td><td>8장</td></tr>
       </table>
@@ -1356,12 +1358,12 @@ COMMIT;
   <div class="quiz" data-answer="3">
     <p class="q">v4에서 한 주문에 카페라떼가 옵션 없이 <b>두 라인</b> 저장되어 있습니다(라인 번호 1, 2). 이것을 막는 것은 무엇일까요?</p>
     <ol class="options">
-      <li data-why="틀렸습니다. 기본키는 (order_id, line_no)이므로 라인 번호가 다르면 통과합니다. v3의 (order_id, menu_id)였다면 막혔겠지만 D3을 갚으면서 바로 그 성질을 내놓은 것입니다.">기본키 (order_id, line_no)가 같은 메뉴의 중복 라인을 막는다</li>
+      <li data-why="틀렸습니다. 기본키는 (order_id, line_no)이므로 라인 번호가 다르면 통과합니다. v3의 (order_id, menu_id)였다면 막혔겠지만 D3을 해결하려고 기본키를 바꾸면서 그 성질을 포기한 것입니다.">기본키 (order_id, line_no)가 같은 메뉴의 중복 라인을 막는다</li>
       <li data-why="틀렸습니다. CHECK는 그 행의 열만 볼 수 있어서 다른 라인이나 다른 표(옵션)를 비교하는 조건을 쓸 수 없습니다. 같은 조합인지 아는 것은 여러 행을 비교해야 하는 일입니다.">order_line에 같은 조합을 거부하는 CHECK를 걸면 된다</li>
       <li data-why="맞습니다. 기본키가 (order_id, line_no)로 바뀌었으므로 라인 번호가 다르면 같은 메뉴·같은 옵션 조합이어도 DB가 받아들입니다. 같은 조합을 합치는 일은 주문을 만드는 앱이 하고, 점검 조회가 구멍을 찾습니다.">DB가 막지 못한다. 주문을 만드는 앱이 같은 조합을 합쳐서 저장해야 한다</li>
     </ol>
     <div class="explain">
-      <p>이것이 <b>규칙이 DB에서 앱으로 옮겨 가는</b> 전형적인 장면입니다. 설계를 바꾸면 <b>DB가 지켜 주던 규칙이 조용히 사라질 수 있습니다.</b> 그래서 스키마를 바꿀 때는 "이 변경으로 어떤 제약이 약해지는가"를 제약 표(C1~C17)와 대조해야 합니다.
+      <p>이것이 <b>규칙이 DB에서 앱으로 옮겨 가는</b> 전형적인 장면입니다. 설계를 바꾸면 <b>DB가 지켜 주던 규칙이 조용히 사라질 수 있습니다.</b> 그래서 스키마를 바꿀 때는 "이 변경으로 어떤 제약이 약해지는가"를 지금까지 정리한 규칙 번호 표(C1~C10)와 대조해야 합니다.
       한편 옵션 한 줄 <b>안에서</b> 같은 옵션을 두 행으로 넣는 것은 여전히 기본키 <code>(order_id, line_no, option_id)</code>가 막습니다.</p>
     </div>
   </div>
@@ -1444,7 +1446,7 @@ COMMIT;
   </div>
 
   <details class="fold answer">
-    <summary>모범답안 — 그리고 흔한 오답이 왜 틀리는지</summary>
+    <summary>모범답안과 흔한 오답</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 모범답안: 표 구조는 그대로, 행만 추가</span><code>INSERT INTO option_group (group_id, name, min_select, max_select)
 VALUES (6, '온도', 1, 1);
