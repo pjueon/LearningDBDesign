@@ -31,9 +31,9 @@
   <div class="box note">
     <p class="box-t">이 교재의 진행</p>
     <ol>
-      <li><b>0~1장</b> — 표를 읽는 눈을 얻고, 엑셀 한 장짜리 설계가 왜 아픈지 겪습니다.</li>
+      <li><b>0~1장</b> — 표를 읽는 법을 익히고, 엑셀 한 장짜리 설계에서 어떤 문제가 생기는지 확인합니다.</li>
       <li><b>2~4장</b> — 테이블을 나누고, 정규화로 검증하고, 규칙을 DB에 맡깁니다.</li>
-      <li><b>5~6장</b> — 이미 만든 설계가 흔들리는 순간들을 겪고 고칩니다.</li>
+      <li><b>5~6장</b> — 이미 만든 설계가 흔들리는 순간들을 살펴보고 고칩니다.</li>
       <li><b>7~9장</b> — 규모, 동시성, 운영 중 변경 앞에서 설계가 버티는지 봅니다.</li>
       <li><b>10장</b> — 정규화를 언제 깨고, 관계형 DB를 언제 쓰지 말지 판단합니다.</li>
     </ol>
@@ -44,8 +44,8 @@
     <ul>
       <li>페이지는 <b>← → 키</b>나 아래 버튼으로 넘기고, 왼쪽 목차에서 원하는 페이지로 이동합니다.
       어디까지 읽었는지는 이 브라우저에 저장됩니다.</li>
-      <li><span class="later">N장에서 다시 본다</span> 딱지는 지금은 덮어 두고 뒤의 장에서 다시 꺼내는 이야기라는 표시입니다.
-      설계에 일부러 남겨 둔 약점(빚)도 이 딱지로 표시해 두었다가 그 장에서 갚습니다. 빚에는 D1~D5 번호를 붙여 4장에서 한데 모아 보여 드립니다.</li>
+      <li><span class="later">N장에서 다시 본다</span> 딱지는 지금은 넘어가고 해당 장에서 다시 다룬다는 표시입니다.
+      설계에 일부러 남겨 둔 약점, 곧 미뤄 둔 문제에도 이 딱지를 붙이고 해당 장에서 해결합니다. 미뤄 둔 문제에는 D1~D5 번호를 붙여 4장에서 한데 모아 보여 드립니다.</li>
       <li><b>더 깊이</b> 접힌 상자는 처음 읽을 때 건너뛰어도 됩니다.</li>
       <li><b>퀴즈</b>는 선택지를 눌러 보세요. 맞고 틀린 이유가 해설로 나옵니다. 해설에 본문에 없는 이야기가 들어 있습니다.</li>
     </ul>
@@ -57,7 +57,7 @@
   이렇게 쓰면 무엇이 문법이고 무엇이 우리가 붙인 이름인지 한눈에 보입니다.</p>
 
   <details class="fold">
-    <summary>더 깊이 — 왜 PostgreSQL인가, SQLite로 공부해도 되나</summary>
+    <summary>더 깊이: PostgreSQL 선택 이유와 SQLite 사용</summary>
     <div class="fold-body">
       <p>SQL에는 국제 표준(ISO/ANSI)이 있지만 DB 제품마다 방언이 있습니다. <code>CREATE TABLE</code>,
       기본키·외래키, <code>JOIN</code>, <code>INSERT</code>/<code>UPDATE</code> 같은 핵심은 거의 공통이고,
@@ -129,9 +129,9 @@
 <!-- ─────────────────────────────────────────── 페이지 3 -->
 <section class="screen" data-title="DB 개념 지도">
   <p class="kicker">0장 · 페이지 3</p>
-  <h2>DB 개념 지도 — 이름표만 먼저 붙입니다</h2>
+  <h2>DB 개념 지도</h2>
 
-  <p>DB 이야기에는 처음 듣는 낱말이 한꺼번에 쏟아집니다. 여기서는 <b>깊이 이해하려 하지 말고</b>
+  <p>DB 이야기에는 처음 듣는 낱말이 한꺼번에 나옵니다. 여기서는 <b>깊이 이해하려 하지 말고</b>
   각 낱말이 대략 무엇이고 <b>어느 장에서 제대로 다루는지</b>만 확인하세요. 뜻은 각 장에서 필요한
   순간에 다시 설명합니다.</p>
 
@@ -180,7 +180,7 @@
   </div>
 
   <div class="box note">
-    <p class="box-t">비유는 도움이 되지만 한계가 있습니다</p>
+    <p class="box-t">비유의 한계</p>
     <p>프로그래머에게는 테이블이 <b>구조체 배열</b>, 기본키가 <b>객체 ID</b>, 외래키가 <b>포인터</b>,
     인덱스가 <b>정렬된 <code>std::map</code></b>처럼 보일 것입니다. 큰 그림으로는 맞지만 각 비유가
     <b>어디서 깨지는지</b>는 그 개념을 다루는 페이지에서 밝힙니다(테이블은 다음 페이지, 기본키는 2장). 예를 들어 외래키는 포인터와 달리
@@ -227,13 +227,13 @@
   </div>
 
   <p>이 차이가 다음 1장의 출발점입니다. 엑셀 한 장으로 잘 돌아가던 장부가 질문과 변경이 늘면서 왜 어긋나기
-  시작하는지를 겪게 됩니다.</p>
+  시작하는지를 확인합니다.</p>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 5 -->
-<section class="screen" data-title="SQL ① 만들기">
+<section class="screen" data-title="최소 SQL ① 테이블 만드는 문장 읽기">
   <p class="kicker">0장 · 페이지 5</p>
-  <h2>최소 SQL ① — 표를 만드는 문장을 읽는다</h2>
+  <h2>최소 SQL ① 테이블 만드는 문장 읽기</h2>
 
   <p>앞 페이지의 <code>menu</code> 표를 DB에 만드는 문장입니다. <b>쓰는 법이 아니라 읽는 법</b>을 익히세요.
   이 교재에서 테이블의 모양은 대부분 이런 <code>CREATE TABLE</code> 문으로 보여 드립니다.</p>
@@ -267,14 +267,14 @@ CREATE TABLE menu (
     <p class="box-t">읽을 때 기억할 것</p>
     <p>열 하나는 <b>"이름 타입 규칙"</b> 세 조각으로 읽습니다. <code>PRIMARY KEY</code>나
     <code>NOT NULL</code> 같은 규칙이 <b><span class="term" data-term="constraint">제약조건</span></b>의 시작입니다.
-    이런 규칙을 DB에 적어 두면 <b>어기는 입력을 DB가 거부</b>합니다. 엑셀에는 없던 힘입니다.</p>
+    이런 규칙을 DB에 적어 두면 <b>어기는 입력을 DB가 거부</b>합니다. 엑셀에는 없는 기능입니다.</p>
   </div>
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 6 -->
-<section class="screen" data-title="SQL ② 조회">
+<section class="screen" data-title="최소 SQL ② 조회 문장 읽기">
   <p class="kicker">0장 · 페이지 6</p>
-  <h2>최소 SQL ② — 조회 문장을 읽는다</h2>
+  <h2>최소 SQL ② 조회 문장 읽기</h2>
 
   <p>주문 한 줄을 담는 테이블 <code>order_line</code>이 하나 더 있다고 합시다.
   한 행은 "어느 주문의 어느 메뉴를 몇 개 샀는가"입니다.</p>
@@ -339,9 +339,9 @@ WHERE  ol.order_id = 101;
 </section>
 
 <!-- ─────────────────────────────────────────── 페이지 7 -->
-<section class="screen" data-title="SQL ③ 변경">
+<section class="screen" data-title="최소 SQL ③ 데이터 변경 문장과 트랜잭션">
   <p class="kicker">0장 · 페이지 7</p>
-  <h2>최소 SQL ③ — 데이터를 바꾸는 문장, 그리고 트랜잭션</h2>
+  <h2>최소 SQL ③ 데이터 변경 문장과 트랜잭션</h2>
 
 <pre><span class="cap">-- 행 추가 · 수정 · 삭제</span><code>INSERT INTO menu (menu_id, name, price)
 VALUES (4, '바닐라라떼', 5500);
@@ -363,16 +363,16 @@ WHERE  menu_id = 4;
   </ol>
 
   <div class="box bad">
-    <p class="box-t"><code>WHERE</code>를 빼면 전부 바뀝니다</p>
+    <p class="box-t"><code>WHERE</code> 없는 <code>UPDATE</code>·<code>DELETE</code></p>
     <p><code>UPDATE menu SET price = 5000;</code>처럼 <code>WHERE</code> 없이 쓰면 <b>모든 행</b>의 가격이 5000이 되고,
     <code>DELETE FROM menu;</code>는 <b>모든 행</b>을 지웁니다. DB는 "실수 아니냐"고 묻지 않고 그대로 실행합니다.</p>
   </div>
 
   <p>실제 동백커피에서는 주문 하나를 저장하려면 <code>INSERT</code>가 여러 번 필요합니다.
-  주문 1행과 라인 여러 행을 넣다가 중간에 실패하면 주문만 있고 라인은 없는 어정쩡한 데이터가 남습니다.
+  주문 1행과 라인 여러 행을 넣다가 중간에 실패하면 주문만 있고 라인은 없는 일부만 저장된 데이터가 남습니다.
   그래서 DB에는 여러 문장을 <b>한 묶음</b>으로 묶어 "전부 성공하거나 전부 없던 일로" 만드는 장치가 있습니다.</p>
 
-<pre><span class="cap">-- 묶음으로 실행 (맛보기)</span><code>BEGIN;                -- 묶음 시작
+<pre><span class="cap">-- 묶음으로 실행 (개념만 보는 예)</span><code>BEGIN;                -- 묶음 시작
 INSERT INTO ...;   -- 주문 1행
 INSERT INTO ...;   -- 라인 여러 행
 COMMIT;            -- 여기서 확정. 중간에 ROLLBACK 하면 전부 취소
@@ -383,7 +383,7 @@ COMMIT;            -- 여기서 확정. 중간에 ROLLBACK 하면 전부 취소
   <span class="later">8장에서 다시 본다</span></p>
 
   <details class="fold">
-    <summary>더 깊이 — 다른 DB에서는 어떤가</summary>
+    <summary>더 깊이: 다른 DB와의 차이</summary>
     <div class="fold-body">
       <p>이 장의 <code>CREATE TABLE</code>, <code>SELECT</code>/<code>JOIN</code>,
       <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code>는 PostgreSQL, MySQL, SQLite에서 거의 그대로 동작합니다.
@@ -403,7 +403,7 @@ COMMIT;            -- 여기서 확정. 중간에 ROLLBACK 하면 전부 취소
     <ol>
       <li>이 교재는 SQL 문법이 아니라 <b>테이블 구조를 고르는 설계</b>를 배웁니다. 코드는 PostgreSQL 기준이고 키워드는 대문자입니다.</li>
       <li>동백커피의 주문은 <b>주문 → 제조 → 픽업 → 정산</b>으로 흐르고, 주문 안의 한 줄이 <b>주문 라인</b>입니다.</li>
-      <li>DBMS·스키마·키·제약조건·인덱스·트랜잭션은 <b>이름표만</b> 붙였습니다. 스키마와 키는 2장, 제약조건은 4장, 인덱스는 7장, 트랜잭션은 8장에서 제대로 다룹니다.</li>
+      <li>DBMS·스키마·키·제약조건·인덱스·트랜잭션은 <b>대략의 뜻만</b> 소개했습니다. 스키마와 키는 2장, 제약조건은 4장, 인덱스는 7장, 트랜잭션은 8장에서 제대로 다룹니다.</li>
       <li>표를 볼 때는 먼저 <b>"한 행이 무엇을 뜻하는가"</b>를 묻습니다. <code>CREATE TABLE</code>은 표의 모양과 규칙을,
       <code>SELECT ... JOIN ... WHERE</code>는 조회를, <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code>는 변경을 뜻하며 <code>WHERE</code>가 대상을 정합니다.</li>
       <li>여러 문장을 전부 성공 아니면 전부 취소로 묶는 장치가 <b>트랜잭션</b>입니다(8장).</li>
@@ -486,7 +486,7 @@ COMMIT;            -- 여기서 확정. 중간에 ROLLBACK 하면 전부 취소
   </div>
 
   <details class="fold answer">
-    <summary>모범답안 — 그리고 흔한 오답이 왜 틀리는지</summary>
+    <summary>모범답안과 흔한 오답</summary>
     <div class="fold-body">
 <pre><span class="cap">-- 모범답안</span><code>SELECT name, price
 FROM   menu
@@ -503,7 +503,7 @@ WHERE  price &gt;= 5000;
   <div class="box note">
     <p class="box-t">학습 트랙 고르기</p>
     <p>표지의 학습 트랙(여유·표준·주말 집중·단기 몰입) 중 하나를 골라, 이번 주에 읽을 장과 요일을 정해 두세요.
-    <b>3장(정규화), 6장(스냅샷과 이력), 8장(동시성)</b>이 교재의 허리이니 그 주에는 시간을 넉넉히 잡는 것이 좋습니다.</p>
+    <b>3장(정규화), 6장(스냅샷과 이력), 8장(동시성)</b>이 가장 중요한 파트이니 그 주에는 시간을 넉넉히 잡는 것이 좋습니다.</p>
   </div>
 
   <div class="chapter-end">
