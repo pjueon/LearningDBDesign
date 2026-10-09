@@ -504,7 +504,7 @@ Execution Time: 0.065 ms
 
   <div class="box note">
     <p class="box-t">카디널리티의 두 번째 뜻</p>
-    <p>2장에서 <span class="term" data-term="cardinality">카디널리티</span>는 <b>관계의 대응 수</b>(1:N)였습니다. 인덱스 문맥에서는 같은 낱말이 <b>열이 가진 서로 다른 값의 수</b>입니다. <code>orders.status</code>의 카디널리티는 5(접수·제조중·완료·픽업·취소), <code>order_id</code>는 100만입니다. 이름은 같지만 다른 개념이니 문맥으로 구별하세요. 여기에 <span class="term" data-term="selectivity">선택도</span>가 붙습니다. <b>조건 하나가 행을 얼마나 잘 걸러 내는가</b>이고, 고르는 행의 비율이 작을수록 선택도가 높다고 말합니다(비율 자체를 선택도라 부르는 문서도 있어 숫자는 거꾸로입니다). 인덱스는 선택도가 높은 조건에서 듣습니다.</p>
+    <p>2장에서 <span class="term" data-term="cardinality">카디널리티</span>는 <b>관계의 대응 수</b>(1:N)였습니다. 인덱스 문맥에서는 같은 낱말이 <b>열이 가진 서로 다른 값의 수</b>입니다. <code>orders.status</code>의 카디널리티는 5(접수·제조중·완료·픽업·취소), <code>order_id</code>는 100만입니다. 이름은 같지만 다른 개념이니 문맥으로 구별하세요. 여기에 <span class="term" data-term="selectivity">선택도</span>가 붙습니다. <b>조건 하나가 행을 얼마나 잘 걸러 내는가</b>이고, 고르는 행의 비율이 작을수록 선택도가 높다고 말합니다(비율 자체를 선택도라 부르는 문서도 있어 숫자는 거꾸로입니다). 인덱스는 선택도가 높은 조건에서 효과가 큽니다.</p>
   </div>
 
   <h3>값 종류가 적은 열과 드문 값</h3>
